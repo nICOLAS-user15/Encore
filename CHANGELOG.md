@@ -12,6 +12,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - A quick double tap on a set's ✓ or on "Complete set" no longer un-completes the set.
 - A routine opened just to look at it and started hours later becomes a fresh workout, with the right date and duration in the history.
 - Switching routine while the timer is running now asks first, instead of discarding the workout.
+- "Back" works again when the app opens straight on the workout in progress.
 
 ## [1.0.0] - 2026-11-19
 

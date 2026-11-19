@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router'
 import { useI18n } from '../i18n/context'
 import { ArrowLeftIcon, MenuIcon, SettingsIcon } from '../ui/icons'
 import { Logo } from '../ui/Logo'
+import { isFirstPage } from './routeHandle'
 
 const iconButtonClasses =
   'flex size-12 items-center justify-center text-text active:text-muted [&>svg]:size-6'
@@ -19,9 +20,9 @@ export function TopBar({ backTo, onOpenMenu }: TopBarProps) {
   const location = useLocation()
 
   function goBack() {
-    // `key === 'default'` = this is the first page of the session (e.g. the app opened
-    // straight here). There is nowhere to "go back" to, so we go to the parent screen.
-    if (location.key === 'default' && backTo) {
+    // First page of the session (e.g. the app opened straight here, or on the workout
+    // in progress). There is nowhere to "go back" to, so we go to the parent screen.
+    if (isFirstPage(location) && backTo) {
       void navigate(backTo, { replace: true })
     } else {
       void navigate(-1)

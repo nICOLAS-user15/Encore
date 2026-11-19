@@ -103,6 +103,21 @@ describe('navigation', () => {
     await waitFor(() => expect(router.state.location.pathname).toBe(workoutPath))
   })
 
+  it('opening the app on the workout in progress: "Voltar" goes to the list', async () => {
+    const workout = await startWorkout(db, null)
+    await startWorkoutTimer(db, workout.id)
+    // Opening the app lands on /treino, which jumps straight to the workout (replace).
+    const router = renderApp(['/treino'])
+    await waitFor(() =>
+      expect(router.state.location.pathname).toBe(`/treino/${workout.id}`),
+    )
+
+    // Nothing behind it in the history: "Voltar" must still lead somewhere.
+    fireEvent.click(await screen.findByRole('button', { name: 'Voltar' }))
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/treino'))
+  })
+
   it('a workout only opened is not "in progress": the list shows no "Continuar"', async () => {
     const router = renderApp(['/treino'])
 

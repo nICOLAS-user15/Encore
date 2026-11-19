@@ -16,7 +16,7 @@ import type { Messages } from '../i18n/pt'
 import { cn } from '../lib/cn'
 import { BottomNav, type BottomNavItem } from '../ui/BottomNav'
 import { BarbellIcon, CalendarIcon, DumbbellIcon, ListIcon } from '../ui/icons'
-import type { RouteHandle } from './routeHandle'
+import { FIRST_PAGE, type RouteHandle } from './routeHandle'
 import { SideMenu } from './SideMenu'
 import { TopBar } from './TopBar'
 
@@ -66,7 +66,11 @@ export function AppLayout() {
     }
     startRedirectDone.current = true
     if (activeWorkout && location.pathname === '/treino') {
-      navigate(`/treino/${activeWorkout.workout.id}`, { replace: true })
+      // `FIRST_PAGE`: this replaced the first page, so "Voltar" knows there is nothing behind it.
+      navigate(`/treino/${activeWorkout.workout.id}`, {
+        replace: true,
+        state: FIRST_PAGE,
+      })
     }
   }, [activeWorkout, location.pathname, navigate])
 
