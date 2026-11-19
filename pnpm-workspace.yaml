@@ -1,0 +1,2 @@
+# Este arquivo marca esta pasta como raiz do projeto pnpm
+# (evita que o pnpm suba até um workspace em uma pasta pai).

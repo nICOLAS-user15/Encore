@@ -1,0 +1,38 @@
+import { useLiveQuery } from 'dexie-react-hooks'
+import { db } from '../../db/db'
+import { listActiveExercises } from '../../db/queries'
+import { useI18n } from '../../i18n/context'
+import { EmptyState } from '../../ui/EmptyState'
+import { DumbbellIcon } from '../../ui/icons'
+import { ScreenHeader } from '../../ui/ScreenHeader'
+import { ExerciseBrowser } from './ExerciseBrowser'
+
+export function ExercisesScreen() {
+  const { t, language } = useI18n()
+  // useLiveQuery re-executa a consulta quando a tabela muda (ou o idioma, pela lista de deps)
+  // e devolve `undefined` enquanto a primeira leitura não termina.
+  const exercises = useLiveQuery(() => listActiveExercises(db, language), [language])
+
+  let content = null // carregando: não mostra nada (leva milissegundos)
+  if (exercises && exercises.length === 0) {
+    content = (
+      <EmptyState
+        icon={<DumbbellIcon />}
+        title={t.exercises.emptyTitle}
+        description={t.exercises.emptyDescription}
+      />
+    )
+  } else if (exercises) {
+    content = <ExerciseBrowser exercises={exercises} />
+  }
+
+  return (
+    <>
+      <ScreenHeader
+        title={t.exercises.title}
+        eyebrow={exercises ? t.exercises.count(exercises.length) : undefined}
+      />
+      <div className="px-4 py-6">{content}</div>
+    </>
+  )
+}

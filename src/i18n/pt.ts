@@ -1,0 +1,344 @@
+import type { Equipment, MuscleGroup } from '../db/types'
+
+/*
+ * Textos do app em português. Este arquivo é a FONTE DA VERDADE: o tipo
+ * `Messages` sai daqui, e o `en.ts` é obrigado a ter exatamente as mesmas chaves.
+ *
+ * Texto que depende de um valor (plural, nome, número) é uma função.
+ */
+
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
+
+const muscleGroups: Record<MuscleGroup, string> = {
+  chest: 'Peito',
+  back: 'Costas',
+  shoulders: 'Ombros',
+  biceps: 'Bíceps',
+  triceps: 'Tríceps',
+  quads: 'Quadríceps',
+  hamstrings: 'Posteriores',
+  glutes: 'Glúteos',
+  calves: 'Panturrilhas',
+  core: 'Abdômen',
+}
+
+const equipment: Record<Equipment, string> = {
+  barbell: 'Barra',
+  dumbbell: 'Halteres',
+  machine: 'Máquina',
+  cable: 'Polia',
+  bodyweight: 'Peso corporal',
+  kettlebell: 'Kettlebell',
+}
+
+export const pt = {
+  common: {
+    close: 'Fechar',
+    done: 'Pronto',
+    cancel: 'Cancelar',
+    save: 'Salvar',
+    undo: 'Desfazer',
+    // Unidade de carga (hoje só kg; kg/lb entra quando as funções de units.ts existirem).
+    kg: 'kg',
+    actionFailed: 'Não foi possível gravar. Tente de novo.',
+    back: 'Voltar',
+    exerciseFallback: 'Exercício',
+    decrease: (label: string) => `Diminuir ${label}`,
+    increase: (label: string) => `Aumentar ${label}`,
+  },
+  app: {
+    mainNav: 'Navegação principal',
+    openMenu: 'Abrir menu',
+    menu: 'Menu',
+    settings: 'Configurações',
+  },
+  nav: {
+    workout: 'Treino',
+    routines: 'Rotinas',
+    exercises: 'Exercícios',
+    history: 'Histórico',
+  },
+  muscleGroups,
+  equipment,
+  errors: {
+    title: 'Algo deu errado',
+    description:
+      'O app encontrou um erro inesperado. Seus treinos continuam salvos no aparelho.',
+    databaseDescription:
+      'Não foi possível abrir os dados deste aparelho. Feche outras abas do Encore e recarregue; se persistir, verifique o espaço livre e se o navegador não está em modo privado.',
+    reload: 'Recarregar',
+  },
+  update: {
+    available: 'Nova versão disponível',
+    later: 'Depois',
+    update: 'Atualizar',
+  },
+  workout: {
+    title: 'Treino',
+    chooseWorkout: 'Escolha o treino',
+    exerciseCount: (n: number) => plural(n, 'exercício', 'exercícios'),
+    nextInSequence: 'próximo da sequência',
+    freeWorkout: 'Treino livre',
+    inProgress: 'Treino em andamento',
+    continue: 'Continuar',
+    continueTo: (name: string) => `Continuar treino ${name}`,
+    backToWorkout: (name: string) => `Voltar ao treino ${name}`,
+    noRoutinesTitle: 'Nenhum treino em andamento',
+    noRoutinesDescription:
+      'Comece um treino livre, ou carregue suas rotinas na aba Rotinas.',
+    seeRoutines: 'Ver rotinas',
+    /** `days` = dias desde o último backup; `null` = nunca fez. */
+    backupReminder: (days: number | null) =>
+      days === null
+        ? 'Você ainda não fez backup. Seus treinos ficam só neste aparelho.'
+        : `Último backup há ${days} dias. Seus treinos ficam só neste aparelho.`,
+    backupReminderAction: 'Fazer backup',
+    emptyTitle: 'Treino vazio',
+    emptyDescription: 'Adicione o primeiro exercício para começar a registrar as séries.',
+    addExercise: '+ Adicionar exercício',
+    finish: 'Finalizar treino',
+    setDeleted: 'Série excluída',
+    exerciseRemoved: 'Exercício removido',
+    discard: 'Descartar treino',
+    lastTime: (summary: string) => `Última vez: ${summary}`,
+    reference: (summary: string) => `Referência: ${summary}`,
+    addSet: '+ Série',
+    addEncore: '+ Encore',
+    encore: 'Encore',
+    addWarmup: '+ Aquecimento',
+    warmup: 'Aquecimento',
+    /** Rótulo curto no lugar do número da série de aquecimento. */
+    warmupShort: 'AQ',
+    removeExercise: 'Remover exercício',
+    moreOptions: (name: string) => `Mais opções: ${name}`,
+    // `label` é o número da série (1, 2...) ou "AQ" no aquecimento.
+    // O nome inclui exercício e valores: há várias "série 1" na tela e o leitor de tela
+    // precisa saber de qual se trata.
+    editSet: (label: number | string, details: string) =>
+      `Editar série ${label}: ${details}`,
+    completeSet: (label: number | string) => `Concluir série ${label}`,
+    undoSet: (label: number | string) => `Desfazer série ${label}`,
+    setTitle: (name: string, n: number) => `${name} · Série ${n}`,
+    warmupTitle: (name: string) => `${name} · Aquecimento`,
+    weight: 'Carga',
+    reps: 'Repetições',
+    completeSetButton: 'Concluir série',
+    deleteSet: 'Excluir série',
+    suggestion: {
+      label: 'Sugestão',
+      increase: 'Subir carga',
+      moreReps: '+1 rep',
+      apply: 'Aplicar',
+      applyTo: (name: string) => `Aplicar sugestão em ${name}`,
+      applied: 'Aplicada',
+    },
+    timer: {
+      label: 'Cronômetro',
+      start: 'Iniciar cronômetro',
+      notStarted: 'Cronômetro não iniciado',
+      running: 'Cronômetro rodando',
+      stopped: 'Cronômetro parado',
+      paused: 'Cronômetro pausado',
+      pause: 'Pausar',
+      resume: 'Retomar',
+      rest: 'Descansar',
+    },
+    rest: {
+      label: 'Descanso',
+      over: 'Descanso acabou',
+      go: 'Bora!',
+      skip: 'Pular',
+      ok: 'OK',
+      add15: '+15s',
+    },
+    confirm: {
+      finishTitle: 'Finalizar treino?',
+      finishDescription: (n: number) =>
+        `${plural(n, 'série concluída', 'séries concluídas')}. As séries não concluídas serão descartadas.`,
+      finishEmptyDescription:
+        'Nenhuma série foi concluída, então o treino será descartado.',
+      finishConfirm: 'Finalizar',
+      discardTitle: 'Descartar treino?',
+      discardDescription: 'Todas as séries deste treino serão apagadas.',
+      discardConfirm: 'Descartar',
+      removeTitle: 'Remover exercício?',
+      removeDescription: (name: string) => `${name} e as séries dele saem deste treino.`,
+      removeConfirm: 'Remover',
+    },
+  },
+  splits: {
+    tabsLabel: 'Divisões de treino',
+    newSplit: '+ Nova divisão',
+    defaultName: 'Nova divisão',
+    createFirst: 'Criar divisão',
+    edit: 'Editar divisão',
+    editTitle: 'Editar divisão',
+    name: 'Nome',
+    notes: 'Observações',
+    notesPlaceholder: 'Ex.: 4x por semana',
+    moveLeft: 'Mover para a esquerda',
+    moveRight: 'Mover para a direita',
+    routineCount: (n: number) => plural(n, 'rotina', 'rotinas'),
+    emptySplit: 'Nenhuma rotina nesta divisão ainda.',
+    emptySplitWorkout: 'Esta divisão ainda não tem rotinas.',
+    addRoutines: 'Adicionar rotinas',
+    deleteSplit: 'Excluir divisão',
+    deleteTitle: 'Excluir divisão?',
+    /** `n` = quantas rotinas a divisão tem (elas são excluídas junto). */
+    deleteDescription: (n: number) =>
+      n === 0
+        ? 'A divisão está vazia e sai da lista.'
+        : `A divisão e ${n === 1 ? 'a rotina dela serão excluídas' : `as ${n} rotinas dela serão excluídas`}. Os treinos que você já fez continuam no histórico.`,
+    deleteConfirm: 'Excluir',
+    /** Título do seletor no editor da rotina. */
+    ofRoutine: 'Divisão',
+    ofRoutineHint: 'Toque em outra divisão para mover esta rotina para lá.',
+  },
+  routines: {
+    title: 'Rotinas',
+    count: (n: number) => plural(n, 'treino', 'treinos'),
+    emptyTitle: 'Nenhuma rotina ainda',
+    emptyDescription:
+      'Comece criando uma divisão de treino (por exemplo, Upper/Lower ou PPL) e as rotinas dela.',
+    start: 'Iniciar',
+    resume: 'Continuar',
+    activeTitle: 'Treino em andamento',
+    activeDescription: (name: string) =>
+      `${name} ainda está em andamento. Finalize ou descarte esse treino antes de começar outro.`,
+    goToWorkout: 'Ir para o treino',
+    reference: (summary: string) => `Ref.: ${summary}`,
+    newRoutine: '+ Nova rotina',
+    newTitle: 'Nova rotina',
+    namePlaceholder: 'Ex.: Push, Upper A, Peito e tríceps',
+    exercisesHint: 'Toque em um exercício para ajustar séries, repetições e descanso.',
+    unsaved: 'Alterações não salvas',
+    noChanges: 'Nenhuma alteração',
+    needName: 'Dê um nome à rotina para salvar',
+    saveFailed: 'Não foi possível salvar. Tente de novo.',
+    discardTitle: 'Descartar alterações?',
+    discardDescription: 'As mudanças que você fez nesta rotina ainda não foram salvas.',
+    discardConfirm: 'Descartar',
+    edit: 'Editar',
+    editorTitle: 'Editar rotina',
+    notFound: 'Rotina não encontrada',
+    name: 'Nome',
+    notes: 'Observações',
+    notesPlaceholder: 'Ex.: mobilidade antes, cardio no final',
+    exercisesTitle: 'Exercícios',
+    noExercises: 'Nenhum exercício nesta rotina ainda.',
+    addExercise: '+ Adicionar exercício',
+    editItem: (name: string) => `Editar ${name}`,
+    moveUp: (name: string) => `Mover ${name} para cima`,
+    moveDown: (name: string) => `Mover ${name} para baixo`,
+    sequence: 'Posição na sequência',
+    sequenceHint: 'A ordem define qual rotina o app sugere como a próxima.',
+    position: (n: number, total: number) => `${n} de ${total}`,
+    moveRoutineUp: 'Subir',
+    moveRoutineDown: 'Descer',
+    sets: 'Séries',
+    repsMin: 'Reps mínimas',
+    repsMax: 'Reps máximas',
+    referenceWeight: 'Carga de referência',
+    referenceHint:
+      'Preenche as séries enquanto ainda não há histórico deste exercício. 0 = sem referência.',
+    rest: 'Descanso',
+    restDefault: (clock: string) => `Padrão (${clock})`,
+    restHint:
+      'Depois de cada série deste exercício. "Padrão" segue o descanso das Configurações.',
+    itemNotes: 'Observação',
+    itemNotesPlaceholder: 'Ex.: carga por lado',
+    removeFromRoutine: 'Remover da rotina',
+    deleteRoutine: 'Excluir rotina',
+    deleteTitle: 'Excluir rotina?',
+    deleteDescription:
+      'A rotina sai da lista. Os treinos já feitos com ela continuam no histórico.',
+    deleteConfirm: 'Excluir',
+  },
+  exercises: {
+    title: 'Exercícios',
+    count: (n: number) => `${n} na biblioteca`,
+    emptyTitle: 'Nenhum exercício',
+    emptyDescription: 'Sua biblioteca de exercícios aparece aqui.',
+    search: 'Buscar exercício',
+    all: 'Todos os grupos',
+    kindLabel: 'Tipo de exercício',
+    kinds: {
+      all: 'Todos',
+      free: 'Livres',
+      machine: 'Máquinas',
+    },
+    noResults: 'Nenhum exercício encontrado.',
+    pickTitle: 'Adicionar exercício',
+    createNamed: (name: string) => `+ Criar “${name}”`,
+    newTitle: 'Novo exercício',
+    nameLabel: 'Nome do exercício',
+    muscleLabel: 'Grupo muscular',
+    equipmentLabel: 'Equipamento',
+    createAndAdd: 'Criar e adicionar',
+    customHint:
+      'O exercício fica salvo na sua biblioteca e passa a aparecer na aba Exercícios.',
+  },
+  history: {
+    title: 'Histórico',
+    count: (n: number) => plural(n, 'treino', 'treinos'),
+    emptyTitle: 'Nada por aqui ainda',
+    emptyDescription:
+      'Cada treino terminado vira um registro nesta tela. O primeiro é o mais difícil.',
+    duration: 'Duração',
+    sets: 'Séries',
+    volume: 'Volume',
+    comparedTo: (routine: string, date: string) => `Comparado ao ${routine} de ${date}`,
+    minutes: (n: number) => `${n} min`,
+    notFoundTitle: 'Treino não encontrado',
+    notFoundDescription: 'Ele pode ter sido excluído.',
+    deleteWorkout: 'Excluir treino',
+    deleteTitle: 'Excluir treino?',
+    deleteDescription:
+      'Ele sai do histórico e deixa de contar como "última vez" nos próximos treinos.',
+    deleteConfirm: 'Excluir',
+    workoutDeleted: 'Treino excluído',
+  },
+  settings: {
+    title: 'Configurações',
+    language: 'Idioma',
+    rest: 'Descanso',
+    restDuration: 'Duração padrão',
+    autoStartRest: 'Começar o descanso ao concluir uma série',
+    on: 'Ligado',
+    off: 'Desligado',
+    duringWorkout: 'Durante o treino',
+    keepScreenOn: 'Manter a tela ligada',
+    restSound: 'Bipe no fim do descanso',
+    weightSteps: 'Saltos de carga',
+    weightStepsHint:
+      'O menor aumento possível em cada equipamento da sua academia. Vale para a sugestão de carga e para os botões − e + da série.',
+    backup: 'Backup',
+    backupHint:
+      'Seus treinos ficam só neste aparelho. Exporte um arquivo de vez em quando, e importe-o para levar os dados a outro aparelho.',
+    exportBackup: 'Exportar backup',
+    importBackup: 'Importar backup',
+    exported: 'Backup exportado.',
+    lastBackup: (days: number | null) =>
+      days === null
+        ? 'Último backup: nunca'
+        : `Último backup: ${days === 0 ? 'hoje' : days === 1 ? 'ontem' : `há ${days} dias`}`,
+    imported: (added: number, updated: number) =>
+      `Backup importado: ${plural(added, 'registro novo', 'registros novos')}, ${plural(updated, 'atualizado', 'atualizados')}.`,
+    importInvalid: 'Esse arquivo não é um backup do Encore.',
+    importFailed: 'Não foi possível importar o backup. Seus dados não foram alterados.',
+    exportFailed: 'Não foi possível criar o backup.',
+    importNewer:
+      'Esse backup veio de uma versão mais nova do app. Atualize o app e tente de novo.',
+  },
+  about: {
+    title: 'Sobre',
+    menuItem: 'Sobre o Encore',
+    version: (version: string) => `Versão ${version}`,
+    tagline: 'Log de treino de musculação que funciona sem internet.',
+    offline:
+      'Tudo fica salvo no seu aparelho. Sem sinal na academia, o app continua funcionando normalmente.',
+    privacy: 'Nenhum dado sai do aparelho: não há conta, servidor nem rastreamento.',
+  },
+}
+
+export type Messages = typeof pt

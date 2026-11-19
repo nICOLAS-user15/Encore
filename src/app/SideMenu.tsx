@@ -1,0 +1,112 @@
+import type { ReactNode } from 'react'
+import { NavLink } from 'react-router'
+import { useI18n } from '../i18n/context'
+import { cn } from '../lib/cn'
+import { GlitchWordmark } from '../ui/Logo'
+import {
+  BarbellIcon,
+  CalendarIcon,
+  CloseIcon,
+  InfoIcon,
+  DumbbellIcon,
+  ListIcon,
+  SettingsIcon,
+} from '../ui/icons'
+import { useModalDialog } from '../ui/useModalDialog'
+
+type SideMenuProps = {
+  open: boolean
+  onClose: () => void
+}
+
+type MenuItem = { to: string; label: string; icon: ReactNode }
+
+/**
+ * Menu que abre pela esquerda: desliza para dentro e a logo dá um "glitch"
+ * rápido. Fecha (sem animação, para ser imediato) tocando fora, no X, com Esc
+ * ou ao escolher um destino. É um `<dialog>` nativo, como o Sheet (veja useModalDialog).
+ */
+export function SideMenu({ open, onClose }: SideMenuProps) {
+  const { t } = useI18n()
+  const ref = useModalDialog(open)
+
+  const mainItems: MenuItem[] = [
+    { to: '/treino', label: t.nav.workout, icon: <BarbellIcon /> },
+    { to: '/rotinas', label: t.nav.routines, icon: <ListIcon /> },
+    { to: '/exercicios', label: t.nav.exercises, icon: <DumbbellIcon /> },
+    { to: '/historico', label: t.nav.history, icon: <CalendarIcon /> },
+  ]
+  const appItems: MenuItem[] = [
+    { to: '/configuracoes', label: t.settings.title, icon: <SettingsIcon /> },
+    { to: '/sobre', label: t.about.menuItem, icon: <InfoIcon /> },
+  ]
+
+  return (
+    <dialog
+      ref={ref}
+      aria-label={t.app.menu}
+      onClose={onClose}
+      // Toque fora do menu (área transparente do <dialog>) fecha.
+      onClick={(event) => {
+        if (event.target === event.currentTarget) {
+          onClose()
+        }
+      }}
+      className="m-0 size-full max-h-none max-w-none border-0 bg-transparent p-0 text-text backdrop:animate-fade-in backdrop:bg-background/85 open:flex"
+    >
+      {/* Como o conteúdo só existe aberto, as animações rodam a cada abertura. */}
+      {open && (
+        <nav
+          aria-label={t.app.menu}
+          className="pt-safe pb-safe flex h-full w-[min(20rem,85vw)] animate-menu-in flex-col border-r-4 border-text bg-surface"
+        >
+          <div className="flex items-center justify-between border-b-2 border-line py-2 pr-1 pl-4">
+            <GlitchWordmark className="h-6" />
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label={t.common.close}
+              className="flex size-12 items-center justify-center active:text-muted [&>svg]:size-6"
+            >
+              <CloseIcon />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto py-2">
+            <MenuList items={mainItems} onNavigate={onClose} />
+            <div className="mx-4 my-2 border-t-2 border-line" />
+            <MenuList items={appItems} onNavigate={onClose} />
+          </div>
+
+          <p className="border-t-2 border-line px-4 py-3 text-xs text-muted">
+            {t.about.version(__APP_VERSION__)}
+          </p>
+        </nav>
+      )}
+    </dialog>
+  )
+}
+
+function MenuList({ items, onNavigate }: { items: MenuItem[]; onNavigate: () => void }) {
+  return (
+    <ul>
+      {items.map((item) => (
+        <li key={item.to}>
+          <NavLink
+            to={item.to}
+            onClick={onNavigate}
+            className={({ isActive }) =>
+              cn(
+                'flex min-h-14 items-center gap-4 border-l-4 px-4 font-display text-xl font-semibold uppercase [&>svg]:size-6',
+                isActive ? 'border-text text-text' : 'border-transparent text-muted',
+              )
+            }
+          >
+            {item.icon}
+            {item.label}
+          </NavLink>
+        </li>
+      ))}
+    </ul>
+  )
+}

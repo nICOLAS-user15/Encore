@@ -1,0 +1,4 @@
+# Força quebra de linha LF no repositório (o Prettier usa LF; evita diffs falsos no Windows).
+* text=auto eol=lf
+*.png binary
+*.ico binary
