@@ -1,7 +1,7 @@
 {
   "name": "encore",
   "description": "Encore: an offline-first PWA for logging strength workouts.",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "license": "MIT",
   "author": "Nicolas de Moura",
