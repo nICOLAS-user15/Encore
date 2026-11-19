@@ -10,6 +10,7 @@ import { ConfirmSheet } from '../../ui/ConfirmSheet'
 import { EmptyState } from '../../ui/EmptyState'
 import { ListIcon } from '../../ui/icons'
 import { ScreenHeader } from '../../ui/ScreenHeader'
+import { SkeletonList } from '../../ui/Skeleton'
 import { useExerciseMap } from '../exercises/useExerciseMap'
 import { SplitSheet } from '../splits/SplitSheet'
 import { SplitTabs } from '../splits/SplitTabs'
@@ -77,7 +78,7 @@ export function RoutinesScreen() {
       : (routines ?? [])
   const editingSplit = splits?.find((split) => split.id === editingSplitId) ?? null
 
-  let content = null // loading
+  let content = <SkeletonList /> // loading
   if (routines && splits && splits.length === 0 && routines.length === 0) {
     content = (
       <EmptyState
@@ -93,7 +94,7 @@ export function RoutinesScreen() {
     )
   } else if (routines && splits && exerciseMap) {
     content = (
-      <div className="flex flex-col gap-4">
+      <div className="stagger flex flex-col gap-4">
         <SplitTabs
           splits={splits}
           activeId={currentSplit?.id ?? null}

@@ -52,7 +52,7 @@ export function RestTimer({ endsAt, sound, onAdd, onDismiss }: RestTimerProps) {
           role="timer"
           aria-label={t.workout.rest.label}
           className={cn(
-            'flex items-center justify-between gap-3 border-2 border-text bg-surface p-3',
+            'flex items-center justify-between gap-3 border-2 border-text bg-surface-high p-3 shadow-card',
             // The class is only added when it ends: the animation runs once at that moment.
             finished && 'animate-nudge',
           )}

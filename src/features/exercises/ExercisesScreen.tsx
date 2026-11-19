@@ -5,6 +5,7 @@ import { useI18n } from '../../i18n/context'
 import { EmptyState } from '../../ui/EmptyState'
 import { DumbbellIcon } from '../../ui/icons'
 import { ScreenHeader } from '../../ui/ScreenHeader'
+import { SkeletonList } from '../../ui/Skeleton'
 import { ExerciseBrowser } from './ExerciseBrowser'
 
 export function ExercisesScreen() {
@@ -13,7 +14,7 @@ export function ExercisesScreen() {
   // and returns `undefined` until the first read finishes.
   const exercises = useLiveQuery(() => listActiveExercises(db, language), [language])
 
-  let content = null // loading: shows nothing (takes milliseconds)
+  let content = <SkeletonList heightClass="h-14" count={6} /> // loading
   if (exercises && exercises.length === 0) {
     content = (
       <EmptyState

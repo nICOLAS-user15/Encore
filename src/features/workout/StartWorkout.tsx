@@ -12,6 +12,7 @@ import { ConfirmSheet } from '../../ui/ConfirmSheet'
 import { EmptyState } from '../../ui/EmptyState'
 import { ArrowRightIcon, BarbellIcon } from '../../ui/icons'
 import { ScreenHeader } from '../../ui/ScreenHeader'
+import { SkeletonList } from '../../ui/Skeleton'
 import { useAction } from '../../ui/toastContext'
 import { listRoutinesWithExercises } from '../routines/routineQueries'
 import { daysSince, needsBackupReminder } from '../settings/backupReminder'
@@ -78,7 +79,7 @@ export function StartWorkout() {
 
   const activeName = active ? (active.routineName ?? t.workout.freeWorkout) : ''
 
-  let content = null // loading
+  let content = <SkeletonList heightClass="h-20" /> // loading
   if (routines && routines.length === 0 && active === null) {
     content = (
       <EmptyState
@@ -114,7 +115,7 @@ export function StartWorkout() {
           lastRoutineIdInSplit(history.finished, visibleIds),
         )
     content = (
-      <div className="flex flex-col gap-3">
+      <div className="stagger flex flex-col gap-3">
         {active && <ContinueCard info={active} name={activeName} now={now} />}
 
         {/* With only one split, the tabs do not help: they stay hidden. */}
@@ -152,11 +153,11 @@ export function StartWorkout() {
               type="button"
               onClick={() => void start(routine.id)}
               className={cn(
-                'flex min-h-20 items-center justify-between gap-4 rounded-sm border-2 px-4 py-3 text-left transition active:scale-[0.98]',
+                'press flex min-h-20 items-center justify-between gap-4 rounded-sm border-2 px-4 py-3 text-left',
                 // The next one in the sequence is THE main action of the screen: it gets the accent.
                 isNext
-                  ? 'border-accent bg-accent active:border-accent-pressed active:bg-accent-pressed'
-                  : 'border-line-strong bg-surface active:border-text',
+                  ? 'border-accent bg-accent shadow-glow active:border-accent-pressed active:bg-accent-pressed'
+                  : 'border-line-strong bg-surface shadow-card active:border-text',
               )}
             >
               <span>

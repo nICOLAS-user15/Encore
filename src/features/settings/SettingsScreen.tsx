@@ -125,7 +125,7 @@ function ToggleRow({ label, checked, onChange }: ToggleRowProps) {
       role="switch"
       aria-checked={checked}
       onClick={() => onChange(!checked)}
-      className="flex min-h-14 w-full items-center justify-between gap-4 rounded-sm border-2 border-line-strong bg-surface px-4 text-left active:border-text"
+      className="flex min-h-14 w-full items-center justify-between gap-4 rounded-sm border-2 border-line-strong bg-surface px-4 text-left shadow-edge active:border-text"
     >
       <span className="font-medium">{label}</span>
       {/* aria-hidden: role="switch" + aria-checked already state the status; the badge is visual. */}

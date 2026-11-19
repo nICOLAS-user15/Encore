@@ -16,8 +16,8 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    'border-accent bg-accent text-text active:border-accent-pressed active:bg-accent-pressed',
-  secondary: 'border-line-strong bg-surface text-text active:border-text',
+    'border-accent bg-accent text-text shadow-glow active:border-accent-pressed active:bg-accent-pressed active:shadow-edge',
+  secondary: 'border-line-strong bg-surface text-text shadow-edge active:border-text',
   ghost: 'border-transparent bg-transparent text-muted active:text-text',
   destructive: 'border-text bg-text text-background active:border-muted active:bg-muted',
 }

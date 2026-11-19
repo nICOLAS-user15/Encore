@@ -1,7 +1,8 @@
-import { useId, type ReactNode } from 'react'
+import { useId, useRef, type ReactNode } from 'react'
 import { useI18n } from '../i18n/context'
 import { ArrowLeftIcon } from './icons'
 import { useModalDialog } from './useModalDialog'
+import { useSwipeToDismiss } from './useSwipeToDismiss'
 
 type SheetProps = {
   open: boolean
@@ -32,6 +33,16 @@ export function Sheet({
   const titleId = useId()
   const { t } = useI18n()
   const ref = useModalDialog(open)
+  // Drag the header down to close (the body scrolls, so only the header is the handle).
+  const panelRef = useRef<HTMLElement>(null)
+  const headerRef = useRef<HTMLElement>(null)
+  useSwipeToDismiss({
+    panel: panelRef,
+    handle: headerRef,
+    direction: 'down',
+    open,
+    onDismiss: onClose,
+  })
 
   return (
     <dialog
@@ -46,13 +57,19 @@ export function Sheet({
           onClose()
         }
       }}
-      className="m-0 size-full max-h-none max-w-none flex-col justify-end border-0 bg-transparent p-0 text-text backdrop:animate-fade-in backdrop:bg-background/85 open:flex"
+      className="m-0 size-full max-h-none max-w-none cursor-pointer flex-col justify-end border-0 bg-transparent p-0 text-text backdrop:animate-fade-in backdrop:bg-background/85 open:flex"
     >
       {/* The content only exists while open: each opening starts from scratch (and slides up again). */}
       {open && (
-        <section className="pb-safe mx-auto flex max-h-[92dvh] w-full max-w-xl animate-sheet-in flex-col border-t-4 border-text bg-surface">
+        <section
+          ref={panelRef}
+          className="pb-safe mx-auto flex max-h-[92dvh] w-full max-w-xl animate-sheet-in cursor-auto flex-col border-t-4 border-text bg-surface-high shadow-raised"
+        >
           {/* Arrow on the left, like the "Voltar" of inner screens: same gesture, same place. */}
-          <header className="flex items-center gap-1 border-b-2 border-line py-2 pr-4 pl-1">
+          <header
+            ref={headerRef}
+            className="flex touch-none items-center gap-1 border-b-2 border-line py-2 pr-4 pl-1"
+          >
             <button
               type="button"
               onClick={onClose}

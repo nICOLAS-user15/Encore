@@ -23,7 +23,7 @@ export function UpdatePrompt() {
     <DockItem>
       <div
         role="status"
-        className="flex items-center justify-between gap-3 border-2 border-text bg-surface p-3"
+        className="flex items-center justify-between gap-3 border-2 border-text bg-surface-high p-3 shadow-card"
       >
         <p className="text-sm font-semibold">{t.update.available}</p>
         <div className="flex gap-2">

@@ -89,6 +89,7 @@ export const en: Messages = {
     emptyDescription: 'Add the first exercise to start logging sets.',
     addExercise: '+ Add exercise',
     finish: 'Finish workout',
+    progress: (done, total) => `Workout progress: ${done} of ${total} sets`,
     setDeleted: 'Set deleted',
     exerciseRemoved: 'Exercise removed',
     discard: 'Discard workout',

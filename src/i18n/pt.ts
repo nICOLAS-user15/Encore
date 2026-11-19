@@ -97,6 +97,8 @@ export const pt = {
     emptyDescription: 'Adicione o primeiro exercício para começar a registrar as séries.',
     addExercise: '+ Adicionar exercício',
     finish: 'Finalizar treino',
+    progress: (done: number, total: number) =>
+      `Progresso do treino: ${done} de ${total} séries`,
     setDeleted: 'Série excluída',
     exerciseRemoved: 'Exercício removido',
     discard: 'Descartar treino',

@@ -29,7 +29,7 @@ export function BottomNav({ items, label }: BottomNavProps) {
   return (
     <nav
       aria-label={label}
-      className="pb-safe fixed inset-x-0 bottom-0 z-10 border-t-2 border-line bg-background"
+      className="pb-safe fixed inset-x-0 bottom-0 z-10 border-t-2 border-line bg-surface-high shadow-raised"
     >
       <ul className="mx-auto grid max-w-xl grid-cols-4">
         {items.map((item) => (
@@ -41,7 +41,7 @@ export function BottomNav({ items, label }: BottomNavProps) {
                   'flex min-h-16 flex-col items-center justify-center gap-1 border-t-4 [&>svg]:size-6',
                   isActive ||
                     (item.activePrefix && pathname.startsWith(item.activePrefix))
-                    ? 'border-text text-text'
+                    ? 'tab-active border-text text-text'
                     : 'border-transparent text-muted',
                 )
               }

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useRef, type ReactNode } from 'react'
 import { NavLink } from 'react-router'
 import { useI18n } from '../i18n/context'
 import { cn } from '../lib/cn'
@@ -13,6 +13,7 @@ import {
   SettingsIcon,
 } from '../ui/icons'
 import { useModalDialog } from '../ui/useModalDialog'
+import { useSwipeToDismiss } from '../ui/useSwipeToDismiss'
 
 type SideMenuProps = {
   open: boolean
@@ -29,6 +30,15 @@ type MenuItem = { to: string; label: string; icon: ReactNode }
 export function SideMenu({ open, onClose }: SideMenuProps) {
   const { t } = useI18n()
   const ref = useModalDialog(open)
+  // Drag the menu to the left to close it.
+  const panelRef = useRef<HTMLElement>(null)
+  useSwipeToDismiss({
+    panel: panelRef,
+    handle: panelRef,
+    direction: 'left',
+    open,
+    onDismiss: onClose,
+  })
 
   const mainItems: MenuItem[] = [
     { to: '/treino', label: t.nav.workout, icon: <BarbellIcon /> },
@@ -47,18 +57,21 @@ export function SideMenu({ open, onClose }: SideMenuProps) {
       aria-label={t.app.menu}
       onClose={onClose}
       // Tap outside the menu (transparent area of the <dialog>) closes it.
+      // `cursor-pointer` matters on iOS Safari: it only dispatches `click` on elements that
+      // look clickable, and React listens at the root, so without it the tap outside is ignored.
       onClick={(event) => {
         if (event.target === event.currentTarget) {
           onClose()
         }
       }}
-      className="m-0 size-full max-h-none max-w-none border-0 bg-transparent p-0 text-text backdrop:animate-fade-in backdrop:bg-background/85 open:flex"
+      className="m-0 size-full max-h-none max-w-none cursor-pointer border-0 bg-transparent p-0 text-text backdrop:animate-fade-in backdrop:bg-background/85 open:flex"
     >
       {/* Since the content only exists when open, the animations run on every opening. */}
       {open && (
         <nav
+          ref={panelRef}
           aria-label={t.app.menu}
-          className="pt-safe pb-safe flex h-full w-[min(20rem,85vw)] animate-menu-in flex-col border-r-4 border-text bg-surface"
+          className="pt-safe pb-safe flex h-full w-[min(20rem,85vw)] cursor-auto animate-menu-in flex-col border-r-4 border-text bg-surface-high shadow-raised"
         >
           <div className="flex items-center justify-between border-b-2 border-line py-2 pr-1 pl-4">
             <GlitchWordmark className="h-6" />

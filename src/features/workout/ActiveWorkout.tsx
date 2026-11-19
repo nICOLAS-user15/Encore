@@ -15,12 +15,14 @@ import { useExerciseMap } from '../exercises/useExerciseMap'
 import { restSecondsOf } from '../routines/routineActions'
 import { listRoutineExercises } from '../routines/routineQueries'
 import { unlockAudio } from '../../lib/beep'
+import { tapFeedback } from '../../lib/haptics'
 import { useWakeLock } from '../../lib/useWakeLock'
 import { weightStepFor } from '../settings/settingsRepository'
 import { useSettings } from '../settings/useSettings'
 import { ExerciseBlock } from './ExerciseBlock'
 import { useRest } from './restContext'
 import { SetEditor, type SetValues } from './SetEditor'
+import { WorkoutProgress } from './WorkoutProgress'
 import { WorkoutTimer } from './WorkoutTimer'
 import {
   addExerciseToWorkout,
@@ -34,7 +36,13 @@ import {
   updateSet,
 } from './workoutActions'
 import { listWorkoutSets } from './workoutQueries'
-import { groupSetsByExercise, nextPendingSetId, numberSets } from './workoutStats'
+import {
+  completedWorkingSets,
+  groupSetsByExercise,
+  isWorkingSet,
+  nextPendingSetId,
+  numberSets,
+} from './workoutStats'
 
 /** Which confirmation is open (union type: only one case at a time). */
 type Confirmation =
@@ -124,6 +132,7 @@ export function ActiveWorkout({ workout }: { workout: Workout }) {
     prepareRestSound()
     const nowCompleted = await run(() => toggleSetCompleted(db, set.id))
     if (nowCompleted) {
+      tapFeedback()
       maybeStartRest(set.exerciseId)
     }
   }
@@ -144,6 +153,7 @@ export function ActiveWorkout({ workout }: { workout: Workout }) {
       return true
     })
     if (ok && complete && saved.completedAt === null) {
+      tapFeedback()
       maybeStartRest(saved.exerciseId)
     }
     setEditingSetId(null)
@@ -190,7 +200,11 @@ export function ActiveWorkout({ workout }: { workout: Workout }) {
 
   return (
     <>
-      <ScreenHeader title={routine?.name ?? t.workout.freeWorkout} />
+      <ScreenHeader size="compact" title={routine?.name ?? t.workout.freeWorkout} />
+      <WorkoutProgress
+        done={completedWorkingSets(sets).length}
+        total={sets.filter(isWorkingSet).length}
+      />
 
       {/* pb-32: room so the rest bar does not cover the end of the list. */}
       <div className="flex flex-col gap-4 px-4 pt-6 pb-32">

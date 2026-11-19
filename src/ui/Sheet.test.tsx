@@ -54,3 +54,36 @@ describe('Sheet', () => {
     expect(screen.queryByText('Conteúdo')).not.toBeInTheDocument()
   })
 })
+
+describe('Sheet: drag the header down to close', () => {
+  function drag(target: HTMLElement, distance: number) {
+    fireEvent.touchStart(target, { touches: [{ clientX: 100, clientY: 100 }] })
+    fireEvent.touchMove(target, { touches: [{ clientX: 100, clientY: 100 + distance }] })
+    fireEvent.touchEnd(target, {
+      changedTouches: [{ clientX: 100, clientY: 100 + distance }],
+    })
+  }
+
+  it('a long drag down closes; a short one springs back', () => {
+    const { onClose } = renderSheet()
+    const header = screen.getByRole('heading', { name: 'Supino' })
+      .parentElement as HTMLElement
+
+    drag(header, 30)
+    expect(onClose).not.toHaveBeenCalled()
+
+    drag(header, 120)
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('a mostly sideways gesture is not a dismiss', () => {
+    const { onClose } = renderSheet()
+    const header = screen.getByRole('heading', { name: 'Supino' })
+      .parentElement as HTMLElement
+
+    fireEvent.touchStart(header, { touches: [{ clientX: 100, clientY: 100 }] })
+    fireEvent.touchEnd(header, { changedTouches: [{ clientX: 260, clientY: 190 }] })
+
+    expect(onClose).not.toHaveBeenCalled()
+  })
+})

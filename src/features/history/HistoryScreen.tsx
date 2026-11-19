@@ -5,6 +5,7 @@ import { useI18n } from '../../i18n/context'
 import { EmptyState } from '../../ui/EmptyState'
 import { CalendarIcon } from '../../ui/icons'
 import { ScreenHeader } from '../../ui/ScreenHeader'
+import { SkeletonList } from '../../ui/Skeleton'
 import { listWorkoutSummaries } from './historyQueries'
 import { SummaryStats } from './SummaryStats'
 
@@ -12,7 +13,7 @@ export function HistoryScreen() {
   const { t, format } = useI18n()
   const summaries = useLiveQuery(() => listWorkoutSummaries(db), [])
 
-  let content = null // loading
+  let content = <SkeletonList /> // loading
   if (summaries && summaries.length === 0) {
     content = (
       <EmptyState
@@ -23,12 +24,12 @@ export function HistoryScreen() {
     )
   } else if (summaries) {
     content = (
-      <ul className="flex flex-col gap-3">
+      <ul className="stagger flex flex-col gap-3">
         {summaries.map((summary) => (
           <li key={summary.workout.id}>
             <Link
               to={`/historico/${summary.workout.id}`}
-              className="flex flex-col gap-3 rounded-sm border-2 border-line bg-surface p-4 active:border-text"
+              className="press flex flex-col gap-3 rounded-sm border-2 border-line bg-surface p-4 shadow-card active:border-text"
             >
               <div>
                 <p className="text-xs font-semibold tracking-widest text-muted uppercase">

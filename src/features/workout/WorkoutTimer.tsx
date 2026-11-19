@@ -68,7 +68,7 @@ export function WorkoutTimer({
   return (
     <section
       aria-label={t.workout.timer.label}
-      className="flex flex-col gap-3 rounded-sm border-2 border-line bg-surface p-4"
+      className="flex flex-col gap-3 rounded-sm border-2 border-line bg-surface p-4 shadow-card"
     >
       <div className="flex items-baseline justify-between gap-3">
         <p className="text-xs font-semibold tracking-widest text-muted uppercase">

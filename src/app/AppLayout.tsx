@@ -1,6 +1,12 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useRef, useState } from 'react'
-import { Outlet, useLocation, useMatches, useNavigate } from 'react-router'
+import {
+  Outlet,
+  useLocation,
+  useMatches,
+  useNavigate,
+  useNavigationType,
+} from 'react-router'
 import { db } from '../db/db'
 import { ActiveWorkoutBanner } from '../features/workout/ActiveWorkoutBanner'
 import { RestTimerProvider } from '../features/workout/RestTimerProvider'
@@ -39,6 +45,16 @@ export function AppLayout() {
   // (there the list already shows the "Continuar" card, and the workout is the screen itself).
   const activeWorkout = useLiveQuery(() => getActiveWorkoutInfo(db), [])
   const showBanner = Boolean(activeWorkout) && !location.pathname.startsWith('/treino')
+
+  // Direction of the screen change: going back slides in from the left; opening an inner
+  // screen (one with a "Back" button) slides in from the right; switching tabs just rises.
+  const navigationType = useNavigationType()
+  const enterAnimation =
+    navigationType === 'POP'
+      ? 'animate-screen-in-back'
+      : handle?.backTo
+        ? 'animate-screen-in-forward'
+        : 'animate-screen-in'
 
   // When OPENING the app with a workout in progress, go straight to it (instead of the list, with one
   // more tap to "Continuar"). Only once: afterwards, "Voltar" to the list works normally.
@@ -93,7 +109,7 @@ export function AppLayout() {
            * `key` changes on every screen: React recreates the block and the entry animation
            * runs again. That way, switching tabs or opening a detail gives a slight slide.
            */}
-          <div key={location.pathname} className="animate-screen-in">
+          <div key={location.pathname} className={enterAnimation}>
             <Outlet />
           </div>
         </main>

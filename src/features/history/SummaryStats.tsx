@@ -1,5 +1,7 @@
+import type { ReactNode } from 'react'
 import { useI18n } from '../../i18n/context'
 import { formatDuration } from '../../lib/time'
+import { AnimatedNumber } from '../../ui/AnimatedNumber'
 import {
   completedWorkingSets,
   totalVolumeKg,
@@ -18,13 +20,21 @@ export function SummaryStats({ summary }: { summary: WorkoutSummary }) {
         label={t.history.duration}
         value={formatDuration(workoutDurationMs(workout))}
       />
-      <Stat label={t.history.sets} value={String(completedWorkingSets(sets).length)} />
-      <Stat label={t.history.volume} value={format.volume(totalVolumeKg(sets))} />
+      <Stat
+        label={t.history.sets}
+        value={
+          <AnimatedNumber value={completedWorkingSets(sets).length} format={String} />
+        }
+      />
+      <Stat
+        label={t.history.volume}
+        value={<AnimatedNumber value={totalVolumeKg(sets)} format={format.volume} />}
+      />
     </dl>
   )
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="min-w-0">
       <dt className="text-xs font-semibold tracking-widest text-muted uppercase">

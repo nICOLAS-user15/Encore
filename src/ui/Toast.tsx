@@ -63,7 +63,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           {/* role="status": screen readers announce the notice without moving focus. */}
           <div
             role="status"
-            className="flex min-h-14 items-center justify-between gap-3 border-2 border-text bg-surface py-1 pr-1 pl-4"
+            className="flex min-h-14 items-center justify-between gap-3 border-2 border-text bg-surface-high py-1 pr-1 pl-4 shadow-card"
           >
             <p className="text-sm font-semibold">{toast.message}</p>
             {toast.action && (

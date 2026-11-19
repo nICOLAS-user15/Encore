@@ -25,10 +25,15 @@ export function ActiveWorkoutBanner({ info }: { info: ActiveWorkoutInfo }) {
       <Link
         to={`/treino/${workout.id}`}
         aria-label={t.workout.backToWorkout(name)}
-        className="flex items-center justify-between gap-3 border-2 border-text bg-surface p-3 active:bg-background"
+        className="flex items-center justify-between gap-3 border-2 border-text bg-surface-high p-3 shadow-card active:bg-background"
       >
         <span className="min-w-0">
-          <span className="block text-xs font-semibold tracking-widest text-muted uppercase">
+          <span className="flex items-center gap-2 text-xs font-semibold tracking-widest text-muted uppercase">
+            {/* A slow breathing red dot: "alive", something is happening right now. */}
+            <span
+              aria-hidden="true"
+              className="size-2 animate-pulse-glow rounded-full bg-accent-bright"
+            />
             {t.workout.inProgress}
           </span>
           <span className="block truncate font-display text-2xl leading-tight font-bold uppercase">

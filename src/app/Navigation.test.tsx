@@ -41,6 +41,21 @@ describe('navigation', () => {
     expect(screen.queryByRole('navigation', { name: 'Menu' })).not.toBeInTheDocument()
   })
 
+  it('side menu closes when tapping outside it, but not inside', async () => {
+    renderApp(['/treino'])
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Abrir menu' }))
+    const menu = screen.getByRole('navigation', { name: 'Menu' })
+    fireEvent.click(menu) // tap on the panel itself: stays open
+    expect(screen.getByRole('navigation', { name: 'Menu' })).toBeInTheDocument()
+
+    // The transparent area around the panel is the <dialog> itself.
+    fireEvent.click(menu.closest('dialog') as HTMLDialogElement)
+    await waitFor(() =>
+      expect(screen.queryByRole('navigation', { name: 'Menu' })).not.toBeInTheDocument(),
+    )
+  })
+
   it('"Voltar" goes back to the previous screen', async () => {
     const router = renderApp(['/rotinas'])
 
