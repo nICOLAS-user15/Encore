@@ -7,6 +7,7 @@ import {
   type BaseRecord,
   type LoadedEquipment,
 } from '../../db/types'
+import { LEGACY_SPLIT_ID } from '../../db/migrations/v3'
 
 /*
  * Validation of the rows of a backup file. The file comes from outside (it may be
@@ -111,7 +112,13 @@ function sanitizers(row: Row): Record<BackupTableName, () => BaseRecord> {
       ({
         ...base(row),
         name: text(row.name, { required: true }),
-        splitId: id(row.splitId),
+        // A routine already DELETED before splits existed never got a split: migration v3
+        // (and its backup twin) only organize when there is an active routine. Without
+        // this, every backup from such a device would be rejected on restore.
+        splitId:
+          row.deletedAt !== null && row.splitId === undefined
+            ? LEGACY_SPLIT_ID
+            : id(row.splitId),
         order: num(row.order),
         notes: text(row.notes),
       }) as BaseRecord,

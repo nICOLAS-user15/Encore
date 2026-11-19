@@ -13,6 +13,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - A routine opened just to look at it and started hours later becomes a fresh workout, with the right date and duration in the history.
 - Switching routine while the timer is running now asks first, instead of discarding the workout.
 - "Back" works again when the app opens straight on the workout in progress.
+- Backups from a device whose routines were all deleted before workout splits existed could not be restored; they now can, and every export is checked before it is saved.
+- "Backup exported" only shows (and the backup reminder only resets) when the file was really saved.
 
 ## [1.0.0] - 2026-11-19
 

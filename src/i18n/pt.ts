@@ -350,6 +350,8 @@ export const pt = {
     exportBackup: 'Exportar backup',
     importBackup: 'Importar backup',
     exported: 'Backup exportado.',
+    exportUnconfirmed:
+      'Não deu para confirmar que o arquivo foi salvo. Confira seus arquivos ou tente de novo.',
     lastBackup: (days: number | null) =>
       days === null
         ? 'Último backup: nunca'

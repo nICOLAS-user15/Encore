@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createDatabase, SCHEMA_VERSION, type EncoreDB } from '../../db/db'
 import { createRecord, softDelete } from '../../db/repository'
 import { syncSeedExercises } from '../../db/seed'
@@ -11,10 +11,12 @@ import {
 import { listWorkoutSets } from '../workout/workoutQueries'
 import {
   BackupError,
+  type Backup,
   backupFileName,
   exportBackup,
   importBackup,
   parseBackup,
+  saveBackupFile,
 } from './backup'
 
 const databases: EncoreDB[] = []
@@ -125,6 +127,62 @@ describe('backup', () => {
 
   it('file name includes the date', () => {
     expect(backupFileName(new Date(2026, 10, 18))).toBe('encore-backup-2026-11-18.json')
+  })
+
+  it('a routine deleted before splits existed (no splitId) does not make the backup unrestorable', async () => {
+    await trainOnce(phone)
+    // What migration v3 leaves when every routine was already deleted: no splitId.
+    await phone.routines.add({
+      id: 'old-routine',
+      name: 'Old',
+      order: 9,
+      notes: '',
+      createdAt: 1,
+      updatedAt: 1,
+      deletedAt: 2,
+    } as never)
+
+    const backup = parseBackup(JSON.stringify(await exportBackup(phone)))
+    const newPhone = newDatabase()
+    await importBackup(newPhone, backup)
+
+    expect((await newPhone.routines.get('old-routine'))?.deletedAt).toBe(2)
+  })
+})
+
+describe('saving the backup file', () => {
+  const backup = {
+    format: 'encore-backup',
+    schemaVersion: SCHEMA_VERSION,
+    exportedAt: 0,
+    tables: {},
+  } as Backup
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    vi.restoreAllMocks()
+  })
+
+  function stubShare(share: () => Promise<void>) {
+    vi.stubGlobal('navigator', { ...navigator, canShare: () => true, share })
+    // jsdom has no object URLs: the download fallback only needs them to exist.
+    URL.createObjectURL = vi.fn(() => 'blob:test')
+    URL.revokeObjectURL = vi.fn()
+  }
+
+  it('a confirmed share is a saved backup', async () => {
+    stubShare(() => Promise.resolve())
+    expect(await saveBackupFile(backup)).toBe('saved')
+  })
+
+  it('closing the share sheet is not a backup', async () => {
+    stubShare(() => Promise.reject(new DOMException('closed', 'AbortError')))
+    expect(await saveBackupFile(backup)).toBe('cancelled')
+  })
+
+  it('a failed share falls back to a download that cannot be confirmed', async () => {
+    stubShare(() => Promise.reject(new DOMException('no', 'NotAllowedError')))
+    expect(await saveBackupFile(backup)).toBe('unconfirmed')
   })
 })
 

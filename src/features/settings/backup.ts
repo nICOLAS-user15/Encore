@@ -288,23 +288,31 @@ export function backupFileName(date = new Date()): string {
  * Delivers the file to the user. On mobile, uses the system share sheet
  * (save to Files, Drive, send on WhatsApp...). Where it does not exist, downloads the file.
  *
- * Returns `false` if the user closed the share sheet without choosing anything:
- * then there was no backup (and the screen must not say there was).
+ * Result:
+ * - `saved`: shared, or downloaded where there is no share sheet (desktop);
+ * - `cancelled`: the user closed the share sheet without choosing anything, so there
+ *   was no backup (and the screen must not say there was);
+ * - `unconfirmed`: the share sheet failed and the app fell back to a download, which an
+ *   installed iPhone app may silently ignore. Not counted as a backup either.
  */
-export async function saveBackupFile(backup: Backup): Promise<boolean> {
+export type SaveResult = 'saved' | 'cancelled' | 'unconfirmed'
+
+export async function saveBackupFile(backup: Backup): Promise<SaveResult> {
   const json = JSON.stringify(backup)
   const file = new File([json], backupFileName(), { type: 'application/json' })
 
+  let shareFailed = false
   if (navigator.canShare?.({ files: [file] })) {
     try {
       await navigator.share({ files: [file] })
-      return true
+      return 'saved'
     } catch (error) {
       // User closed the share sheet: not an error, but nothing was saved either.
       if (error instanceof DOMException && error.name === 'AbortError') {
-        return false
+        return 'cancelled'
       }
-      // Any other failure: tries the regular download below.
+      // Any other failure: tries the regular download below, but cannot confirm it.
+      shareFailed = true
     }
   }
 
@@ -318,5 +326,5 @@ export async function saveBackupFile(backup: Backup): Promise<boolean> {
   link.click()
   link.remove()
   setTimeout(() => URL.revokeObjectURL(url), 1_000)
-  return true
+  return shareFailed ? 'unconfirmed' : 'saved'
 }

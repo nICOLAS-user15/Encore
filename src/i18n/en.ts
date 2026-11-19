@@ -331,6 +331,8 @@ export const en: Messages = {
     exportBackup: 'Export backup',
     importBackup: 'Import backup',
     exported: 'Backup exported.',
+    exportUnconfirmed:
+      'Could not confirm that the file was saved. Check your files or try again.',
     lastBackup: (days) =>
       days === null
         ? 'Last backup: never'

@@ -29,11 +29,17 @@ export function BackupSection() {
   async function handleExport() {
     setBusy(true)
     try {
-      const saved = await saveBackupFile(await exportBackup(db))
-      // Closed the share sheet without choosing anything: no backup happened.
-      if (saved) {
+      const backup = await exportBackup(db)
+      // Self-check: the file must restore. A backup that only fails on the day it is
+      // needed is worse than none (it silences the reminder). Throws → "exportFailed".
+      parseBackup(JSON.stringify(backup))
+      const result = await saveBackupFile(backup)
+      // Only a confirmed save counts as a backup (and quiets the reminder).
+      if (result === 'saved') {
         await updateSettings(db, { lastBackupAt: Date.now() })
         setMessage(t.settings.exported)
+      } else if (result === 'unconfirmed') {
+        setMessage(t.settings.exportUnconfirmed)
       }
     } catch {
       setMessage(t.settings.exportFailed)
