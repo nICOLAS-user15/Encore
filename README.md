@@ -7,7 +7,13 @@ A strength-training log built for **the phone, mid-set and with no signal**.
 
 Encore is a PWA: it installs on the home screen (Android and iOS), opens full screen and works 100% offline. There is no server and no account: all data stays on the device.
 
-<!-- Screenshots: add 2 or 3 images (active workout, routines, history) under docs/img/. -->
+**Try it:** [encore-nine-zeta.vercel.app](https://encore-nine-zeta.vercel.app). Open it on your phone and add it to the home screen.
+
+<p align="center">
+  <img src="docs/img/workout.png" width="30%" alt="A workout in progress: the timer, and the squat sets with a personal record badge">
+  <img src="docs/img/progress.png" width="30%" alt="Bench press progress: personal bests and charts of the estimated 1RM and the heaviest load per session">
+  <img src="docs/img/history.png" width="30%" alt="History: this week's volume by muscle group and the latest workouts">
+</p>
 
 ## Features
 

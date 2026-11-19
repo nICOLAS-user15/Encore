@@ -35,6 +35,7 @@ pnpm lint            # eslint + prettier --check
 pnpm format          # prettier --write
 pnpm test            # vitest run
 pnpm e2e             # Playwright against the production build (E2E_CHANNEL=chrome reuses the local Chrome)
+pnpm e2e:screenshots # regenerates the README images in docs/img/ (fictitious data, English UI)
 pnpm generate-icons  # PWA icons from public/logo.svg
 ```
 
@@ -101,7 +102,7 @@ Dirty, dark and minimalist: grit is the texture, minimalism is the structure. Si
 - **No hard-coded UI text in components**: add the key to `src/i18n/pt.ts` AND `src/i18n/en.ts` and use `t.area.key`. Numbers and dates go through `format.*` from `useI18n`. Language names appear in their own language ("Português", "English").
 - Components are named functions with named exports (no `export default`).
 - Props typed with `type`; no `any`.
-- Tests live next to the file (`*.test.ts(x)`); database tests use `createDatabase('<unique name>')`. End-to-end specs live in `e2e/` (Playwright, run by `pnpm e2e` and in CI, excluded from Vitest); they use the Portuguese UI labels and navigate through the UI (opening a URL from scratch always lands on `/treino`). `e2e/offline.spec.ts` is the proof of the offline promise: keep it green.
+- Tests live next to the file (`*.test.ts(x)`); database tests use `createDatabase('<unique name>')`. End-to-end specs live in `e2e/` (Playwright, run by `pnpm e2e` and in CI, excluded from Vitest); they use the Portuguese UI labels and navigate through the UI (opening a URL from scratch always lands on `/treino`). `e2e/offline.spec.ts` is the proof of the offline promise: keep it green. `e2e/screenshots.spec.ts` is not a test: it is the "screenshots" Playwright project (outside `pnpm e2e` and CI), which imports the fictitious history from `e2e/showcaseData.ts` through the real Import button, with the clock frozen and the UI in English. A screen change that shows in the README means running `pnpm e2e:screenshots` again and committing the new images.
 - **Commits:** Conventional Commits **in English**, formatted `type(scope): summary in the imperative`, up to ~70 characters, no trailing period. Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `style`. Scope = the feature area (`workout`, `routines`, `splits`, `exercises`, `history`, `settings`, `db`, `i18n`, `ui`, `app`, `pwa`, `deploy`), optional. Examples: `feat(workout): add pause and resume to the timer`, `fix(settings): validate the backup before importing`. One commit per feature or fix (code + test + docs together); no `docs:` commits that merely trail a `feat:`.
 - **No AI attribution:** commit and PR messages carry no `Co-Authored-By`, no "Generated with Claude Code" and no mention of AI.
 - **The author makes the commits.** Agents do not run `git commit`/`git push`: they hand over the commands (`git add <files>` + `git commit -m ...`, one per feature) for the author to run.

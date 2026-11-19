@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "private": true,
   "license": "MIT",
+  "homepage": "https://encore-nine-zeta.vercel.app",
   "author": "Nicolas de Moura",
   "repository": {
     "type": "git",
@@ -20,7 +21,8 @@
     "generate-icons": "pwa-assets-generator",
     "test": "vitest run",
     "test:watch": "vitest",
-    "e2e": "playwright test"
+    "e2e": "playwright test --project=e2e",
+    "e2e:screenshots": "playwright test --project=screenshots"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",
