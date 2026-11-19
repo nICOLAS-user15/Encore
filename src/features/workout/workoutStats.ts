@@ -70,6 +70,18 @@ export function isCompleted(set: SetEntry): boolean {
   return set.completedAt !== null
 }
 
+/**
+ * Whether the user has really begun the workout: the timer was started or a set was
+ * completed. Before that the workout is only OPEN (the user tapped a routine to look at
+ * it): it is not "in progress" for the banner, the "Continuar" card or opening the app.
+ */
+export function hasWorkoutBegun(
+  workout: Pick<Workout, 'timerStartedAt'>,
+  sets: Array<Pick<SetEntry, 'completedAt'>>,
+): boolean {
+  return workout.timerStartedAt !== null || sets.some((set) => set.completedAt !== null)
+}
+
 /** "Working" set = everything that is not a warm-up. Only these count in the numbers. */
 export function isWorkingSet(set: Pick<SetEntry, 'type'>): boolean {
   return set.type !== 'warmup'

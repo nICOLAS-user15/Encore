@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { SetEntry } from '../../db/types'
 import {
   groupSetsByExercise,
+  hasWorkoutBegun,
   nextPendingSetId,
   suggestNextRoutineId,
   totalVolumeKg,
@@ -96,6 +97,23 @@ describe('workoutDurationMs', () => {
     expect(
       workoutDurationMs({ ...base, timerStartedAt: null, timerStoppedAt: null }),
     ).toBe(99_000)
+  })
+})
+
+describe('hasWorkoutBegun', () => {
+  it('a workout only opened (no timer, nothing completed) has not begun', () => {
+    expect(hasWorkoutBegun({ timerStartedAt: null }, [{ completedAt: null }])).toBe(false)
+    expect(hasWorkoutBegun({ timerStartedAt: null }, [])).toBe(false)
+  })
+
+  it('begins with the timer or with the first completed set', () => {
+    expect(hasWorkoutBegun({ timerStartedAt: 1_000 }, [])).toBe(true)
+    expect(
+      hasWorkoutBegun({ timerStartedAt: null }, [
+        { completedAt: null },
+        { completedAt: 5 },
+      ]),
+    ).toBe(true)
   })
 })
 

@@ -10,7 +10,7 @@ import {
 import { db } from '../db/db'
 import { ActiveWorkoutBanner } from '../features/workout/ActiveWorkoutBanner'
 import { RestTimerProvider } from '../features/workout/RestTimerProvider'
-import { getActiveWorkoutInfo } from '../features/workout/workoutQueries'
+import { getWorkoutInProgress } from '../features/workout/workoutQueries'
 import { useI18n } from '../i18n/context'
 import type { Messages } from '../i18n/pt'
 import { cn } from '../lib/cn'
@@ -43,7 +43,7 @@ export function AppLayout() {
 
   // Workout in progress: the banner shows on every screen, except the Workout tab
   // (there the list already shows the "Continuar" card, and the workout is the screen itself).
-  const activeWorkout = useLiveQuery(() => getActiveWorkoutInfo(db), [])
+  const activeWorkout = useLiveQuery(() => getWorkoutInProgress(db), [])
   const showBanner = Boolean(activeWorkout) && !location.pathname.startsWith('/treino')
 
   // Direction of the screen change: going back slides in from the left; opening an inner

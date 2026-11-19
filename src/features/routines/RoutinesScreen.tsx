@@ -18,7 +18,7 @@ import { createSplit } from '../splits/splitActions'
 import { routinesOfSplit } from '../splits/splitUtils'
 import { useSplits } from '../splits/useSplits'
 import { startOrSwitchWorkout } from '../workout/workoutActions'
-import { getActiveWorkout } from '../workout/workoutQueries'
+import { getWorkoutInProgress } from '../workout/workoutQueries'
 import { listRoutinesWithExercises, type RoutineWithExercises } from './routineQueries'
 
 /**
@@ -29,8 +29,13 @@ import { listRoutinesWithExercises, type RoutineWithExercises } from './routineQ
 export function RoutinesScreen() {
   const { t } = useI18n()
   const routines = useLiveQuery(() => listRoutinesWithExercises(db), [])
-  // `?? null`: useLiveQuery uses `undefined` for "loading"; `null` = no active workout.
-  const active = useLiveQuery(async () => (await getActiveWorkout(db)) ?? null, [])
+  // `?? null`: useLiveQuery uses `undefined` for "loading"; `null` = no workout in progress.
+  // A workout that was only opened (nothing begun) does not count: its routine shows "Iniciar",
+  // which reopens the same workout.
+  const active = useLiveQuery(
+    async () => (await getWorkoutInProgress(db))?.workout ?? null,
+    [],
+  )
   const exerciseMap = useExerciseMap()
   const { splits, active: currentSplit, select: selectSplit } = useSplits()
   const [blockedOpen, setBlockedOpen] = useState(false)
@@ -92,7 +97,8 @@ export function RoutinesScreen() {
         }
       />
     )
-  } else if (routines && splits && exerciseMap) {
+  } else if (routines && splits && exerciseMap && active !== undefined) {
+    // Waits for `active` too: otherwise the routine in progress flashes "Iniciar" first.
     content = (
       <div className="stagger flex flex-col gap-4">
         <SplitTabs

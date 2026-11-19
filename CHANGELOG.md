@@ -5,6 +5,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+### Fixed
+
+- Opening a routine just to look at it no longer shows "Workout in progress": a workout only counts as in progress once the timer is started or a set is completed.
+
 ## [1.0.0] - 2026-11-19
 
 ### Added

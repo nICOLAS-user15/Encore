@@ -22,7 +22,7 @@ import { lastRoutineIdInSplit, routinesOfSplit } from '../splits/splitUtils'
 import { useSplits } from '../splits/useSplits'
 import { startOrSwitchWorkout } from './workoutActions'
 import {
-  getActiveWorkoutInfo,
+  getWorkoutInProgress,
   listFinishedWorkouts,
   type ActiveWorkoutInfo,
 } from './workoutQueries'
@@ -59,7 +59,7 @@ export function StartWorkout() {
     settingsLoaded &&
     history !== undefined &&
     needsBackupReminder(settings.lastBackupAt, history.count, now)
-  const active = useLiveQuery(() => getActiveWorkoutInfo(db), [])
+  const active = useLiveQuery(() => getWorkoutInProgress(db), [])
   // Another workout with completed sets is open: ask before switching.
   const [blocked, setBlocked] = useState(false)
 

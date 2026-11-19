@@ -2,6 +2,7 @@ import Dexie from 'dexie'
 import type { EncoreDB } from '../../db/db'
 import { isActive } from '../../db/repository'
 import type { ID, SetEntry, Timestamp, Workout } from '../../db/types'
+import { hasWorkoutBegun } from './workoutStats'
 
 /** The workout in progress (no `endedAt`), if any. There can be only one. */
 export async function getActiveWorkout(db: EncoreDB): Promise<Workout | undefined> {
@@ -18,12 +19,17 @@ export type ActiveWorkoutInfo = {
   routineName: string | null
 }
 
-/** The workout in progress with the routine name (for the "Treino em andamento" strip). */
-export async function getActiveWorkoutInfo(
+/**
+ * The workout the user is actually DOING, with the routine name: the open workout, but
+ * only once it has begun (`hasWorkoutBegun`). A workout that was only opened (to look
+ * at the routine) is not announced as "Treino em andamento" anywhere; tapping the same
+ * routine again reopens it (`startWorkout` returns the open one).
+ */
+export async function getWorkoutInProgress(
   db: EncoreDB,
 ): Promise<ActiveWorkoutInfo | null> {
   const workout = await getActiveWorkout(db)
-  if (!workout) {
+  if (!workout || !hasWorkoutBegun(workout, await listWorkoutSets(db, workout.id))) {
     return null
   }
   const routine = workout.routineId ? await db.routines.get(workout.routineId) : undefined

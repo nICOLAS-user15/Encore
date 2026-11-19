@@ -36,11 +36,26 @@ async function completeOneSet() {
 }
 
 describe('Rotinas with a workout in progress', () => {
-  it('the routine of the open workout shows "Continuar" and leads to it', async () => {
+  it('the routine of the workout in progress shows "Continuar" and leads to it', async () => {
+    await completeOneSet()
     const router = renderRoutines()
 
     fireEvent.click(await screen.findByRole('button', { name: 'Continuar' }))
 
+    await waitFor(() =>
+      expect(router.state.location.pathname).toBe(`/treino/${upperAWorkout.id}`),
+    )
+  })
+
+  it('a workout only opened (nothing begun) is not "in progress": "Iniciar" reopens it', async () => {
+    const router = renderRoutines()
+
+    // Routine order: Upper A (opened), Lower A, Upper B, Lower B.
+    const [startUpperA] = await screen.findAllByRole('button', { name: 'Iniciar' })
+    expect(screen.queryByRole('button', { name: 'Continuar' })).not.toBeInTheDocument()
+    fireEvent.click(startUpperA)
+
+    // Same workout, nothing lost and nothing duplicated.
     await waitFor(() =>
       expect(router.state.location.pathname).toBe(`/treino/${upperAWorkout.id}`),
     )
@@ -70,7 +85,8 @@ describe('Rotinas with a workout in progress', () => {
   it('with no sets done, switches routine right away (the empty workout is discarded)', async () => {
     const router = renderRoutines()
 
-    const [startLowerA] = await screen.findAllByRole('button', { name: 'Iniciar' })
+    // Upper A was only opened, so it also shows "Iniciar": Lower A is the second one.
+    const [, startLowerA] = await screen.findAllByRole('button', { name: 'Iniciar' })
     fireEvent.click(startLowerA)
 
     await waitFor(() => expect(router.state.location.pathname).toMatch(/^\/treino\/.+/))

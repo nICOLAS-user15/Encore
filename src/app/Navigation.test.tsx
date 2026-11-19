@@ -4,7 +4,7 @@ import { RouterProvider } from 'react-router/dom'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { db } from '../db/db'
 import { syncSeedExercises } from '../db/seed'
-import { startWorkout } from '../features/workout/workoutActions'
+import { startWorkout, startWorkoutTimer } from '../features/workout/workoutActions'
 import { I18nProvider } from '../i18n/I18nProvider'
 import { routes } from './routes'
 
@@ -80,13 +80,18 @@ describe('navigation', () => {
     expect(router.state.location.pathname).toBe('/treino')
   })
 
-  it('the chosen workout has "Voltar" to the list, which offers "Continuar"', async () => {
+  it('the chosen workout has "Voltar" to the list; once begun, the list offers "Continuar"', async () => {
     const router = renderApp(['/treino'])
 
     // Picks a workout: it opens on its own route, with "Voltar" at the top.
     fireEvent.click(await screen.findByRole('button', { name: 'Treino livre' }))
     await waitFor(() => expect(router.state.location.pathname).toMatch(/^\/treino\/.+/))
     const workoutPath = router.state.location.pathname
+    // Begins it: starts the timer.
+    fireEvent.click(await screen.findByRole('button', { name: 'Iniciar cronômetro' }))
+    await waitFor(async () =>
+      expect((await db.workouts.toArray())[0].timerStartedAt).not.toBeNull(),
+    )
 
     fireEvent.click(await screen.findByRole('button', { name: 'Voltar' }))
 
@@ -97,11 +102,29 @@ describe('navigation', () => {
     )
     await waitFor(() => expect(router.state.location.pathname).toBe(workoutPath))
   })
+
+  it('a workout only opened is not "in progress": the list shows no "Continuar"', async () => {
+    const router = renderApp(['/treino'])
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Treino livre' }))
+    await waitFor(() => expect(router.state.location.pathname).toMatch(/^\/treino\/.+/))
+    const workoutPath = router.state.location.pathname
+    fireEvent.click(await screen.findByRole('button', { name: 'Voltar' }))
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/treino'))
+    expect(
+      screen.queryByRole('link', { name: /Continuar treino/ }),
+    ).not.toBeInTheDocument()
+    // Tapping it again reopens the same workout (nothing typed is lost).
+    fireEvent.click(await screen.findByRole('button', { name: 'Treino livre' }))
+    await waitFor(() => expect(router.state.location.pathname).toBe(workoutPath))
+  })
 })
 
 describe('"Treino em andamento" banner', () => {
   it('shows outside the Treino tab and leads back to the workout', async () => {
     const workout = await startWorkout(db, null)
+    await startWorkoutTimer(db, workout.id)
     const router = renderApp(['/historico'])
 
     const banner = await screen.findByRole('link', {
@@ -124,6 +147,24 @@ describe('"Treino em andamento" banner', () => {
     renderApp(['/historico'])
 
     await screen.findByRole('heading', { level: 1, name: 'Histórico' })
+    expect(
+      screen.queryByRole('link', { name: /Voltar ao treino/ }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('does not show for a workout only opened (no timer, no set completed)', async () => {
+    await startWorkout(db, null)
+    renderApp(['/historico'])
+
+    await screen.findByRole('heading', { level: 1, name: 'Histórico' })
+    // The Treino tab goes to the list, not into the opened workout.
+    const nav = screen.getByRole('navigation', { name: 'Navegação principal' })
+    await waitFor(() =>
+      expect(within(nav).getByRole('link', { name: 'Treino' })).toHaveAttribute(
+        'href',
+        '/treino',
+      ),
+    )
     expect(
       screen.queryByRole('link', { name: /Voltar ao treino/ }),
     ).not.toBeInTheDocument()
