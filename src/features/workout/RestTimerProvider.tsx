@@ -5,9 +5,9 @@ import { RestTimer } from './RestTimer'
 import { useRestTimer } from './useRestTimer'
 
 /*
- * O descanso mora ACIMA das telas (no AppLayout), não dentro do treino: se o usuário
- * for ao Histórico ou às Configurações no meio do descanso, a barra continua na doca e
- * o aviso de fim (bipe e vibração) acontece no momento certo, em qualquer tela.
+ * The rest lives ABOVE the screens (in AppLayout), not inside the workout: if the user
+ * goes to the History or Settings in the middle of a rest, the bar stays in the dock and
+ * the end alert (beep and vibration) happens at the right moment, on any screen.
  */
 
 export function RestTimerProvider({ children }: { children: ReactNode }) {

@@ -6,7 +6,7 @@ import { db } from '../db/db'
 import { syncSeedExercises } from '../db/seed'
 import { routes } from './routes'
 
-/** Monta o app com as rotas reais, mas com a URL controlada pelo teste. */
+/** Mounts the app with the real routes, but with the URL controlled by the test. */
 function renderApp(initialPath = '/') {
   const router = createMemoryRouter(routes, { initialEntries: [initialPath] })
   render(<RouterProvider router={router} />)
@@ -18,7 +18,7 @@ describe('AppLayout', () => {
     await syncSeedExercises(db)
   })
 
-  it('abre na aba Treino e mostra as 4 abas', async () => {
+  it('opens on the Treino tab and shows the 4 tabs', async () => {
     const router = renderApp('/')
 
     expect(
@@ -40,7 +40,7 @@ describe('AppLayout', () => {
     )
   })
 
-  it('navega para Exercícios e lista o seed vindo do banco', async () => {
+  it('navigates to Exercícios and lists the seed coming from the database', async () => {
     renderApp('/treino')
 
     fireEvent.click(screen.getByRole('link', { name: 'Exercícios' }))
@@ -52,7 +52,7 @@ describe('AppLayout', () => {
     expect(screen.getByRole('heading', { level: 2, name: /Peito/ })).toBeInTheDocument()
   })
 
-  it('redireciona URLs desconhecidas para Treino', async () => {
+  it('redirects unknown URLs to Treino', async () => {
     const router = renderApp('/qualquer-coisa')
 
     expect(

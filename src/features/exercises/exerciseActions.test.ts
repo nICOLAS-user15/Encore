@@ -17,7 +17,7 @@ afterEach(async () => {
 })
 
 describe('createCustomExercise', () => {
-  it('cria o exercício na biblioteca, marcado como do usuário, com o nome nos dois idiomas', async () => {
+  it('creates the exercise in the library, marked as user-made, with the name in both languages', async () => {
     const before = await db.exercises.count()
 
     const created = await createCustomExercise(db, {
@@ -34,15 +34,15 @@ describe('createCustomExercise', () => {
       deletedAt: null,
     })
     expect(await db.exercises.count()).toBe(before + 1)
-    // Aparece na biblioteca (a lista que a aba Exercícios usa), nos dois idiomas.
+    // It shows in the library (the list the Exercícios tab uses), in both languages.
     expect((await listActiveExercises(db, 'pt')).map((e) => e.id)).toContain(created.id)
     expect((await listActiveExercises(db, 'en')).map((e) => e.id)).toContain(created.id)
   })
 
-  it('não duplica: um nome que já existe devolve o exercício existente', async () => {
+  it('does not duplicate: a name that already exists returns the existing exercise', async () => {
     const before = await db.exercises.count()
 
-    // Maiúsculas, acento e idioma diferentes do cadastro "Supino reto com barra" / "Bench Press".
+    // Case, accents and language different from the "Supino reto com barra" / "Bench Press" entry.
     const byPortuguese = await createCustomExercise(db, {
       name: 'SUPINO reto com BARRA',
       muscleGroup: 'chest',
@@ -55,11 +55,11 @@ describe('createCustomExercise', () => {
     })
 
     expect(byPortuguese.id).toBe(byEnglish.id)
-    expect(byPortuguese.isCustom).toBe(false) // é o do seed, intacto
+    expect(byPortuguese.isCustom).toBe(false) // it is the seed one, untouched
     expect(await db.exercises.count()).toBe(before)
   })
 
-  it('criar duas vezes o mesmo nome novo não gera repetido', async () => {
+  it('creating the same new name twice does not generate a duplicate', async () => {
     const input = {
       name: 'Meu exercício',
       muscleGroup: 'core',
@@ -75,7 +75,7 @@ describe('createCustomExercise', () => {
     expect((await db.exercises.filter((e) => e.isCustom).toArray()).length).toBe(1)
   })
 
-  it('um exercício excluído da biblioteca não conta: o nome pode ser criado de novo', async () => {
+  it('an exercise deleted from the library does not count: the name can be created again', async () => {
     const created = await createCustomExercise(db, {
       name: 'Exercício antigo',
       muscleGroup: 'core',
@@ -94,7 +94,7 @@ describe('createCustomExercise', () => {
 })
 
 describe('findExerciseByName', () => {
-  it('acha por qualquer idioma, ignorando acentos e maiúsculas', async () => {
+  it('finds by any language, ignoring accents and case', async () => {
     expect((await findExerciseByName(db, 'tríceps NA polia'))?.names.pt).toBe(
       'Tríceps na polia',
     )

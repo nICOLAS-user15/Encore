@@ -27,22 +27,22 @@ function timerState(workout: Workout): TimerState {
 
 type WorkoutTimerProps = {
   workout: Workout
-  /** "Iniciar" é a ação principal da tela agora? (vermelho só quando for). */
+  /** Is "Iniciar" the screen's main action now? (red only when it is). */
   emphasizeStart: boolean
-  /** Começa um descanso manualmente (botão "Descansar", só antes de iniciar). */
+  /** Starts a rest manually ("Descansar" button, only before starting). */
   onRest: () => void
-  /** "Finalizar treino" é a ação principal agora? (vermelho só com série concluída). */
+  /** Is "Finalizar treino" the main action now? (red only with a completed set). */
   emphasizeFinish: boolean
-  /** Pede para finalizar o treino (a tela abre a confirmação). */
+  /** Asks to finish the workout (the screen opens the confirmation). */
   onFinish: () => void
 }
 
 /**
- * Cronômetro do treino controlado pelo usuário: começa parado e "Iniciar" liga.
- * Depois de iniciado, o card mostra "Pausar"/"Retomar" (ir ao banheiro, atender
- * alguém) ao lado de "Finalizar treino" (que também para o cronômetro): o descanso
- * já começa sozinho ao concluir uma série. O tempo é sempre calculado pelos
- * horários salvos, então continua certo mesmo com a tela apagada.
+ * Workout timer controlled by the user: starts stopped and "Iniciar" turns it on.
+ * Once started, the card shows "Pausar"/"Retomar" (going to the bathroom, talking
+ * to someone) next to "Finalizar treino" (which also stops the timer): the rest
+ * already starts on its own when a set is completed. The time is always computed from the
+ * saved timestamps, so it stays correct even with the screen off.
  */
 export function WorkoutTimer({
   workout,
@@ -96,7 +96,7 @@ export function WorkoutTimer({
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-2">
-          {/* Treino com o cronômetro já parado (versões antigas): só o "Finalizar". */}
+          {/* Workout with the timer already stopped (old versions): only "Finalizar". */}
           {state === 'running' && (
             <Button
               variant="secondary"

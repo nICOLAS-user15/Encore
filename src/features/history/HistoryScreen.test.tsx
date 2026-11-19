@@ -25,13 +25,13 @@ beforeEach(async () => {
   await importTestProgram(db)
 })
 
-describe('do treino ao histórico', () => {
-  it('finaliza um treino, mostra o detalhe e a lista, e permite excluir', async () => {
+describe('from workout to history', () => {
+  it('finishes a workout, shows the detail and the list, and allows deleting', async () => {
     const router = renderAt('/treino')
 
-    // Inicia o Upper A e conclui as 2 primeiras séries (Bench Press, 25 kg × 8).
+    // Starts Upper A and completes the first 2 sets (Bench Press, 25 kg × 8).
     fireEvent.click(await screen.findByRole('button', { name: /Upper A/ }))
-    // Cada exercício tem a sua "série 1": [0] é a do primeiro exercício (Bench Press).
+    // Each exercise has its own "set 1": [0] is the first exercise's (Bench Press).
     fireEvent.click(
       (await screen.findAllByRole('button', { name: 'Concluir série 1' }))[0],
     )
@@ -39,37 +39,37 @@ describe('do treino ao histórico', () => {
     fireEvent.click(screen.getAllByRole('button', { name: 'Concluir série 2' })[0])
     await screen.findByRole('button', { name: 'Desfazer série 2' })
 
-    // Finaliza (com confirmação).
+    // Finish (with confirmation).
     fireEvent.click(screen.getByRole('button', { name: 'Finalizar treino' }))
     const dialog = await screen.findByRole('dialog', { name: 'Finalizar treino?' })
     expect(dialog).toHaveTextContent('2 séries concluídas')
     fireEvent.click(within(dialog).getByRole('button', { name: 'Finalizar' }))
 
-    // Vai para o detalhe. (Esperamos pela URL, não por um botão "Voltar": o painel
-    // de confirmação também tem uma seta "Voltar" enquanto fecha.)
-    // Só as séries concluídas ficaram.
+    // Goes to the detail. (We wait for the URL, not for a "Voltar" button: the confirmation
+    // sheet also has a "Voltar" arrow while it closes.)
+    // Only the completed sets stayed.
     await waitFor(() =>
       expect(router.state.location.pathname).toMatch(/^\/historico\/.+/),
     )
     expect(await screen.findByRole('button', { name: 'Voltar' })).toBeInTheDocument()
-    // O conteúdo vem do banco: findBy espera aparecer.
+    // The content comes from the database: findBy waits for it to appear.
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Upper A' }),
     ).toBeInTheDocument()
     expect(await screen.findAllByText('25 kg × 8')).toHaveLength(2)
     expect(screen.getByText('400 kg')).toBeInTheDocument() // 25 × 8 × 2
 
-    // A lista do histórico (pela aba de baixo) mostra o treino.
+    // The history list (via the bottom tab) shows the workout.
     fireEvent.click(screen.getByRole('link', { name: 'Histórico' }))
     const item = await screen.findByRole('link', { name: /Upper A/ })
     expect(item).toHaveTextContent('400 kg')
 
-    // "Voltar" no detalhe volta para a lista.
+    // "Voltar" on the detail goes back to the list.
     fireEvent.click(item)
     fireEvent.click(await screen.findByRole('button', { name: 'Voltar' }))
     expect(await screen.findByRole('link', { name: /Upper A/ })).toBeInTheDocument()
 
-    // Excluir: volta para a lista, agora vazia.
+    // Delete: goes back to the list, now empty.
     fireEvent.click(screen.getByRole('link', { name: /Upper A/ }))
     fireEvent.click(await screen.findByRole('button', { name: 'Excluir treino' }))
     const confirm = await screen.findByRole('dialog', { name: 'Excluir treino?' })
@@ -77,15 +77,15 @@ describe('do treino ao histórico', () => {
     expect(await screen.findByText('Nada por aqui ainda')).toBeInTheDocument()
   })
 
-  it('um id inexistente mostra "Treino não encontrado"', async () => {
+  it('a nonexistent id shows "Treino não encontrado"', async () => {
     renderAt('/historico/nao-existe')
 
     expect(await screen.findByText('Treino não encontrado')).toBeInTheDocument()
   })
 })
 
-describe('comparação com a vez anterior', () => {
-  /** Treino do Upper A concluindo as `count` primeiras séries (25 kg × 8 no supino). */
+describe('comparison with the previous time', () => {
+  /** Upper A workout completing the first `count` sets (25 kg × 8 on the bench press). */
   async function finishUpperA(count: number) {
     const [upperA] = await listRoutinesWithExercises(db)
     const workout = await startWorkout(db, upperA.routine.id)
@@ -97,11 +97,11 @@ describe('comparação com a vez anterior', () => {
     return workout
   }
 
-  it('mostra volume, séries e duração em relação ao Upper A anterior', async () => {
-    const first = await finishUpperA(2) // 2 séries: 400 kg
-    // Garante a ordem no tempo (os dois treinos podem cair no mesmo milissegundo).
+  it('shows volume, sets and duration relative to the previous Upper A', async () => {
+    const first = await finishUpperA(2) // 2 sets: 400 kg
+    // Guarantee the order in time (both workouts may land in the same millisecond).
     await db.workouts.update(first.id, { startedAt: first.startedAt - 86_400_000 })
-    const second = await finishUpperA(3) // 3 séries: 600 kg
+    const second = await finishUpperA(3) // 3 sets: 600 kg
 
     renderAt(`/historico/${second.id}`)
 
@@ -111,7 +111,7 @@ describe('comparação com a vez anterior', () => {
     expect(within(card).getByText('+1')).toBeInTheDocument()
   })
 
-  it('na primeira vez da rotina não há comparação', async () => {
+  it('the first time of the routine there is no comparison', async () => {
     const only = await finishUpperA(2)
 
     renderAt(`/historico/${only.id}`)

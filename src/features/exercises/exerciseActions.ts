@@ -15,8 +15,8 @@ export type NewExerciseInput = {
 }
 
 /**
- * Procura um exercício ativo com este nome, em qualquer idioma, sem diferenciar
- * maiúsculas nem acentos ("supino RETO" acha "Supino reto").
+ * Looks for an active exercise with this name, in any language, ignoring
+ * case and accents ("supino RETO" finds "Supino reto").
  */
 export async function findExerciseByName(
   db: EncoreDB,
@@ -30,21 +30,21 @@ export async function findExerciseByName(
 }
 
 /**
- * Cria um exercício do usuário (`isCustom: true`) e o devolve. Ele passa a fazer
- * parte da biblioteca: aparece na aba Exercícios e em todo seletor.
+ * Creates a user exercise (`isCustom: true`) and returns it. It becomes part
+ * of the library: it shows in the Exercícios tab and in every picker.
  *
- * Se já existe um exercício com o mesmo nome, devolve o que existe em vez de criar
- * um repetido: quem digita "supino reto" sem reparar que ele já está na lista
- * não ganha um segundo "supino reto".
+ * If an exercise with the same name already exists, returns the existing one instead of creating
+ * a duplicate: someone who types "supino reto" without noticing it is already in the list
+ * does not get a second "supino reto".
  *
- * O nome vale para os dois idiomas (o usuário digita em um só).
+ * The name applies to both languages (the user types in only one).
  */
 export async function createCustomExercise(
   db: EncoreDB,
   input: NewExerciseInput,
 ): Promise<Exercise> {
   const name = input.name.trim().replace(/\s+/g, ' ')
-  // Dentro de uma transação: dois toques seguidos não criam dois registros.
+  // Inside a transaction: two quick taps do not create two records.
   return db.transaction('rw', db.exercises, async () => {
     const existing = await findExerciseByName(db, name)
     if (existing) {

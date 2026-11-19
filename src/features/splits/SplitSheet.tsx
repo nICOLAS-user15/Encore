@@ -10,17 +10,17 @@ import { TextField } from '../../ui/TextField'
 import { deleteSplit, moveSplit, updateSplit } from './splitActions'
 
 type SplitSheetProps = {
-  /** Divisão sendo editada, ou `null` com o painel fechado. */
+  /** Split being edited, or `null` with the sheet closed. */
   split: Split | null
-  /** Quantas rotinas ela tem (excluir a divisão exclui as rotinas: a confirmação avisa o número). */
+  /** How many routines it has (deleting the split deletes the routines: the confirmation shows the number). */
   routineCount: number
-  /** Posição nas abas: define se dá para mover para a esquerda / direita. */
+  /** Position in the tabs: defines whether it can move left / right. */
   isFirst: boolean
   isLast: boolean
   onClose: () => void
 }
 
-/** Painel para renomear, reordenar e excluir uma divisão. Cada mudança grava na hora. */
+/** Sheet to rename, reorder and delete a split. Each change writes immediately. */
 export function SplitSheet({
   split,
   routineCount,
@@ -35,7 +35,7 @@ export function SplitSheet({
       title={split?.name ?? t.splits.editTitle}
       onClose={onClose}
     >
-      {/* `key`: o formulário recomeça ao abrir outra divisão. */}
+      {/* `key`: the form restarts when another split is opened. */}
       {split && (
         <SplitForm
           key={split.id}
@@ -54,7 +54,7 @@ type SplitFormProps = Omit<SplitSheetProps, 'split'> & { split: Split }
 
 function SplitForm({ split, routineCount, isFirst, isLast, onClose }: SplitFormProps) {
   const { t } = useI18n()
-  // Estado local para o cursor não "pular" enquanto digita; o banco grava a cada mudança.
+  // Local state so the cursor does not "jump" while typing; the database writes on every change.
   const [name, setName] = useState(split.name)
   const [notes, setNotes] = useState(split.notes)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -72,7 +72,7 @@ function SplitForm({ split, routineCount, isFirst, isLast, onClose }: SplitFormP
         value={name}
         onChange={(value) => {
           setName(value)
-          // Nome vazio não é salvo: a divisão mantém o último nome válido.
+          // An empty name is not saved: the split keeps its last valid name.
           if (value.trim() !== '') {
             void updateSplit(db, split.id, { name: value.trim() })
           }

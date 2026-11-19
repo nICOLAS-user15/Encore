@@ -7,7 +7,7 @@ import {
 } from '../workout/workoutStats'
 import type { WorkoutSummary } from './historyQueries'
 
-/** Três números do treino: duração, séries concluídas e volume. */
+/** Three workout numbers: duration, completed sets and volume. */
 export function SummaryStats({ summary }: { summary: WorkoutSummary }) {
   const { t, format } = useI18n()
   const { workout, sets } = summary

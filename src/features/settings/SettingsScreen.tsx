@@ -9,7 +9,7 @@ import { BackupSection } from './BackupSection'
 import { REST_OPTIONS, updateSettings, WEIGHT_STEP_OPTIONS } from './settingsRepository'
 import { useSettings } from './useSettings'
 
-/** Cada idioma escrito NELE MESMO: quem não lê o idioma atual reconhece o seu. */
+/** Each language written IN ITSELF: someone who cannot read the current language recognizes theirs. */
 const LANGUAGE_OPTIONS: Array<{ value: Language; label: string }> = [
   { value: 'pt', label: 'Português' },
   { value: 'en', label: 'English' },
@@ -19,7 +19,7 @@ export function SettingsScreen() {
   const { t, format } = useI18n()
   const { settings } = useSettings()
 
-  // Cada toque grava na hora (sem botão "Salvar"); a tela se atualiza via useLiveQuery.
+  // Each tap saves immediately (no "Salvar" button); the screen updates via useLiveQuery.
   const save = (changes: Parameters<typeof updateSettings>[1]) =>
     void updateSettings(db, changes)
 
@@ -89,7 +89,7 @@ export function SettingsScreen() {
                       key={step}
                       active={settings.weightStepsKg[equipment] === step}
                       onClick={() =>
-                        // Grava o objeto inteiro, trocando só este equipamento.
+                        // Writes the whole object, changing only this equipment.
                         save({
                           weightStepsKg: { ...settings.weightStepsKg, [equipment]: step },
                         })
@@ -116,7 +116,7 @@ type ToggleRowProps = {
   onChange: (checked: boolean) => void
 }
 
-/** Linha liga/desliga (role="switch": leitores de tela anunciam "ligado/desligado"). */
+/** On/off row (role="switch": screen readers announce "on/off"). */
 function ToggleRow({ label, checked, onChange }: ToggleRowProps) {
   const { t } = useI18n()
   return (
@@ -128,7 +128,7 @@ function ToggleRow({ label, checked, onChange }: ToggleRowProps) {
       className="flex min-h-14 w-full items-center justify-between gap-4 rounded-sm border-2 border-line-strong bg-surface px-4 text-left active:border-text"
     >
       <span className="font-medium">{label}</span>
-      {/* aria-hidden: o role="switch" + aria-checked já dizem o estado; o selo é visual. */}
+      {/* aria-hidden: role="switch" + aria-checked already state the status; the badge is visual. */}
       <span
         aria-hidden="true"
         className={cn(
@@ -148,7 +148,7 @@ type OptionButtonProps = {
   active: boolean
   onClick: () => void
   children: string
-  /** Idioma do texto do botão (ajuda leitores de tela a pronunciar certo). */
+  /** Language of the button text (helps screen readers pronounce it correctly). */
   lang?: string
 }
 
@@ -161,7 +161,7 @@ function OptionButton({ active, onClick, children, lang }: OptionButtonProps) {
       lang={lang}
       className={cn(
         'min-h-12 rounded-sm border-2 px-1 font-display text-lg font-semibold tabular-nums',
-        // Selecionado = cores invertidas (sem acento: não é ação principal).
+        // Selected = inverted colors (no accent: it is not a main action).
         active ? 'border-text bg-text text-background' : 'border-line-strong text-muted',
       )}
     >

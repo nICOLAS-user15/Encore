@@ -1,18 +1,18 @@
 import { useState } from 'react'
 
-// A duração do descanso vem das Configurações (settings.restSeconds).
+// The rest duration comes from Settings (settings.restSeconds).
 
 const STORAGE_KEY = 'encore:restEndsAt'
 
 /*
- * O fim do descanso fica no localStorage para sobreviver a trocar de aba ou
- * fechar o app. É só uma conveniência: se o navegador bloquear o storage,
- * o timer continua funcionando enquanto a tela estiver aberta.
+ * The rest end time is kept in localStorage to survive switching tabs or
+ * closing the app. It is only a convenience: if the browser blocks storage,
+ * the timer keeps working while the screen is open.
  */
 function readStored(): number | null {
   try {
     const value = Number(localStorage.getItem(STORAGE_KEY))
-    // Descanso que já acabou (o app estava fechado): some, em vez de apitar atrasado.
+    // A rest that already ended (the app was closed): disappears, instead of beeping late.
     if (!value || value <= Date.now()) {
       return null
     }
@@ -30,12 +30,12 @@ function writeStored(value: number | null): void {
       localStorage.setItem(STORAGE_KEY, String(value))
     }
   } catch {
-    // Sem storage disponível: segue só com o estado em memória.
+    // No storage available: continues with in-memory state only.
   }
 }
 
 export type RestTimerControls = {
-  /** Horário (ms) em que o descanso acaba, ou `null` se não há descanso. */
+  /** Time (ms) when the rest ends, or `null` if there is no rest. */
   endsAt: number | null
   start: (seconds: number) => void
   add: (seconds: number) => void
@@ -53,7 +53,7 @@ export function useRestTimer(): RestTimerControls {
   return {
     endsAt,
     start: (seconds) => setEndsAt(Date.now() + seconds * 1000),
-    // Se o descanso já acabou, os +15s contam a partir de agora.
+    // If the rest already ended, the +15s count from now.
     add: (seconds) => setEndsAt(Math.max(Date.now(), endsAt ?? 0) + seconds * 1000),
     stop: () => setEndsAt(null),
   }

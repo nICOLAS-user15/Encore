@@ -14,7 +14,7 @@ import type { RouteHandle } from './routeHandle'
 import { SideMenu } from './SideMenu'
 import { TopBar } from './TopBar'
 
-/** Nome da seção da URL atual, no idioma do app. */
+/** Name of the section of the current URL, in the app language. */
 function routeTitle(pathname: string, t: Messages): string | null {
   if (pathname.startsWith('/treino')) return t.nav.workout
   if (pathname.startsWith('/rotinas')) return t.nav.routines
@@ -25,23 +25,23 @@ function routeTitle(pathname: string, t: Messages): string | null {
   return null
 }
 
-/** Casca de todas as telas: barra do topo, conteúdo rolável, abas fixas embaixo. */
+/** Shell of every screen: top bar, scrollable content, fixed tabs at the bottom. */
 export function AppLayout() {
   const { t } = useI18n()
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
 
-  // A rota mais específica que bateu com a URL diz se a tela é interna (handle.backTo).
+  // The most specific route that matched the URL says whether the screen is an inner one (handle.backTo).
   const matches = useMatches()
   const handle = matches.at(-1)?.handle as RouteHandle | undefined
 
-  // Treino em andamento: a faixa aparece em todas as telas, menos na aba Treino
-  // (lá a lista já mostra o cartão "Continuar", e o treino é a própria tela).
+  // Workout in progress: the banner shows on every screen, except the Workout tab
+  // (there the list already shows the "Continuar" card, and the workout is the screen itself).
   const activeWorkout = useLiveQuery(() => getActiveWorkoutInfo(db), [])
   const showBanner = Boolean(activeWorkout) && !location.pathname.startsWith('/treino')
 
-  // Ao ABRIR o app com um treino em andamento, vai direto a ele (em vez da lista, com mais
-  // um toque para "Continuar"). Só uma vez: depois, "Voltar" para a lista funciona normal.
+  // When OPENING the app with a workout in progress, go straight to it (instead of the list, with one
+  // more tap to "Continuar"). Only once: afterwards, "Voltar" to the list works normally.
   const navigate = useNavigate()
   const startRedirectDone = useRef(false)
   useEffect(() => {
@@ -54,7 +54,7 @@ export function AppLayout() {
     }
   }, [activeWorkout, location.pathname, navigate])
 
-  // Título da aba do navegador / do app (leitores de tela e o seletor de apps anunciam).
+  // Title of the browser tab / of the app (screen readers and the app switcher announce it).
   const pageTitle = routeTitle(location.pathname, t)
   useEffect(() => {
     document.title = pageTitle ? `${pageTitle} · Encore` : 'Encore'
@@ -62,7 +62,7 @@ export function AppLayout() {
 
   const navItems: BottomNavItem[] = [
     {
-      // Com um treino aberto, a aba leva direto a ele (um toque, no meio da série).
+      // With an open workout, the tab goes straight to it (one tap, in the middle of a set).
       to: activeWorkout ? `/treino/${activeWorkout.workout.id}` : '/treino',
       activePrefix: '/treino',
       label: t.nav.workout,
@@ -78,8 +78,8 @@ export function AppLayout() {
       <div className="mx-auto flex min-h-dvh max-w-xl flex-col">
         <TopBar backTo={handle?.backTo} onOpenMenu={() => setMenuOpen(true)} />
         {/*
-         * Espaço extra no fim = altura da BottomNav (4rem) + safe area do iPhone,
-         * e mais 6rem quando a faixa do treino está na doca (para não cobrir o fim da lista).
+         * Extra space at the end = height of the BottomNav (4rem) + iPhone safe area,
+         * plus 6rem when the workout banner is in the dock (so it does not cover the end of the list).
          */}
         <main
           className={cn(
@@ -90,8 +90,8 @@ export function AppLayout() {
           )}
         >
           {/*
-           * `key` muda a cada tela: o React recria o bloco e a animação de entrada
-           * roda de novo. Assim, trocar de aba ou abrir um detalhe dá um leve deslize.
+           * `key` changes on every screen: React recreates the block and the entry animation
+           * runs again. That way, switching tabs or opening a detail gives a slight slide.
            */}
           <div key={location.pathname} className="animate-screen-in">
             <Outlet />

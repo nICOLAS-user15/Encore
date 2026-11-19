@@ -10,7 +10,7 @@ import { routes } from './routes'
 
 function renderApp(initialEntries: string[]) {
   const router = createMemoryRouter(routes, { initialEntries })
-  // Com o I18nProvider de verdade, trocar o idioma nas Configurações muda o app inteiro.
+  // With the real I18nProvider, changing the language in Settings changes the whole app.
   render(
     <I18nProvider>
       <RouterProvider router={router} />
@@ -24,13 +24,13 @@ beforeEach(async () => {
   await syncSeedExercises(db)
 })
 
-describe('navegação', () => {
-  it('menu lateral abre, navega e fecha', async () => {
+describe('navigation', () => {
+  it('side menu opens, navigates and closes', async () => {
     const router = renderApp(['/treino'])
 
     fireEvent.click(await screen.findByRole('button', { name: 'Abrir menu' }))
     const menu = screen.getByRole('navigation', { name: 'Menu' })
-    // A logo com "glitch" tem uma cópia vermelha só visual: leitores de tela ouvem uma vez.
+    // The logo with "glitch" has a red copy that is visual only: screen readers hear it once.
     expect(within(menu).getAllByRole('img', { name: 'Encore' })).toHaveLength(1)
     fireEvent.click(within(menu).getByRole('link', { name: 'Sobre o Encore' }))
 
@@ -41,7 +41,7 @@ describe('navegação', () => {
     expect(screen.queryByRole('navigation', { name: 'Menu' })).not.toBeInTheDocument()
   })
 
-  it('"Voltar" volta para a tela anterior', async () => {
+  it('"Voltar" goes back to the previous screen', async () => {
     const router = renderApp(['/rotinas'])
 
     fireEvent.click(await screen.findByRole('link', { name: 'Configurações' }))
@@ -54,7 +54,7 @@ describe('navegação', () => {
     ).toBeInTheDocument()
   })
 
-  it('"Voltar" sem página anterior vai para a tela pai', async () => {
+  it('"Voltar" with no previous page goes to the parent screen', async () => {
     const router = renderApp(['/configuracoes'])
 
     fireEvent.click(await screen.findByRole('button', { name: 'Voltar' }))
@@ -65,17 +65,17 @@ describe('navegação', () => {
     expect(router.state.location.pathname).toBe('/treino')
   })
 
-  it('o treino escolhido tem "Voltar" para a lista, que oferece "Continuar"', async () => {
+  it('the chosen workout has "Voltar" to the list, which offers "Continuar"', async () => {
     const router = renderApp(['/treino'])
 
-    // Escolhe um treino: ele abre na rota própria, com "Voltar" no topo.
+    // Picks a workout: it opens on its own route, with "Voltar" at the top.
     fireEvent.click(await screen.findByRole('button', { name: 'Treino livre' }))
     await waitFor(() => expect(router.state.location.pathname).toMatch(/^\/treino\/.+/))
     const workoutPath = router.state.location.pathname
 
     fireEvent.click(await screen.findByRole('button', { name: 'Voltar' }))
 
-    // De volta à lista de treinos; o treino continua aberto e dá para retomar.
+    // Back at the workout list; the workout is still open and can be resumed.
     await waitFor(() => expect(router.state.location.pathname).toBe('/treino'))
     fireEvent.click(
       await screen.findByRole('link', { name: 'Continuar treino Treino livre' }),
@@ -84,8 +84,8 @@ describe('navegação', () => {
   })
 })
 
-describe('faixa "Treino em andamento"', () => {
-  it('aparece fora da aba Treino e leva de volta ao treino', async () => {
+describe('"Treino em andamento" banner', () => {
+  it('shows outside the Treino tab and leads back to the workout', async () => {
     const workout = await startWorkout(db, null)
     const router = renderApp(['/historico'])
 
@@ -97,7 +97,7 @@ describe('faixa "Treino em andamento"', () => {
     await waitFor(() =>
       expect(router.state.location.pathname).toBe(`/treino/${workout.id}`),
     )
-    // Na própria tela do treino, a faixa some.
+    // On the workout screen itself, the banner disappears.
     await waitFor(() =>
       expect(
         screen.queryByRole('link', { name: /Voltar ao treino/ }),
@@ -105,7 +105,7 @@ describe('faixa "Treino em andamento"', () => {
     )
   })
 
-  it('não aparece sem treino em andamento', async () => {
+  it('does not show without a workout in progress', async () => {
     renderApp(['/historico'])
 
     await screen.findByRole('heading', { level: 1, name: 'Histórico' })
@@ -115,8 +115,8 @@ describe('faixa "Treino em andamento"', () => {
   })
 })
 
-describe('configurações', () => {
-  it('trocar para inglês traduz o app inteiro, inclusive os exercícios', async () => {
+describe('settings', () => {
+  it('switching to English translates the whole app, including the exercises', async () => {
     renderApp(['/exercicios', '/configuracoes'])
 
     fireEvent.click(await screen.findByRole('button', { name: 'English' }))
@@ -135,7 +135,7 @@ describe('configurações', () => {
     expect(document.documentElement.lang).toBe('en-US')
   })
 
-  it('salva a duração do descanso e o início automático', async () => {
+  it('saves the rest duration and the automatic start', async () => {
     renderApp(['/configuracoes'])
 
     fireEvent.click(await screen.findByRole('button', { name: '2:00' }))
@@ -143,7 +143,7 @@ describe('configurações', () => {
     expect(autoRest).toHaveAttribute('aria-checked', 'true')
     fireEvent.click(autoRest)
 
-    // A gravação é assíncrona: waitFor repete a verificação até passar (ou estourar o tempo).
+    // Saving is asynchronous: waitFor repeats the check until it passes (or times out).
     await waitFor(() =>
       expect(screen.getByRole('button', { name: '2:00' })).toHaveAttribute(
         'aria-pressed',

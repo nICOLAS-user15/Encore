@@ -1,2 +1,2 @@
-# Este arquivo marca esta pasta como raiz do projeto pnpm
-# (evita que o pnpm suba até um workspace em uma pasta pai).
+# Marks this folder as the root of the pnpm project
+# (stops pnpm from climbing up to a workspace in a parent folder).

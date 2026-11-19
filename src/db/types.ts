@@ -1,28 +1,28 @@
 /*
- * Tipos das tabelas do banco local.
+ * Types of the local database tables.
  *
- * Regras pensadas para a sincronização futura:
- * - `id` é um UUID gerado no próprio aparelho (não depende de servidor).
- * - Datas são números em milissegundos desde 1970 (`Date.now()`): fáceis de
- *   comparar, ordenar e indexar.
- * - Nada é apagado de verdade: `deletedAt` preenchido = registro excluído.
- *   Assim outro aparelho consegue "ficar sabendo" da exclusão ao sincronizar.
+ * Rules designed for future sync:
+ * - `id` is a UUID generated on the device itself (does not depend on a server).
+ * - Dates are numbers in milliseconds since 1970 (`Date.now()`): easy to
+ *   compare, sort and index.
+ * - Nothing is really deleted: `deletedAt` set = deleted record.
+ *   That way another device can "find out" about the deletion when syncing.
  */
 
 export type ID = string
-/** Milissegundos desde 01/01/1970 (o mesmo que `Date.now()`). */
+/** Milliseconds since 1970-01-01 (the same as `Date.now()`). */
 export type Timestamp = number
 
-/** Campos que todo registro tem. */
+/** Fields every record has. */
 export type BaseRecord = {
   id: ID
   createdAt: Timestamp
   updatedAt: Timestamp
-  /** `null` = registro ativo. Preenchido = excluído (exclusão lógica). */
+  /** `null` = active record. Set = deleted (soft delete). */
   deletedAt: Timestamp | null
 }
 
-/** Os dados "de verdade" de um registro, sem os campos automáticos. */
+/** The "real" data of a record, without the automatic fields. */
 export type NewRecord<T extends BaseRecord> = Omit<T, keyof BaseRecord>
 
 export const MUSCLE_GROUPS = [
@@ -37,7 +37,7 @@ export const MUSCLE_GROUPS = [
   'calves',
   'core',
 ] as const
-/** Os nomes de cada grupo na tela ficam nos dicionários (src/i18n). */
+/** The names of each group on screen live in the dictionaries (src/i18n). */
 export type MuscleGroup = (typeof MUSCLE_GROUPS)[number]
 
 export const EQUIPMENT = [
@@ -51,8 +51,8 @@ export const EQUIPMENT = [
 export type Equipment = (typeof EQUIPMENT)[number]
 
 /**
- * Equipamentos em que a carga sobe em saltos (anilhas, halteres, pilha da máquina).
- * Peso corporal fica de fora: nele a progressão é em repetições.
+ * Equipment where the load goes up in steps (plates, dumbbells, machine stack).
+ * Bodyweight is left out: there, progression is in repetitions.
  */
 export const LOADED_EQUIPMENT = [
   'barbell',
@@ -66,117 +66,117 @@ export type LoadedEquipment = (typeof LOADED_EQUIPMENT)[number]
 export const LANGUAGES = ['pt', 'en'] as const
 export type Language = (typeof LANGUAGES)[number]
 
-/** Um texto em cada idioma do app: `{ pt: 'Supino reto', en: 'Bench Press' }`. */
+/** A text in each app language: `{ pt: 'Supino reto', en: 'Bench Press' }`. */
 export type Translated = Record<Language, string>
 
 export type Exercise = BaseRecord & {
-  /** Nome em cada idioma. Exercícios criados pelo usuário repetem o mesmo nome nos dois. */
+  /** Name in each language. Exercises created by the user repeat the same name in both. */
   names: Translated
   muscleGroup: MuscleGroup
   equipment: Equipment
-  /** `true` = criado pelo usuário; `false` = veio do seed. */
+  /** `true` = created by the user; `false` = came from the seed. */
   isCustom: boolean
 }
 
 /**
- * Divisão de treino: um grupo de rotinas que formam um ciclo (Upper/Lower, PPL,
- * ABC...). A aba Treino mostra uma divisão por vez.
+ * Workout split: a group of routines that form a cycle (Upper/Lower, PPL,
+ * ABC...). The Workout tab shows one split at a time.
  */
 export type Split = BaseRecord & {
   name: string
-  /** Posição da divisão na lista de abas (0, 1, 2...). */
+  /** Position of the split in the tab list (0, 1, 2...). */
   order: number
-  /** Observações (ex.: "4x por semana, descanso de 90s"). */
+  /** Notes (e.g. "4x per week, 90s rest"). */
   notes: string
 }
 
 export type Routine = BaseRecord & {
   name: string
-  /** Divisão a que a rotina pertence. */
+  /** Split the routine belongs to. */
   splitId: ID
-  /** Posição da rotina na lista, dentro da divisão (0, 1, 2...). */
+  /** Position of the routine in the list, within the split (0, 1, 2...). */
   order: number
-  /** Observações gerais (ex.: "Aquecer bem", "Alongar no final"). */
+  /** General notes (e.g. "Warm up well", "Stretch at the end"). */
   notes: string
 }
 
-/** Liga um exercício a uma rotina, com a meta de séries e a faixa de repetições. */
+/** Links an exercise to a routine, with the set target and the rep range. */
 export type RoutineExercise = BaseRecord & {
   routineId: ID
   exerciseId: ID
   position: number
   targetSets: number
-  /** Faixa de repetições: "6-10" vira min 6, max 10. */
+  /** Rep range: "6-10" becomes min 6, max 10. */
   targetRepsMin: number
   targetRepsMax: number
   /**
-   * Carga e reps de referência, usadas para preencher as séries enquanto
-   * ainda não existe histórico deste exercício. `null` = sem referência.
+   * Reference load and reps, used to fill in the sets while
+   * there is no history for this exercise yet. `null` = no reference.
    */
   referenceWeightKg: number | null
   referenceReps: number | null
-  /** Observação do exercício (ex.: "carga por lado"). */
+  /** Exercise note (e.g. "load per side"). */
   notes: string
   /**
-   * Descanso deste exercício, em segundos. `null` = usa o padrão das Configurações.
-   * Itens salvos antes deste campo existir não o têm: leia com `restSecondsOf`.
+   * Rest for this exercise, in seconds. `null` = uses the default from Settings.
+   * Items saved before this field existed do not have it: read with `restSecondsOf`.
    */
   restSeconds: number | null
 }
 
 export type Workout = BaseRecord & {
-  /** Rotina usada como base, ou `null` para treino livre. */
+  /** Routine used as a base, or `null` for a free workout. */
   routineId: ID | null
-  /** Quando o treino foi aberto (data do treino no histórico). */
+  /** When the workout was opened (workout date in the history). */
   startedAt: Timestamp
-  /** `null` enquanto o treino está em andamento. */
+  /** `null` while the workout is in progress. */
   endedAt: Timestamp | null
   /**
-   * Cronômetro controlado pelo usuário, separado da abertura do treino
-   * (dá para fazer a mobilidade antes de começar a contar).
-   * `null` = ainda não iniciado / ainda não parado.
+   * User-controlled timer, separate from when the workout was opened
+   * (you can do mobility work before starting to count).
+   * `null` = not started yet / not stopped yet.
    */
   timerStartedAt: Timestamp | null
   timerStoppedAt: Timestamp | null
   /**
-   * Quando o cronômetro foi pausado (ex.: ir ao banheiro); `null`/ausente = não está
-   * pausado. Ao retomar, `timerStartedAt` avança o tempo da pausa, então o tempo
-   * parado nunca entra na duração. Opcional: treinos antigos não têm o campo
-   * (sem índice, sem migração).
+   * When the timer was paused (e.g. going to the bathroom); `null`/absent = not
+   * paused. On resume, `timerStartedAt` advances by the pause time, so stopped
+   * time never enters the duration. Optional: old workouts do not have the field
+   * (no index, no migration).
    */
   timerPausedAt?: Timestamp | null
   notes: string
 }
 
-/** Id fixo do único registro de configurações. */
+/** Fixed id of the single settings record. */
 export const SETTINGS_ID = 'app-settings'
 
-/** Preferências do usuário (um registro só, com id fixo). */
+/** User preferences (a single record, with a fixed id). */
 export type Settings = BaseRecord & {
   language: Language
-  /** Duração padrão do descanso, em segundos. */
+  /** Default rest duration, in seconds. */
   restSeconds: number
-  /** Se o descanso começa sozinho ao concluir uma série. */
+  /** Whether rest starts on its own when a set is completed. */
   autoStartRest: boolean
-  /** Manter a tela ligada enquanto houver treino em andamento. */
+  /** Keep the screen on while a workout is in progress. */
   keepScreenOn: boolean
-  /** Tocar um bipe quando o descanso acaba. */
+  /** Play a beep when rest ends. */
   restSound: boolean
   /**
-   * Menor salto de carga de cada equipamento na academia do usuário (kg).
-   * Usado na sugestão de progressão e nos botões −/+ do editor de série.
+   * Smallest load step for each equipment at the user's gym (kg).
+   * Used in the progression suggestion and in the −/+ buttons of the set editor.
    */
   weightStepsKg: Record<LoadedEquipment, number>
-  /** Quando o último backup foi exportado neste aparelho (`null` = nunca). */
+  /** When the last backup was exported on this device (`null` = never). */
   lastBackupAt: Timestamp | null
-  /** Divisão escolhida nas abas de Treino e Rotinas (`null` = a primeira). */
+  /** Split chosen in the Workout and Routines tabs (`null` = the first). */
   activeSplitId: ID | null
 }
 
 /**
- * - `normal`: série planejada.
- * - `encore`: série extra ("bis"), feita além do planejado.
- * - `warmup`: aquecimento. Não conta no volume, no "última vez" nem em recordes.
+ * - `normal`: planned set.
+ * - `encore`: extra set ("bis"), done beyond the plan.
+ * - `warmup`: warm-up. Does not count toward volume, "last time" or records.
  */
 export type SetType = 'normal' | 'encore' | 'warmup'
 
@@ -184,10 +184,10 @@ export type SetEntry = BaseRecord & {
   workoutId: ID
   exerciseId: ID
   position: number
-  /** Sempre em kg. A conversão para lb acontece só na hora de exibir. */
+  /** Always in kg. Conversion to lb happens only at display time. */
   weightKg: number
   reps: number
   type: SetType
-  /** `null` = série ainda não concluída. */
+  /** `null` = set not completed yet. */
   completedAt: Timestamp | null
 }

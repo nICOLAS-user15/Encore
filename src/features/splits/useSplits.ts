@@ -7,28 +7,28 @@ import { listSplits } from './splitQueries'
 import { resolveActiveSplit } from './splitUtils'
 
 type UseSplits = {
-  /** `undefined` enquanto o banco ainda não respondeu. */
+  /** `undefined` while the database has not answered yet. */
   splits: Split[] | undefined
-  /** A divisão escolhida nas abas (`null` se não existe nenhuma). */
+  /** The split selected in the tabs (`null` if none exists). */
   active: Split | null
   /**
-   * Escolhe uma divisão: fica salva e vale nas abas Treino e Rotinas. Devolve uma
-   * promessa que termina quando a escolha foi gravada: quem vai trocar de tela logo
-   * em seguida deve esperar por ela, para a tela nova já abrir na divisão certa.
+   * Selects a split: it is saved and applies to the Treino and Rotinas tabs. Returns a
+   * promise that finishes when the choice has been written: whoever is about to switch
+   * screens right after should wait for it, so the new screen already opens on the right split.
    */
   select: (splitId: ID) => Promise<void>
 }
 
 /**
- * As divisões e qual está escolhida. A escolha é uma só para o app inteiro:
- * trocar a aba na tela Treino também troca na tela Rotinas (e vice-versa).
+ * The splits and which one is selected. The selection is one for the whole app:
+ * switching the tab on the Treino screen also switches it on Rotinas (and vice versa).
  */
 export function useSplits(): UseSplits {
   const loadedSplits = useLiveQuery(() => listSplits(db), [])
   const { settings, loaded } = useSettings()
-  // Só vale como "carregado" quando AS DUAS leituras responderam: antes de ler as
-  // configurações, o valor padrão ("a primeira divisão") apareceria por um instante
-  // e depois a tela pularia para a divisão que o usuário realmente escolheu.
+  // Only counts as "loaded" when BOTH reads have answered: before reading the
+  // settings, the default value ("the first split") would show for a moment
+  // and then the screen would jump to the split the user actually chose.
   const splits = loaded ? loadedSplits : undefined
   return {
     splits,

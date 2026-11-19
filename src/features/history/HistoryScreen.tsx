@@ -12,7 +12,7 @@ export function HistoryScreen() {
   const { t, format } = useI18n()
   const summaries = useLiveQuery(() => listWorkoutSummaries(db), [])
 
-  let content = null // carregando
+  let content = null // loading
   if (summaries && summaries.length === 0) {
     content = (
       <EmptyState

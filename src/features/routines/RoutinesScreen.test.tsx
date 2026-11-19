@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+﻿import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { createMemoryRouter } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
 import { beforeEach, describe, expect, it } from 'vitest'
@@ -24,19 +24,19 @@ beforeEach(async () => {
   localStorage.clear()
   await syncSeedExercises(db)
   await importTestProgram(db)
-  // Treino do Upper A já em andamento.
+  // Upper A workout already in progress.
   const [upperA] = await listRoutinesWithExercises(db)
   upperAWorkout = await startWorkout(db, upperA.routine.id)
 })
 
-/** Conclui a primeira série do Upper A: o treino passa a ter algo a perder. */
+/** Completes the first set of Upper A: the workout now has something to lose. */
 async function completeOneSet() {
   const [first] = await listWorkoutSets(db, upperAWorkout.id)
   await toggleSetCompleted(db, first.id)
 }
 
-describe('Rotinas com um treino em andamento', () => {
-  it('a rotina do treino aberto mostra "Continuar" e leva até ele', async () => {
+describe('Rotinas with a workout in progress', () => {
+  it('the routine of the open workout shows "Continuar" and leads to it', async () => {
     const router = renderRoutines()
 
     fireEvent.click(await screen.findByRole('button', { name: 'Continuar' }))
@@ -46,11 +46,11 @@ describe('Rotinas com um treino em andamento', () => {
     )
   })
 
-  it('com séries feitas, iniciar OUTRA rotina avisa antes e não cria outro treino', async () => {
+  it('with sets done, starting ANOTHER routine warns first and does not create another workout', async () => {
     await completeOneSet()
     const router = renderRoutines()
 
-    // Ordem das rotinas: Upper A (em andamento), Lower A, Upper B, Lower B.
+    // Routine order: Upper A (in progress), Lower A, Upper B, Lower B.
     const [startLowerA] = await screen.findAllByRole('button', { name: 'Iniciar' })
     fireEvent.click(startLowerA)
 
@@ -67,7 +67,7 @@ describe('Rotinas com um treino em andamento', () => {
     expect((await getActiveWorkout(db))?.id).toBe(upperAWorkout.id)
   })
 
-  it('sem nenhuma série feita, troca de rotina na hora (o treino vazio é descartado)', async () => {
+  it('with no sets done, switches routine right away (the empty workout is discarded)', async () => {
     const router = renderRoutines()
 
     const [startLowerA] = await screen.findAllByRole('button', { name: 'Iniciar' })

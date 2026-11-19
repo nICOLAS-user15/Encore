@@ -2,12 +2,12 @@ import type { ReactNode } from 'react'
 
 type SectionProps = {
   title: string
-  /** Texto de apoio logo abaixo do título. */
+  /** Supporting text right below the title. */
   hint?: string
   children: ReactNode
 }
 
-/** Bloco de uma tela com título sublinhado (Configurações, editor de rotina...). */
+/** Screen block with an underlined title (Settings, routine editor...). */
 export function Section({ title, hint, children }: SectionProps) {
   return (
     <section>

@@ -7,22 +7,22 @@ export type BottomNavItem = {
   label: string
   icon: ReactNode
   /**
-   * A aba fica marcada em qualquer endereço que comece com isto. Útil quando `to`
-   * muda: a aba Treino aponta para o treino aberto (/treino/abc), mas continua
-   * marcada na lista (/treino).
+   * The tab is marked active on any address that starts with this. Useful when `to`
+   * changes: the Workout tab points to the open workout (/treino/abc), but stays
+   * marked on the list (/treino).
    */
   activePrefix?: string
 }
 
 type BottomNavProps = {
   items: BottomNavItem[]
-  /** Nome da navegação para leitores de tela (ex.: "Navegação principal"). */
+  /** Navigation name for screen readers (e.g. "Navegação principal"). */
   label: string
 }
 
 /**
- * Barra de abas fixa no rodapé. A aba ativa usa texto claro + barra grossa no topo
- * (e não a cor de acento, que fica reservada para ações principais e PRs).
+ * Tab bar fixed at the bottom. The active tab uses light text + a thick bar on top
+ * (not the accent color, which is reserved for main actions and PRs).
  */
 export function BottomNav({ items, label }: BottomNavProps) {
   const { pathname } = useLocation()

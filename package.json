@@ -1,6 +1,6 @@
 {
   "name": "encore",
-  "description": "Encore: log de treino de musculação que funciona offline (PWA).",
+  "description": "Encore: an offline-first PWA for logging strength workouts.",
   "version": "0.1.0",
   "private": true,
   "license": "MIT",

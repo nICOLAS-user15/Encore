@@ -4,29 +4,29 @@ import { parseDecimal } from '../lib/format'
 import { MinusIcon, PlusIcon } from './icons'
 
 type NumberStepperProps = {
-  /** Nome do campo, usado no rótulo e na acessibilidade (ex.: "Carga"). */
+  /** Field name, used in the label and for accessibility (e.g. "Carga"). */
   label: string
   value: number
   onChange: (value: number) => void
-  /** Quanto cada toque soma/subtrai. Ex.: 2.5 para carga, 1 para repetições. */
+  /** How much each tap adds/subtracts. E.g. 2.5 for load, 1 for reps. */
   step?: number
   min?: number
   max?: number
-  /** Texto pequeno ao lado do número (ex.: "kg", "reps"). */
+  /** Small text next to the number (e.g. "kg", "reps"). */
   unit?: string
-  /** Teclado com vírgula. Padrão: só quando o passo é decimal (ex.: 2,5). */
+  /** Keyboard with a comma. Default: only when the step is decimal (e.g. 2,5). */
   decimal?: boolean
 }
 
-/** Evita lixo de ponto flutuante (ex.: 0.1 + 0.2 = 0.30000000000000004). */
+/** Avoids floating-point junk (e.g. 0.1 + 0.2 = 0.30000000000000004). */
 function roundToHundredths(value: number): number {
   return Math.round(value * 100) / 100
 }
 
 /**
- * Campo numérico com botões grandes de − e +, pensado para usar com a mão suada
- * no meio da série. Os botões têm 64px (bem acima do mínimo de 48px).
- * O número no meio também é um campo de texto: tocar nele abre o teclado numérico.
+ * Numeric field with big − and + buttons, designed to use with a sweaty hand
+ * in the middle of a set. The buttons are 64px (well above the 48px minimum).
+ * The number in the middle is also a text field: tapping it opens the numeric keyboard.
  */
 export function NumberStepper({
   label,
@@ -39,8 +39,8 @@ export function NumberStepper({
   decimal = !Number.isInteger(step),
 }: NumberStepperProps) {
   const { t, format } = useI18n()
-  // Enquanto o usuário digita, guardamos o TEXTO (ex.: "12," ainda não é número).
-  // `null` = não está digitando, então mostramos o `value` formatado.
+  // While the user types, we keep the TEXT (e.g. "12," is not a number yet).
+  // `null` = not typing, so we show the formatted `value`.
   const [draft, setDraft] = useState<string | null>(null)
 
   function clamp(next: number): number {
@@ -48,18 +48,18 @@ export function NumberStepper({
   }
 
   function change(delta: number) {
-    // Sai do modo digitação: no iOS o toque no botão não tira o foco do campo, e o
-    // texto digitado ficaria na tela mostrando um número diferente do valor.
+    // Leaves typing mode: on iOS tapping the button does not take focus off the field, and the
+    // typed text would stay on screen showing a number different from the value.
     setDraft(null)
     onChange(clamp(value + delta))
   }
 
   function handleTyping(text: string) {
     setDraft(text)
-    // Cada número válido já vai para o pai, sem esperar o campo perder o foco:
-    // no iPhone, tocar num botão NÃO tira o foco do campo, então um valor que
-    // só fosse salvo no "blur" se perderia ao tocar direto em "Concluir série".
-    // Texto inválido (ou vazio) não muda nada: fica valendo o último número.
+    // Each valid number goes to the parent right away, without waiting for the field to lose focus:
+    // on iPhone, tapping a button does NOT take focus off the field, so a value that
+    // was only saved on "blur" would be lost when tapping "Concluir série" directly.
+    // Invalid (or empty) text changes nothing: the last number stays.
     const parsed = parseDecimal(text)
     if (parsed !== null) {
       onChange(clamp(parsed))
@@ -87,7 +87,7 @@ export function NumberStepper({
         <label className="flex min-w-0 flex-1 items-baseline justify-center gap-1 font-display tabular-nums">
           <input
             type="text"
-            // Teclado numérico no celular; com vírgula quando `decimal`.
+            // Numeric keyboard on mobile; with a comma when `decimal`.
             inputMode={decimal ? 'decimal' : 'numeric'}
             aria-label={label}
             value={draft ?? format.decimal(value)}
@@ -96,7 +96,7 @@ export function NumberStepper({
               event.target.select()
             }}
             onChange={(event) => handleTyping(event.target.value)}
-            // Ao sair do campo, volta a mostrar o valor formatado (ex.: "12," -> "12").
+            // When leaving the field, shows the formatted value again (e.g. "12," -> "12").
             onBlur={() => setDraft(null)}
             onKeyDown={(event) => {
               if (event.key === 'Enter') {

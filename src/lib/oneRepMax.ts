@@ -1,25 +1,25 @@
 /**
- * TODO (exercício 2 de 2): estimativa de 1RM (carga máxima para 1 repetição).
+ * TODO (exercise 2 of 2): 1RM estimate (maximum load for 1 repetition).
  *
- * Vamos usar isto no futuro para detectar recordes (PRs): uma série de
- * 100 kg x 5 "vale" mais que 105 kg x 1? A fórmula de Epley responde:
+ * We will use this in the future to detect records (PRs): is a set of
+ * 100 kg x 5 "worth" more than 105 kg x 1? The Epley formula answers:
  *
- *     1RM = carga * (1 + reps / 30)
+ *     1RM = load * (1 + reps / 30)
  *
- * Regras que a sua implementação deve seguir:
- * - `reps === 1`: devolva a própria carga (a fórmula daria 103,3 para 100 x 1,
- *   e uma série de 1 repetição JÁ É o 1RM).
- * - `reps <= 0` ou `weightKg <= 0`: devolva 0 (série inválida, não conta).
- * - Arredonde o resultado para 1 casa decimal (116.666... -> 116.7).
- *   Dica: Math.round(x * 10) / 10.
+ * Rules your implementation must follow:
+ * - `reps === 1`: return the load itself (the formula would give 103.3 for 100 x 1,
+ *   and a 1-repetition set IS ALREADY the 1RM).
+ * - `reps <= 0` or `weightKg <= 0`: return 0 (invalid set, does not count).
+ * - Round the result to 1 decimal place (116.666... -> 116.7).
+ *   Tip: Math.round(x * 10) / 10.
  *
- * Como saber se acertou: em `oneRepMax.test.ts`, troque `describe.skip` por
- * `describe` e rode `pnpm test`.
+ * How to know if you got it right: in `oneRepMax.test.ts`, change `describe.skip` to
+ * `describe` and run `pnpm test`.
  *
- * Bônus (opcional): a fórmula perde precisão acima de ~12 repetições.
- * Pesquise a fórmula de Brzycki e pense em quando usar cada uma.
+ * Bonus (optional): the formula loses accuracy above ~12 repetitions.
+ * Look up the Brzycki formula and think about when to use each one.
  */
 export function estimateOneRepMax(weightKg: number, reps: number): number {
-  // Placeholder para o projeto compilar. Apague e implemente.
+  // Placeholder so the project compiles. Delete it and implement.
   return weightKg * reps * 0
 }

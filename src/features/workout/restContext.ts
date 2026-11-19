@@ -3,11 +3,11 @@ import type { RestTimerControls } from './useRestTimer'
 
 export const RestTimerContext = createContext<RestTimerControls | null>(null)
 
-/** Controles do descanso (`start`, `add`, `stop`). Precisa do RestTimerProvider. */
+/** Rest controls (`start`, `add`, `stop`). Requires the RestTimerProvider. */
 export function useRest(): RestTimerControls {
   const rest = useContext(RestTimerContext)
   if (rest === null) {
-    throw new Error('useRest precisa estar dentro do RestTimerProvider')
+    throw new Error('useRest must be used inside RestTimerProvider')
   }
   return rest
 }

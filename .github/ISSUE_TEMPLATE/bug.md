@@ -1,16 +1,16 @@
 ---
 name: Bug
-about: Algo não funciona como deveria
+about: Something does not work as it should
 labels: bug
 ---
 
-**O que aconteceu**
+**What happened**
 
-**O que você esperava**
+**What you expected**
 
-**Como reproduzir**
+**How to reproduce**
 
 1.
 2.
 
-**Aparelho e navegador** (ex.: iPhone 14, Safari; app instalado ou no navegador)
+**Device and browser** (e.g. iPhone 14, Safari; installed app or in the browser)

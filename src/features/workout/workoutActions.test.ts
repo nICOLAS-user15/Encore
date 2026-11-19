@@ -40,7 +40,7 @@ afterEach(async () => {
 })
 
 describe('startWorkout', () => {
-  it('treino livre começa sem séries e fica ativo', async () => {
+  it('free workout starts with no sets and becomes active', async () => {
     const workout = await startWorkout(db, null)
 
     expect(workout.endedAt).toBeNull()
@@ -48,7 +48,7 @@ describe('startWorkout', () => {
     expect((await getActiveWorkout(db))?.id).toBe(workout.id)
   })
 
-  it('não cria um segundo treino se já existe um em andamento', async () => {
+  it('does not create a second workout if one is already in progress', async () => {
     const first = await startWorkout(db, null)
     const second = await startWorkout(db, upperA)
 
@@ -56,11 +56,11 @@ describe('startWorkout', () => {
     expect(await db.workouts.count()).toBe(1)
   })
 
-  it('a partir da rotina, cria as séries planejadas com a referência', async () => {
+  it('from the routine, creates the planned sets with the reference', async () => {
     const workout = await startWorkout(db, upperA)
     const sets = await listWorkoutSets(db, workout.id)
 
-    // Upper A: 3 + 3 + 2 + 2 + 2 + 2 + 2 séries
+    // Upper A: 3 + 3 + 2 + 2 + 2 + 2 + 2 sets
     expect(sets).toHaveLength(16)
     const groups = groupSetsByExercise(sets)
     expect(groups).toHaveLength(7)
@@ -69,12 +69,12 @@ describe('startWorkout', () => {
       [25, 8],
       [25, 8],
     ])
-    // Scott Curl não tem reps de referência: usa o mínimo da faixa (6).
+    // Scott Curl has no reference reps: uses the range minimum (6).
     expect(groups[5].sets[0]).toMatchObject({ weightKg: 15, reps: 6 })
     expect(sets.every((s) => s.completedAt === null && s.type === 'normal')).toBe(true)
   })
 
-  it('no treino seguinte, preenche com o que foi feito da última vez', async () => {
+  it('in the next workout, fills in with what was done last time', async () => {
     const first = await startWorkout(db, upperA)
     const bench = (await listWorkoutSets(db, first.id)).filter(
       (s) => s.exerciseId === benchPress,
@@ -98,8 +98,8 @@ describe('startWorkout', () => {
   })
 })
 
-describe('séries', () => {
-  it('addSet copia a série anterior e marca o tipo', async () => {
+describe('sets', () => {
+  it('addSet copies the previous set and marks the type', async () => {
     const workout = await startWorkout(db, upperA)
 
     const encore = await addSet(db, workout.id, benchPress, 'encore')
@@ -111,7 +111,7 @@ describe('séries', () => {
     expect(bench).toHaveLength(4)
   })
 
-  it('addExerciseToWorkout cria uma série zerada para exercício sem histórico', async () => {
+  it('addExerciseToWorkout creates a zeroed set for an exercise with no history', async () => {
     const workout = await startWorkout(db, null)
 
     const set = await addExerciseToWorkout(db, workout.id, benchPress)
@@ -119,7 +119,7 @@ describe('séries', () => {
     expect(set).toMatchObject({ weightKg: 0, reps: 0, position: 0 })
   })
 
-  it('toggleSetCompleted marca e desmarca', async () => {
+  it('toggleSetCompleted marks and unmarks', async () => {
     const workout = await startWorkout(db, upperA)
     const [set] = await listWorkoutSets(db, workout.id)
 
@@ -130,8 +130,8 @@ describe('séries', () => {
   })
 })
 
-describe('finalizar e excluir', () => {
-  it('finishWorkout grava endedAt e descarta séries não concluídas', async () => {
+describe('finish and delete', () => {
+  it('finishWorkout writes endedAt and discards uncompleted sets', async () => {
     const workout = await startWorkout(db, upperA)
     const [first] = await listWorkoutSets(db, workout.id)
     await toggleSetCompleted(db, first.id)
@@ -144,7 +144,7 @@ describe('finalizar e excluir', () => {
     expect((await listWorkoutSets(db, workout.id)).map((s) => s.id)).toEqual([first.id])
   })
 
-  it('finishWorkout sem séries concluídas descarta o treino', async () => {
+  it('finishWorkout with no completed sets discards the workout', async () => {
     const workout = await startWorkout(db, upperA)
 
     expect(await finishWorkout(db, workout.id)).toBe('discarded')
@@ -153,19 +153,19 @@ describe('finalizar e excluir', () => {
     expect(await listFinishedWorkouts(db)).toEqual([])
   })
 
-  it('deleteWorkout faz exclusão lógica do treino e das séries', async () => {
+  it('deleteWorkout soft-deletes the workout and the sets', async () => {
     const workout = await startWorkout(db, upperA)
 
     await deleteWorkout(db, workout.id)
 
     expect((await db.workouts.get(workout.id))?.deletedAt).toBeTypeOf('number')
     expect(await listWorkoutSets(db, workout.id)).toEqual([])
-    expect(await db.setEntries.count()).toBe(16) // as linhas continuam lá
+    expect(await db.setEntries.count()).toBe(16) // the rows are still there
   })
 })
 
-describe('cronômetro do treino', () => {
-  it('começa parado e inicia uma vez só', async () => {
+describe('workout timer', () => {
+  it('starts stopped and starts only once', async () => {
     const workout = await startWorkout(db, upperA)
     expect(workout).toMatchObject({ timerStartedAt: null, timerStoppedAt: null })
 
@@ -173,21 +173,21 @@ describe('cronômetro do treino', () => {
     const started = (await db.workouts.get(workout.id))?.timerStartedAt
     expect(started).toBeTypeOf('number')
 
-    // Iniciar de novo não "zera" o cronômetro.
+    // Starting again does not "reset" the timer.
     await startWorkoutTimer(db, workout.id)
     expect((await db.workouts.get(workout.id))?.timerStartedAt).toBe(started)
   })
 
-  it('pausar congela o relógio e retomar continua de onde parou', async () => {
+  it('pausing freezes the clock and resuming continues from where it stopped', async () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     try {
       vi.setSystemTime(1_000_000)
       const workout = await startWorkout(db, upperA)
       await startWorkoutTimer(db, workout.id)
 
-      vi.setSystemTime(1_000_000 + 60_000) // 1 min de treino
+      vi.setSystemTime(1_000_000 + 60_000) // 1 min of workout
       await pauseWorkoutTimer(db, workout.id)
-      vi.setSystemTime(1_000_000 + 360_000) // 5 min parado (banheiro)
+      vi.setSystemTime(1_000_000 + 360_000) // 5 min paused (bathroom)
       const paused = (await db.workouts.get(workout.id))!
       expect(timerElapsedMs(paused, Date.now())).toBe(60_000)
 
@@ -196,14 +196,14 @@ describe('cronômetro do treino', () => {
       expect(resumed.timerPausedAt).toBeNull()
       expect(timerElapsedMs(resumed, Date.now())).toBe(60_000)
 
-      vi.setSystemTime(1_000_000 + 420_000) // mais 1 min rodando
+      vi.setSystemTime(1_000_000 + 420_000) // 1 more min running
       expect(timerElapsedMs(resumed, Date.now())).toBe(120_000)
     } finally {
       vi.useRealTimers()
     }
   })
 
-  it('finalizar com o cronômetro pausado usa o instante da pausa', async () => {
+  it('finishing with the timer paused uses the moment of the pause', async () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     try {
       vi.setSystemTime(1_000_000)
@@ -224,16 +224,16 @@ describe('cronômetro do treino', () => {
     }
   })
 
-  it('pausar e retomar sem estar rodando/pausado não faz nada', async () => {
+  it('pausing and resuming when not running/paused does nothing', async () => {
     const workout = await startWorkout(db, upperA)
 
-    await pauseWorkoutTimer(db, workout.id) // não iniciado
-    await resumeWorkoutTimer(db, workout.id) // não pausado
+    await pauseWorkoutTimer(db, workout.id) // not started
+    await resumeWorkoutTimer(db, workout.id) // not paused
 
     expect((await db.workouts.get(workout.id))?.timerPausedAt ?? null).toBeNull()
   })
 
-  it('finalizar o treino para o cronômetro que ainda está rodando', async () => {
+  it('finishing the workout stops the timer that is still running', async () => {
     const workout = await startWorkout(db, upperA)
     await startWorkoutTimer(db, workout.id)
     const [first] = await listWorkoutSets(db, workout.id)
@@ -246,8 +246,8 @@ describe('cronômetro do treino', () => {
   })
 })
 
-describe('desfazer exclusões', () => {
-  it('remover um exercício devolve os ids e restoreSets traz as séries de volta', async () => {
+describe('undoing deletions', () => {
+  it('removing an exercise returns the ids and restoreSets brings the sets back', async () => {
     const workout = await startWorkout(db, upperA)
     const before = await listWorkoutSets(db, workout.id)
 
@@ -262,7 +262,7 @@ describe('desfazer exclusões', () => {
     expect(await listWorkoutSets(db, workout.id)).toHaveLength(before.length)
   })
 
-  it('restoreWorkout desfaz deleteWorkout (treino e séries)', async () => {
+  it('restoreWorkout undoes deleteWorkout (workout and sets)', async () => {
     const workout = await startWorkout(db, upperA)
     const before = await listWorkoutSets(db, workout.id)
 
@@ -276,14 +276,14 @@ describe('desfazer exclusões', () => {
   })
 })
 
-describe('carga que acompanha as próximas séries', () => {
-  it('séries pendentes com a carga antiga passam para a nova; as ajustadas à mão ficam', async () => {
+describe('load that carries over to the next sets', () => {
+  it('pending sets with the old load move to the new one; hand-adjusted ones stay', async () => {
     const workout = await startWorkout(db, upperA)
     const sets = (await listWorkoutSets(db, workout.id)).filter(
       (set) => set.exerciseId === benchPress && set.type === 'normal',
     )
     const [first, second, third] = sets
-    // A 3ª já foi ajustada pelo usuário (carga diferente): não deve mudar.
+    // The 3rd was already adjusted by the user (different load): it must not change.
     await updateSet(db, third.id, { weightKg: 20 })
     const oldKg = first.weightKg
 
@@ -297,8 +297,8 @@ describe('carga que acompanha as próximas séries', () => {
   })
 })
 
-describe('trocar de treino e atomicidade', () => {
-  it('toque duplo em concluir não conclui duas vezes (o segundo desfaz)', async () => {
+describe('switching workouts and atomicity', () => {
+  it('double tap on complete does not complete twice (the second undoes it)', async () => {
     const workout = await startWorkout(db, upperA)
     const [first] = await listWorkoutSets(db, workout.id)
 
@@ -310,7 +310,7 @@ describe('trocar de treino e atomicidade', () => {
     expect(results).toEqual([true, false])
   })
 
-  it('startOrSwitchWorkout: continua no mesmo, troca se nada foi feito, bloqueia se houve séries', async () => {
+  it('startOrSwitchWorkout: continues the same one, switches if nothing was done, blocks if there were sets', async () => {
     const [, second] = await listRoutinesWithExercises(db)
     const a = await startOrSwitchWorkout(db, upperA)
     expect(a.status).toBe('started')
@@ -319,11 +319,11 @@ describe('trocar de treino e atomicidade', () => {
       a.status === 'started' && a.workout.id,
     )
 
-    // Nenhuma série concluída: trocar de rotina descarta o treino aberto.
+    // No completed set: switching routines discards the open workout.
     const switched = await startOrSwitchWorkout(db, second.routine.id)
     expect(switched.status).toBe('started')
 
-    // Com uma série concluída, trocar fica bloqueado.
+    // With one completed set, switching is blocked.
     if (switched.status !== 'started') throw new Error('esperava started')
     const [set] = await listWorkoutSets(db, switched.workout.id)
     await toggleSetCompleted(db, set.id)
@@ -331,7 +331,7 @@ describe('trocar de treino e atomicidade', () => {
     expect(blocked.status).toBe('blocked')
   })
 
-  it('não inicia treino de rotina que não existe mais', async () => {
+  it('does not start a workout from a routine that no longer exists', async () => {
     await expect(startWorkout(db, 'rotina-inexistente')).rejects.toThrow()
   })
 })

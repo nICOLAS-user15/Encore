@@ -9,27 +9,27 @@ import { nameKey } from '../../lib/text'
 import { BACKUP_TABLES, sanitizeRow } from './backupSchema'
 
 /*
- * Backup em arquivo JSON: a única forma (por enquanto) de não perder os treinos
- * ao trocar de aparelho, e de levar os dados do computador para o celular.
+ * Backup as a JSON file: the only way (for now) to avoid losing workouts
+ * when switching devices, and to move data from the computer to the phone.
  */
 
-/** Todas as tabelas que vão no backup. */
+/** All the tables that go in the backup. */
 const TABLES = BACKUP_TABLES
 type TableName = (typeof TABLES)[number]
 
-/** Acima disto o arquivo não pode ser um backup do Encore (evita travar a tela lendo lixo). */
+/** Above this, the file cannot be an Encore backup (avoids freezing the screen reading junk). */
 export const MAX_BACKUP_BYTES = 50 * 1024 * 1024
 
 export type Backup = {
-  /** Marca que identifica o arquivo como backup do Encore. */
+  /** Marker that identifies the file as an Encore backup. */
   format: 'encore-backup'
-  /** Versão do schema que gerou o arquivo. */
+  /** Schema version that produced the file. */
   schemaVersion: number
   exportedAt: number
   tables: Record<TableName, BaseRecord[]>
 }
 
-/** Erros que a tela sabe explicar ao usuário. */
+/** Errors the screen knows how to explain to the user. */
 export class BackupError extends Error {
   readonly reason: 'invalid' | 'newerVersion'
 
@@ -40,12 +40,12 @@ export class BackupError extends Error {
 }
 
 /**
- * Lê TODAS as linhas, inclusive as excluídas (exclusão lógica): assim, uma
- * exclusão feita num aparelho também chega no outro ao importar.
+ * Reads ALL rows, including deleted ones (soft delete): that way, a
+ * deletion made on one device also reaches the other on import.
  */
 export async function exportBackup(db: EncoreDB): Promise<Backup> {
-  // Uma transação de leitura só: um treino finalizado durante a exportação não
-  // gera um arquivo com o treino e sem as últimas séries.
+  // A single read transaction: a workout finished during the export does not
+  // produce a file with the workout but without its last sets.
   const entries = await db.transaction(
     'r',
     TABLES.map((name) => db.table(name)),
@@ -65,15 +65,15 @@ export async function exportBackup(db: EncoreDB): Promise<Backup> {
 }
 
 /**
- * Backup da versão 2 -> 3 (divisões de treino). Faz com o arquivo o mesmo que a
- * migração v3 faz com o banco: as rotinas vão para uma divisão com o MESMO id
- * fixo. Assim, importar este arquivo num aparelho que já migrou não cria uma
- * segunda divisão igual. Altera o objeto recebido.
+ * Backup from version 2 -> 3 (workout splits). Does to the file what the
+ * v3 migration does to the database: the routines go to a split with the SAME fixed
+ * id. That way, importing this file on a device that already migrated does not create a
+ * second identical split. Mutates the received object.
  */
 function upgradeBackupFromV2(backup: Backup): void {
   const tables = backup.tables as Record<string, unknown> | undefined
   if (!tables || !Array.isArray(tables.routines)) {
-    return // arquivo estragado: a validação logo abaixo recusa
+    return // broken file: the validation right below rejects it
   }
 
   type RoutineRow = Partial<BaseRecord> & { name?: unknown; splitId?: ID }
@@ -109,7 +109,7 @@ function upgradeBackupFromV2(backup: Backup): void {
   }
 }
 
-/** Converte o texto do arquivo num Backup válido, ou lança BackupError. */
+/** Converts the file text into a valid Backup, or throws BackupError. */
 export function parseBackup(text: string): Backup {
   let data: unknown
   try {
@@ -125,15 +125,15 @@ export function parseBackup(text: string): Backup {
   if (backup.schemaVersion > SCHEMA_VERSION) {
     throw new BackupError('newerVersion')
   }
-  // O backup nasceu na versão 2: antes disso não existe arquivo válido.
+  // Backup was born in version 2: before that there is no valid file.
   if (backup.schemaVersion < 2) {
     throw new BackupError('invalid')
   }
-  // Arquivo de uma versão mais antiga que a atual: converte antes de validar.
+  // File from a version older than the current one: converts before validating.
   if (backup.schemaVersion === 2) {
     upgradeBackupFromV2(backup as Backup)
   }
-  // Confere e copia cada linha (campo a campo): arquivo malformado é recusado inteiro.
+  // Checks and copies each row (field by field): a malformed file is rejected entirely.
   const tables = {} as Backup['tables']
   for (const name of TABLES) {
     const rows: unknown = backup.tables?.[name]
@@ -153,7 +153,7 @@ export function parseBackup(text: string): Backup {
 
 export type ImportResult = { added: number; updated: number; skipped: number }
 
-/** Exercício do arquivo que o aparelho já tem com outro id → o id do aparelho. */
+/** Exercise from the file that the device already has under another id → the device's id. */
 async function mapDuplicateExercises(
   db: EncoreDB,
   incoming: BaseRecord[],
@@ -186,10 +186,10 @@ async function mapDuplicateExercises(
 }
 
 /**
- * Só pode haver um treino em andamento. Se o aparelho já tem um, os do arquivo
- * entram FINALIZADOS no histórico (nada se perde e nenhum fica "fantasma", fora
- * do histórico e fora da tela Treino). Sem treino aberto aqui, fica aberto só o
- * mais recente do arquivo. Altera as linhas recebidas.
+ * There can be only one workout in progress. If the device already has one, the ones
+ * from the file come in FINISHED in the history (nothing is lost and none becomes a "ghost",
+ * outside the history and outside the Workout screen). With no open workout here, only the
+ * most recent one in the file stays open. Mutates the received rows.
  */
 async function closeExtraOpenWorkouts(
   db: EncoreDB,
@@ -226,17 +226,17 @@ async function closeExtraOpenWorkouts(
 }
 
 /**
- * Junta o backup com o que já existe no aparelho, registro por registro (pelo id):
- * - não existe aqui: entra;
- * - existe: fica a versão com o `updatedAt` mais recente.
- * Nada mais novo é sobrescrito. É a mesma regra que a sincronização futura vai usar.
+ * Merges the backup with what already exists on the device, record by record (by id):
+ * - does not exist here: it comes in;
+ * - exists: the version with the most recent `updatedAt` wins.
+ * Nothing newer is overwritten. This is the same rule future sync will use.
  *
- * Exceções que evitam dados duplicados ou estranhos (ver as funções acima): exercício
- * com o mesmo nome de um que já existe aqui usa o do aparelho (as rotinas e séries do
- * arquivo são religadas a ele), e treino em andamento extra entra finalizado.
+ * Exceptions that avoid duplicated or odd data (see the functions above): an exercise
+ * with the same name as one that already exists here uses the device's (the file's routines
+ * and sets are relinked to it), and an extra workout in progress comes in finished.
  *
- * Exceção à regra "escrita só pelo repository.ts": o backup precisa preservar o `id` e
- * o `updatedAt` originais do arquivo.
+ * Exception to the "writes only through repository.ts" rule: the backup must preserve the
+ * file's original `id` and `updatedAt`.
  */
 export async function importBackup(db: EncoreDB, backup: Backup): Promise<ImportResult> {
   const result: ImportResult = { added: 0, updated: 0, skipped: 0 }
@@ -244,7 +244,7 @@ export async function importBackup(db: EncoreDB, backup: Backup): Promise<Import
 
   await db.transaction('rw', tables, async () => {
     const exerciseRemap = await mapDuplicateExercises(db, backup.tables.exercises)
-    // Cópia rasa das linhas: o arquivo lido não é alterado.
+    // Shallow copy of the rows: the file that was read is not changed.
     const rows = Object.fromEntries(
       TABLES.map((name) => [name, backup.tables[name].map((row) => ({ ...row }))]),
     ) as Backup['tables']
@@ -277,7 +277,7 @@ export async function importBackup(db: EncoreDB, backup: Backup): Promise<Import
   return result
 }
 
-/** Nome do arquivo: encore-backup-2026-11-18.json */
+/** File name: encore-backup-2026-11-18.json */
 export function backupFileName(date = new Date()): string {
   const pad = (n: number) => String(n).padStart(2, '0')
   const day = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
@@ -285,11 +285,11 @@ export function backupFileName(date = new Date()): string {
 }
 
 /**
- * Entrega o arquivo ao usuário. No celular, usa a tela de compartilhar do sistema
- * (salvar em Arquivos, Drive, mandar no WhatsApp...). Onde não existir, baixa o arquivo.
+ * Delivers the file to the user. On mobile, uses the system share sheet
+ * (save to Files, Drive, send on WhatsApp...). Where it does not exist, downloads the file.
  *
- * Devolve `false` se o usuário fechou a tela de compartilhar sem escolher nada:
- * aí não houve backup (e a tela não pode dizer que houve).
+ * Returns `false` if the user closed the share sheet without choosing anything:
+ * then there was no backup (and the screen must not say there was).
  */
 export async function saveBackupFile(backup: Backup): Promise<boolean> {
   const json = JSON.stringify(backup)
@@ -300,11 +300,11 @@ export async function saveBackupFile(backup: Backup): Promise<boolean> {
       await navigator.share({ files: [file] })
       return true
     } catch (error) {
-      // Usuário fechou a tela de compartilhar: não é erro, mas também não salvou.
+      // User closed the share sheet: not an error, but nothing was saved either.
       if (error instanceof DOMException && error.name === 'AbortError') {
         return false
       }
-      // Qualquer outra falha: tenta o download comum abaixo.
+      // Any other failure: tries the regular download below.
     }
   }
 
@@ -312,8 +312,8 @@ export async function saveBackupFile(backup: Backup): Promise<boolean> {
   const link = document.createElement('a')
   link.href = url
   link.download = file.name
-  // Fora do DOM, alguns navegadores ignoram o clique; e revogar a URL logo em seguida
-  // pode cancelar o download antes de começar.
+  // Outside the DOM, some browsers ignore the click; and revoking the URL right after
+  // can cancel the download before it starts.
   document.body.append(link)
   link.click()
   link.remove()

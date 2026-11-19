@@ -5,7 +5,7 @@ import { listFinishedWorkouts, listWorkoutSets } from '../workout/workoutQueries
 
 export type WorkoutSummary = {
   workout: Workout
-  /** Nome da rotina usada, ou `null` para treino livre. */
+  /** Name of the routine used, or `null` for a free workout. */
   routineName: string | null
   sets: SetEntry[]
 }
@@ -20,9 +20,9 @@ async function summarize(db: EncoreDB, workout: Workout): Promise<WorkoutSummary
 }
 
 /**
- * Treinos finalizados com suas séries, do mais recente para o mais antigo.
- * (Faz uma consulta de séries por treino. Com centenas de treinos isso ainda é
- * rápido no IndexedDB; se um dia pesar, dá para paginar a lista.)
+ * Finished workouts with their sets, from newest to oldest.
+ * (Runs one sets query per workout. With hundreds of workouts this is still
+ * fast in IndexedDB; if it ever gets heavy, the list can be paginated.)
  */
 export async function listWorkoutSummaries(db: EncoreDB): Promise<WorkoutSummary[]> {
   const workouts = await listFinishedWorkouts(db)
@@ -30,8 +30,8 @@ export async function listWorkoutSummaries(db: EncoreDB): Promise<WorkoutSummary
 }
 
 /**
- * A vez anterior da MESMA rotina (o treino finalizado imediatamente antes deste).
- * Treino livre não tem com o que comparar: devolve `null`.
+ * The previous time of the SAME routine (the finished workout right before this one).
+ * A free workout has nothing to compare with: returns `null`.
  */
 export async function getPreviousSummary(
   db: EncoreDB,
@@ -40,7 +40,7 @@ export async function getPreviousSummary(
   if (workout.routineId === null) {
     return null
   }
-  // listFinishedWorkouts vem do mais recente para o mais antigo.
+  // listFinishedWorkouts comes newest to oldest.
   const previous = (await listFinishedWorkouts(db)).find(
     (other) =>
       other.routineId === workout.routineId && other.startedAt < workout.startedAt,
@@ -48,7 +48,7 @@ export async function getPreviousSummary(
   return previous ? summarize(db, previous) : null
 }
 
-/** Um treino finalizado, ou `null` se não existe / foi excluído / ainda está em andamento. */
+/** A finished workout, or `null` if it does not exist / was deleted / is still in progress. */
 export async function getWorkoutSummary(
   db: EncoreDB,
   workoutId: ID,

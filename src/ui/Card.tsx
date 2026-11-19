@@ -3,7 +3,7 @@ import { cn } from '../lib/cn'
 
 type CardProps = HTMLAttributes<HTMLDivElement>
 
-/** Bloco de superfície: fundo levemente mais claro, borda grossa e reta. */
+/** Surface block: slightly lighter background, thick straight border. */
 export function Card({ className, ...props }: CardProps) {
   return (
     <div

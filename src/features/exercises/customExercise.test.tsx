@@ -12,7 +12,7 @@ beforeEach(async () => {
   await syncSeedExercises(db)
 })
 
-/** Abre um treino livre e o seletor "Adicionar exercício". Devolve o seletor e o router. */
+/** Opens a free workout and the "Adicionar exercício" picker. Returns the picker and the router. */
 async function openPicker() {
   const router = createMemoryRouter(routes, { initialEntries: ['/treino'] })
   render(<RouterProvider router={router} />)
@@ -22,8 +22,8 @@ async function openPicker() {
   return { router, picker }
 }
 
-describe('exercício fora da biblioteca', () => {
-  it('digitar um nome novo, criar, e ele entra no treino e aparece na biblioteca', async () => {
+describe('exercise outside the library', () => {
+  it('typing a new name and creating it adds it to the workout and shows it in the library', async () => {
     const { router, picker } = await openPicker()
 
     fireEvent.change(await within(picker).findByRole('searchbox'), {
@@ -33,7 +33,7 @@ describe('exercício fora da biblioteca', () => {
       await within(picker).findByRole('button', { name: '+ Criar “Remada articulada”' }),
     )
 
-    // O formulário já vem com o nome; grupo e equipamento são obrigatórios.
+    // The form already comes with the name; group and equipment are required.
     const form = await screen.findByRole('dialog', { name: 'Novo exercício' })
     expect(within(form).getByRole('textbox', { name: 'Nome do exercício' })).toHaveValue(
       'Remada articulada',
@@ -41,16 +41,16 @@ describe('exercício fora da biblioteca', () => {
     const create = within(form).getByRole('button', { name: 'Criar e adicionar' })
     expect(create).toBeDisabled()
     fireEvent.click(within(form).getByRole('button', { name: 'Costas' }))
-    expect(create).toBeDisabled() // falta o equipamento
+    expect(create).toBeDisabled() // equipment is missing
     fireEvent.click(within(form).getByRole('button', { name: 'Máquina' }))
     expect(create).toBeEnabled()
     fireEvent.click(create)
 
-    // Entrou no treino...
+    // It went into the workout...
     expect(
       await screen.findByRole('heading', { level: 2, name: 'Remada articulada' }),
     ).toBeInTheDocument()
-    // ...foi salvo na biblioteca como exercício do usuário...
+    // ...was saved to the library as a user exercise...
     const saved = (await db.exercises.toArray()).find(
       (exercise) => exercise.names.pt === 'Remada articulada',
     )
@@ -60,24 +60,24 @@ describe('exercício fora da biblioteca', () => {
       equipment: 'machine',
     })
 
-    // ...e aparece na aba Exercícios.
+    // ...and shows up in the Exercícios tab.
     await act(async () => {
       await router.navigate('/exercicios')
     })
     expect(await screen.findByText('Remada articulada')).toBeInTheDocument()
   })
 
-  it('um nome que já existe não oferece criar (evita repetido)', async () => {
+  it('a name that already exists does not offer to create (avoids duplicates)', async () => {
     const { picker } = await openPicker()
     const search = await within(picker).findByRole('searchbox')
 
-    // Nome parcial: ainda não existe, então oferece.
+    // Partial name: does not exist yet, so it offers.
     fireEvent.change(search, { target: { value: 'supino' } })
     expect(
       await within(picker).findByRole('button', { name: '+ Criar “supino”' }),
     ).toBeInTheDocument()
 
-    // Nome completo (ignorando maiúsculas e acento) ou em inglês: já existe, não oferece.
+    // Full name (ignoring case and accents) or in English: already exists, does not offer.
     fireEvent.change(search, { target: { value: 'SUPINO reto com barra' } })
     await waitFor(() =>
       expect(
@@ -90,7 +90,7 @@ describe('exercício fora da biblioteca', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('"Cancelar" volta para a lista sem criar nada', async () => {
+  it('"Cancelar" goes back to the list without creating anything', async () => {
     const { picker } = await openPicker()
     const before = await db.exercises.count()
     fireEvent.change(await within(picker).findByRole('searchbox'), {

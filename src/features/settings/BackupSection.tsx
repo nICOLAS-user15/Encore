@@ -16,12 +16,12 @@ import { daysSince } from './backupReminder'
 import { updateSettings } from './settingsRepository'
 import { useSettings } from './useSettings'
 
-/** Exportar e importar o backup (arquivo JSON). */
+/** Export and import the backup (JSON file). */
 export function BackupSection() {
   const { t } = useI18n()
   const { settings, loaded } = useSettings()
   const now = useNow(60_000)
-  // useRef guarda uma referência ao <input type="file"> escondido, para abri-lo pelo botão.
+  // useRef keeps a reference to the hidden <input type="file">, to open it from the button.
   const fileInput = useRef<HTMLInputElement>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -30,7 +30,7 @@ export function BackupSection() {
     setBusy(true)
     try {
       const saved = await saveBackupFile(await exportBackup(db))
-      // Fechou a tela de compartilhar sem escolher nada: não houve backup.
+      // Closed the share sheet without choosing anything: no backup happened.
       if (saved) {
         await updateSettings(db, { lastBackupAt: Date.now() })
         setMessage(t.settings.exported)
@@ -57,7 +57,7 @@ export function BackupSection() {
       } else if (error instanceof BackupError) {
         setMessage(t.settings.importInvalid)
       } else {
-        // Falha do banco (ex.: sem espaço): a importação é uma transação, nada foi gravado.
+        // Database failure (e.g. no space): the import is a transaction, nothing was written.
         setMessage(t.settings.importFailed)
       }
     } finally {
@@ -67,7 +67,7 @@ export function BackupSection() {
 
   return (
     <Section title={t.settings.backup} hint={t.settings.backupHint}>
-      {/* min-h: o espaço já existe enquanto carrega, então nada "pula" na tela. */}
+      {/* min-h: the space already exists while loading, so nothing "jumps" on screen. */}
       <p className="mb-3 min-h-5 text-sm font-semibold">
         {loaded &&
           t.settings.lastBackup(
@@ -90,14 +90,14 @@ export function BackupSection() {
         className="hidden"
         onChange={(event) => {
           const file = event.target.files?.[0]
-          // Limpa o campo: escolher o mesmo arquivo de novo dispara onChange outra vez.
+          // Clears the field: choosing the same file again fires onChange again.
           event.target.value = ''
           if (file) {
             void handleFile(file)
           }
         }}
       />
-      {/* role="status": leitores de tela anunciam o resultado. */}
+      {/* role="status": screen readers announce the result. */}
       <p role="status" className="mt-3 min-h-6 text-sm">
         {message}
       </p>

@@ -9,11 +9,11 @@ import {
 } from '../db/types'
 
 /*
- * Dados de EXEMPLO para os testes: uma divisão com quatro rotinas.
+ * EXAMPLE data for the tests: a split with four routines.
  *
- * Isto NÃO faz parte do app e nunca vai para o navegador do usuário (só os testes
- * importam este arquivo). As cargas e repetições são valores genéricos de exemplo. O app em si
- * começa sem nenhuma divisão e nenhuma rotina: quem usa cria as suas.
+ * This is NOT part of the app and never goes to the user's browser (only tests
+ * import this file). The loads and repetitions are generic example values. The app itself
+ * starts with no split and no routines: whoever uses it creates their own.
  */
 
 type FixtureItem = {
@@ -21,7 +21,7 @@ type FixtureItem = {
   muscleGroup: MuscleGroup
   equipment: Equipment
   sets: number
-  /** Carga e reps de referência; `null` = sem dado. */
+  /** Reference load and reps; `null` = no data. */
   weightKg: number | null
   reps: number | null
   notes?: string
@@ -29,7 +29,7 @@ type FixtureItem = {
 
 type FixtureRoutine = { name: string; notes: string; exercises: FixtureItem[] }
 
-/** Atalho: faixa de repetições 6–10 em todos os itens de exemplo. */
+/** Shortcut: 6–10 rep range on all example items. */
 function item(
   pt: string,
   en: string,
@@ -80,7 +80,7 @@ export const TEST_ROUTINES: FixtureRoutine[] = [
         8,
         10,
       ),
-      // Sem repetições de referência: o treino usa o mínimo da faixa.
+      // No reference repetitions: the workout uses the minimum of the range.
       item(
         'Rosca Scott na máquina',
         'Scott Curl Machine',
@@ -139,16 +139,16 @@ export const TEST_ROUTINES: FixtureRoutine[] = [
   },
 ]
 
-/** Nome comparável: sem diferenciar maiúsculas nem espaços nas pontas. */
+/** Comparable name: case-insensitive and ignoring spaces at the ends. */
 function key(name: string): string {
   return name.trim().toLocaleLowerCase('pt-BR')
 }
 
 /**
- * Cria no banco a divisão de exemplo com as quatro rotinas (faixa 6–10 reps).
- * Reaproveita exercícios que já existem com o mesmo nome, em qualquer idioma;
- * os que faltam são criados como exercícios personalizados.
- * Devolve quantas rotinas foram criadas.
+ * Creates in the database the example split with the four routines (6–10 rep range).
+ * Reuses exercises that already exist with the same name, in any language;
+ * the missing ones are created as custom exercises.
+ * Returns how many routines were created.
  */
 export async function importTestProgram(db: EncoreDB): Promise<number> {
   return db.transaction(

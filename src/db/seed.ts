@@ -16,61 +16,61 @@ type SeedExercise = {
 }
 
 /*
- * Exercícios iniciais, com o nome em português e em inglês.
+ * Initial exercises, with the name in Portuguese and English.
  *
- * Os IDs são FIXOS de propósito (gerados uma vez e colados aqui). Se cada
- * aparelho sorteasse um UUID novo no seed, o "Supino reto" do celular e o do
- * computador teriam IDs diferentes e apareceriam duplicados após sincronizar.
- * Exercícios criados pelo usuário usam `crypto.randomUUID()` normalmente.
+ * The IDs are FIXED on purpose (generated once and pasted here). If each
+ * device drew a new UUID in the seed, the "Supino reto" on the phone and on the
+ * computer would have different IDs and show up duplicated after syncing.
+ * Exercises created by the user use `crypto.randomUUID()` as usual.
  *
- * Os nomes em inglês dos exercícios seguem o nome mais comum (ex.: "Bench Press"):
- * exercícios criados por um programa pronto com esse mesmo nome se reconhecem
- * como o mesmo exercício.
+ * The English names of the exercises follow the most common name (e.g. "Bench Press"):
+ * exercises created by a ready-made program with that same name are recognized
+ * as the same exercise.
  */
-// Um exercício por linha, como uma tabela (o Prettier quebraria em várias linhas):
+// One exercise per line, like a table (Prettier would break it into several lines):
 // prettier-ignore
 export const SEED_EXERCISES_V1: readonly SeedExercise[] = [
-  // Peito
+  // Chest
   { id: 'd583a392-b227-4970-a6ff-07c929916fd3', names: { pt: 'Supino reto com barra', en: 'Bench Press' }, muscleGroup: 'chest', equipment: 'barbell' },
   { id: 'a622af38-a710-488e-b39e-8c595b5b3a3e', names: { pt: 'Supino inclinado com halteres', en: 'Incline Dumbbell Bench Press' }, muscleGroup: 'chest', equipment: 'dumbbell' },
   { id: 'eccbc03e-9ee3-40f0-a9ae-545585464188', names: { pt: 'Crucifixo na máquina (peck deck)', en: 'Fly Machine' }, muscleGroup: 'chest', equipment: 'machine' },
   { id: '3476e4b6-7431-46ce-b50e-c654cd9fe413', names: { pt: 'Flexão de braço', en: 'Push-up' }, muscleGroup: 'chest', equipment: 'bodyweight' },
-  // Costas
+  // Back
   { id: '25040dfc-6e71-42e6-bf59-60592896dfa8', names: { pt: 'Levantamento terra', en: 'Deadlift' }, muscleGroup: 'back', equipment: 'barbell' },
   { id: '5288f16c-a4e3-4624-92c7-af4a86a9106e', names: { pt: 'Remada curvada com barra', en: 'Barbell Row' }, muscleGroup: 'back', equipment: 'barbell' },
   { id: '5cddea39-1d2a-4db6-8948-c7cbb9ce5b0f', names: { pt: 'Puxada frontal', en: 'Lat Pulldown' }, muscleGroup: 'back', equipment: 'cable' },
   { id: '5767b536-3667-4f49-87b6-c6e82876c3e8', names: { pt: 'Barra fixa', en: 'Pull-up' }, muscleGroup: 'back', equipment: 'bodyweight' },
   { id: '70ccae95-b924-473c-ba5d-f065a95bb0e6', names: { pt: 'Remada baixa', en: 'Seated Cable Row' }, muscleGroup: 'back', equipment: 'cable' },
-  // Ombros
+  // Shoulders
   { id: 'b238da7f-84bd-4597-8ae5-ef944327ade3', names: { pt: 'Desenvolvimento militar', en: 'Overhead Press' }, muscleGroup: 'shoulders', equipment: 'barbell' },
   { id: '0a83f5f4-4394-41e2-9b53-70808a35693e', names: { pt: 'Elevação lateral', en: 'Lateral Raises (dumbbells)' }, muscleGroup: 'shoulders', equipment: 'dumbbell' },
-  // Bíceps
+  // Biceps
   { id: 'b49b53af-e001-4e85-a981-78184eb3ff35', names: { pt: 'Rosca direta com barra', en: 'Barbell Curl' }, muscleGroup: 'biceps', equipment: 'barbell' },
   { id: '3033c08e-bb9d-4b1b-8a62-f156a57d66c7', names: { pt: 'Rosca martelo', en: 'Hammer Curl' }, muscleGroup: 'biceps', equipment: 'dumbbell' },
-  // Tríceps
+  // Triceps
   { id: '582071f6-194d-48c9-b94e-444f69374975', names: { pt: 'Tríceps na polia', en: 'Cable Triceps Pushdown' }, muscleGroup: 'triceps', equipment: 'cable' },
   { id: '77b45908-566a-4f7f-b5ad-3fffc14d9856', names: { pt: 'Tríceps testa', en: 'Skull Crusher' }, muscleGroup: 'triceps', equipment: 'barbell' },
   { id: '521f85a1-bb9e-4e65-a62a-af68f1df421f', names: { pt: 'Mergulho nas paralelas', en: 'Dips' }, muscleGroup: 'triceps', equipment: 'bodyweight' },
-  // Quadríceps
+  // Quadriceps
   { id: 'd83ca170-a96a-4895-b7ee-9f9957f035d2', names: { pt: 'Agachamento livre', en: 'Squats' }, muscleGroup: 'quads', equipment: 'barbell' },
   { id: '0f4b184d-9b1c-4a8a-8d0a-11bf5c0ac5b4', names: { pt: 'Leg press 45°', en: 'Leg Press 45°' }, muscleGroup: 'quads', equipment: 'machine' },
   { id: 'e335814f-b2d5-4028-9af2-259a116840f9', names: { pt: 'Cadeira extensora', en: 'Leg Extensions' }, muscleGroup: 'quads', equipment: 'machine' },
-  // Posteriores
+  // Hamstrings
   { id: '9da25964-9985-4b1b-8a84-855fd55f1a08', names: { pt: 'Stiff', en: 'Stiff-Leg Deadlift' }, muscleGroup: 'hamstrings', equipment: 'barbell' },
   { id: '1b6f3b32-0bce-4d37-86ec-8fef101845c7', names: { pt: 'Mesa flexora', en: 'Leg Curl Machine' }, muscleGroup: 'hamstrings', equipment: 'machine' },
-  // Glúteos
+  // Glutes
   { id: '2edf3dbe-5a3c-40bb-9a80-5cf171da8c48', names: { pt: 'Elevação pélvica', en: 'Hip Thrust' }, muscleGroup: 'glutes', equipment: 'barbell' },
-  // Panturrilhas
+  // Calves
   { id: '76852518-5cd5-4585-9079-8e06cdc47e3c', names: { pt: 'Panturrilha em pé', en: 'Calf Raises (standing)' }, muscleGroup: 'calves', equipment: 'machine' },
-  // Abdômen
+  // Abs
   { id: 'b5f7016e-4be7-4632-b312-f5de2fb017fd', names: { pt: 'Prancha', en: 'Plank' }, muscleGroup: 'core', equipment: 'bodyweight' },
   { id: 'ef4343bb-ffb2-4c16-b267-126b9534442e', names: { pt: 'Abdominal supra', en: 'Crunch' }, muscleGroup: 'core', equipment: 'bodyweight' },
 ]
 
 /**
- * Biblioteca ampliada (cerca de 80 exercícios a mais). Em aparelhos já em uso,
- * entram pelo syncSeedExercises. O syncSeedExercises pula nomes que já existem,
- * então um exercício criado antes com o mesmo nome não aparece duplicado.
+ * Extended library (about 80 more exercises). On devices already in use,
+ * they are added by syncSeedExercises. syncSeedExercises skips names that already exist,
+ * so an exercise created earlier with the same name does not show up duplicated.
  */
 // prettier-ignore
 export const SEED_EXERCISES_LIBRARY: readonly SeedExercise[] = [
@@ -155,26 +155,26 @@ export const SEED_EXERCISES_LIBRARY: readonly SeedExercise[] = [
   { id: '98165759-8661-4be9-b306-730762adbce6', names: { pt: 'Pallof press', en: 'Pallof Press' }, muscleGroup: 'core', equipment: 'cable' },
 ]
 
-/** Todos os exercícios iniciais: a lista original + a biblioteca ampliada. */
+/** All initial exercises: the original list + the extended library. */
 export const SEED_EXERCISES: readonly SeedExercise[] = [
   ...SEED_EXERCISES_V1,
   ...SEED_EXERCISES_LIBRARY,
 ]
 
 /**
- * Coloca no banco os exercícios do seed que ainda faltam. Roda a cada abertura do app.
+ * Adds to the database the seed exercises that are still missing. Runs every time the app opens.
  *
- * Antes, o seed só rodava com o banco vazio, e por isso exercícios novos
- * adicionados aqui nunca chegariam a quem já usa o app. Agora cada exercício
- * entra se ainda não existir, com três cuidados:
- * - compara o id com TODOS os registros, inclusive os excluídos: o que o
- *   usuário apagou não "ressuscita";
- * - não entra se já existir um exercício com o mesmo nome (em qualquer idioma),
- *   como os criados pelo próprio usuário: assim nada aparece duplicado;
- * - roda numa transação de escrita: duas chamadas ao mesmo tempo (ex.: React
- *   StrictMode) não conseguem inserir em dobro.
+ * Before, the seed only ran on an empty database, so new exercises
+ * added here would never reach people already using the app. Now each exercise
+ * is added if it does not exist yet, with three safeguards:
+ * - compares the id against ALL records, including deleted ones: what the
+ *   user deleted does not "resurrect";
+ * - is not added if an exercise with the same name already exists (in any language),
+ *   such as those created by the user: so nothing shows up duplicated;
+ * - runs in a write transaction: two simultaneous calls (e.g. React
+ *   StrictMode) cannot insert twice.
  *
- * Devolve quantos exercícios foram inseridos.
+ * Returns how many exercises were inserted.
  */
 export async function syncSeedExercises(db: EncoreDB): Promise<number> {
   return db.transaction('rw', db.exercises, async () => {
@@ -200,8 +200,8 @@ export async function syncSeedExercises(db: EncoreDB): Promise<number> {
       ...seed,
       isCustom: false,
       createdAt: now,
-      // 0: o exercício do seed nunca "vence" uma versão vinda de um backup (por exemplo,
-      // uma exclusão) na hora de juntar os dados; qualquer edição do usuário é mais nova.
+      // 0: the seed exercise never "wins" over a version coming from a backup (for example,
+      // a deletion) when merging data; any user edit is newer.
       updatedAt: 0,
       deletedAt: null,
     }))

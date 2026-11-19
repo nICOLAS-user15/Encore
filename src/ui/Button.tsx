@@ -5,12 +5,12 @@ type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive'
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   /**
-   * `primary` usa a cor de acento: reserve para a ação principal da tela (uma só).
-   * `destructive` (claro sobre escuro) confirma algo que apaga: o vermelho
-   * significa "vai" e "recorde", então não pode significar também "apagar".
+   * `primary` uses the accent color: reserve it for the screen's main action (only one).
+   * `destructive` (light on dark) confirms something that deletes: red
+   * means "go" and "record", so it cannot also mean "delete".
    */
   variant?: ButtonVariant
-  /** Ocupa a largura toda do container. */
+  /** Fills the container's full width. */
   fullWidth?: boolean
 }
 
@@ -33,11 +33,11 @@ export function Button({
     <button
       type={type}
       className={cn(
-        // min-h-12 = 48px: alvo de toque mínimo.
+        // min-h-12 = 48px: minimum touch target.
         'inline-flex min-h-12 items-center justify-center gap-2 rounded-sm border-2 px-5',
         'font-display text-lg font-semibold tracking-wide uppercase',
         'disabled:pointer-events-none disabled:opacity-40',
-        // Afunda um pouco sob o dedo: confirma o toque mesmo antes de a ação terminar.
+        // Sinks a bit under the finger: confirms the touch even before the action finishes.
         'transition duration-100 active:scale-[0.97]',
         variantClasses[variant],
         fullWidth && 'w-full',

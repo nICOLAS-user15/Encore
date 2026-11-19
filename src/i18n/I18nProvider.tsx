@@ -4,9 +4,9 @@ import { LOCALES } from '../lib/format'
 import { createI18n, I18nContext } from './context'
 
 /**
- * Lê o idioma das configurações (no banco) e entrega textos e formatadores
- * para todos os componentes abaixo dele. Trocar o idioma nas Configurações
- * atualiza o app inteiro na hora, porque `useSettings` usa useLiveQuery.
+ * Reads the language from the settings (in the database) and hands texts and formatters
+ * to all components below it. Changing the language in Settings
+ * updates the whole app right away, because `useSettings` uses useLiveQuery.
  */
 export function I18nProvider({ children }: { children: ReactNode }) {
   const { settings, loaded } = useSettings()
@@ -15,11 +15,11 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     [settings.language, loaded],
   )
 
-  // Mantém o <html lang="..."> certo (leitores de tela e tradução do navegador usam).
+  // Keeps <html lang="..."> correct (screen readers and browser translation use it).
   useEffect(() => {
     document.documentElement.lang = LOCALES[settings.language]
   }, [settings.language])
 
-  // React 19: o próprio contexto funciona como provider.
+  // React 19: the context itself works as a provider.
   return <I18nContext value={value}>{children}</I18nContext>
 }

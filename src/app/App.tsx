@@ -8,15 +8,15 @@ import { Splash } from './Splash'
 import { goToStartPage } from './startPage'
 import { UpdatePrompt } from './UpdatePrompt'
 
-// Antes de o router ler a URL: entrar no app sempre começa no Treino.
+// Before the router reads the URL: entering the app always starts at Workout.
 goToStartPage()
 const router = createBrowserRouter(routes)
 
 export function App() {
   return (
-    // O I18nProvider fica por fora de tudo: todas as telas recebem o idioma escolhido.
+    // I18nProvider sits outside everything: all screens receive the chosen language.
     <I18nProvider>
-      {/* A doca empilha os avisos fixos acima das abas (descanso, nova versão...). */}
+      {/* The dock stacks the fixed notices above the tabs (rest, new version...). */}
       <BottomDockProvider>
         <ToastProvider>
           <RouterProvider router={router} />

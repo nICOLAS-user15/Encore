@@ -3,8 +3,8 @@ import { db } from '../../db/db'
 import { DEFAULT_SETTINGS, getSettings, type AppSettings } from './settingsRepository'
 
 /**
- * Configurações atuais, sempre atualizadas (useLiveQuery).
- * Enquanto o banco não respondeu, devolve as padrão com `loaded: false`.
+ * Current settings, always up to date (useLiveQuery).
+ * While the database has not answered, returns the defaults with `loaded: false`.
  */
 export function useSettings(): { settings: AppSettings; loaded: boolean } {
   const settings = useLiveQuery(() => getSettings(db), [])

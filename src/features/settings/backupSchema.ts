@@ -9,11 +9,11 @@ import {
 } from '../../db/types'
 
 /*
- * Validação das linhas de um arquivo de backup. O arquivo vem de fora (pode ser
- * antigo, editado à mão ou de outra pessoa) e vai direto para o IndexedDB, então
- * cada linha é conferida e COPIADA campo a campo: campos desconhecidos são
- * descartados e um campo com tipo errado recusa o arquivo inteiro. Assim um
- * arquivo ruim nunca deixa dado quebrado gravado (o app travaria a cada abertura).
+ * Validation of the rows of a backup file. The file comes from outside (it may be
+ * old, hand-edited or from someone else) and goes straight into IndexedDB, so
+ * each row is checked and COPIED field by field: unknown fields are
+ * dropped and a field with the wrong type rejects the whole file. That way a
+ * bad file never leaves broken data written (the app would freeze on every open).
  */
 
 export const BACKUP_TABLES = [
@@ -32,7 +32,7 @@ const SET_TYPES = ['normal', 'encore', 'warmup'] as const
 
 type Row = Record<string, unknown>
 
-/** Campo inválido: quem chama transforma em BackupError. */
+/** Invalid field: the caller turns it into a BackupError. */
 class InvalidRow extends Error {}
 
 function fail(): never {
@@ -47,7 +47,7 @@ function text(value: unknown, options: { required?: boolean } = {}): string {
   if (typeof value === 'string' && value.length <= MAX_TEXT_LENGTH) {
     return value
   }
-  // Campo opcional ausente (arquivo de versão antiga): texto vazio.
+  // Optional field missing (file from an old version): empty text.
   if (value === undefined && !options.required) {
     return ''
   }
@@ -63,7 +63,7 @@ function num(value: unknown): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : fail()
 }
 
-/** Número ou `null`; ausente (campo mais novo que o arquivo) vale `null`. */
+/** Number or `null`; missing (field newer than the file) counts as `null`. */
 function numOrNull(value: unknown): number | null {
   return value === undefined || value === null ? null : num(value)
 }
@@ -156,8 +156,8 @@ function sanitizers(row: Row): Record<BackupTableName, () => BaseRecord> {
 }
 
 /**
- * Configurações: o registro pode ser de uma versão anterior (sem campos novos).
- * Só entram campos presentes e válidos; os que faltam o app completa com o padrão.
+ * Settings: the record may come from an earlier version (without new fields).
+ * Only present and valid fields come in; the app fills in missing ones with the default.
  */
 function settingsRow(row: Row): BaseRecord {
   const record: Row = { ...base(row) }
@@ -203,7 +203,7 @@ function settingsRow(row: Row): BaseRecord {
   return record as BaseRecord
 }
 
-/** Confere e copia uma linha da tabela. Devolve `null` se for inválida. */
+/** Checks and copies a table row. Returns `null` if it is invalid. */
 export function sanitizeRow(table: BackupTableName, row: unknown): BaseRecord | null {
   if (!isRow(row)) {
     return null

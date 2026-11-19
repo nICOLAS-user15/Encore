@@ -9,21 +9,21 @@ import { Button } from '../../ui/Button'
 
 type RestTimerProps = {
   endsAt: number
-  /** Tocar o bipe quando o descanso acabar (opção das Configurações). */
+  /** Play the beep when the rest ends (Settings option). */
   sound: boolean
   onAdd: () => void
   onDismiss: () => void
 }
 
-/** Barra de descanso, na doca acima das abas. */
+/** Rest bar, in the dock above the tabs. */
 export function RestTimer({ endsAt, sound, onAdd, onDismiss }: RestTimerProps) {
   const { t } = useI18n()
   const now = useNow(250)
   const remaining = endsAt - now
   const finished = remaining <= 0
 
-  // Só avisa na passagem de "contando" para "acabou" que aconteceu com a barra na tela:
-  // uma barra que já nasce acabada (ex.: reabrir o app) não apita fora de hora.
+  // Only alerts on the "counting" to "finished" transition that happened with the bar on screen:
+  // a bar that is born already finished (e.g. reopening the app) does not beep at the wrong time.
   const armed = useRef(false)
   useEffect(() => {
     if (!finished) {
@@ -32,7 +32,7 @@ export function RestTimer({ endsAt, sound, onAdd, onDismiss }: RestTimerProps) {
     }
     if (armed.current) {
       armed.current = false
-      // Vibra no Android. O iPhone não tem essa API, então `?.` evita o erro.
+      // Vibrates on Android. The iPhone has no such API, so `?.` avoids the error.
       navigator.vibrate?.([200, 100, 200])
       if (sound) {
         playRestBeep()
@@ -42,9 +42,9 @@ export function RestTimer({ endsAt, sound, onAdd, onDismiss }: RestTimerProps) {
 
   return (
     <DockItem>
-      {/* Duas camadas: a de fora sobe da doca ao aparecer; a de dentro dá o tranco no fim. */}
+      {/* Two layers: the outer one rises from the dock when it appears; the inner one gives the jolt at the end. */}
       <div>
-        {/* O timer em si não é anunciado a cada segundo; só o fim, para leitor de tela. */}
+        {/* The timer itself is not announced every second; only the end, for screen readers. */}
         <p role="status" className="sr-only">
           {finished ? t.workout.rest.over : ''}
         </p>
@@ -53,7 +53,7 @@ export function RestTimer({ endsAt, sound, onAdd, onDismiss }: RestTimerProps) {
           aria-label={t.workout.rest.label}
           className={cn(
             'flex items-center justify-between gap-3 border-2 border-text bg-surface p-3',
-            // A classe só entra quando acaba: a animação roda uma vez nesse momento.
+            // The class is only added when it ends: the animation runs once at that moment.
             finished && 'animate-nudge',
           )}
         >

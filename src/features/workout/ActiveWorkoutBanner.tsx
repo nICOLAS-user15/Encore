@@ -8,8 +8,8 @@ import type { ActiveWorkoutInfo } from './workoutQueries'
 import { timerElapsedMs } from './workoutStats'
 
 /**
- * Faixa "Treino em andamento" na doca, para quando o usuário sai da aba Treino
- * no meio do treino (ex.: para olhar o Histórico). Tocar nela volta ao treino.
+ * "Workout in progress" strip in the dock, for when the user leaves the Workout tab
+ * in the middle of a workout (e.g. to look at the History). Tapping it returns to the workout.
  */
 export function ActiveWorkoutBanner({ info }: { info: ActiveWorkoutInfo }) {
   const { t } = useI18n()
@@ -17,7 +17,7 @@ export function ActiveWorkoutBanner({ info }: { info: ActiveWorkoutInfo }) {
   const { workout, routineName } = info
   const name = routineName ?? t.workout.freeWorkout
 
-  // Mostra o cronômetro só se o usuário o iniciou (mesma regra da tela do treino).
+  // Shows the timer only if the user started it (same rule as the workout screen).
   const elapsed = workout.timerStartedAt === null ? null : timerElapsedMs(workout, now)
 
   return (

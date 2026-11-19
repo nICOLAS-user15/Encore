@@ -41,8 +41,8 @@ function makeSet(overrides: Partial<SetEntry>): SetEntry {
   }
 }
 
-describe('aquecimento: regras', () => {
-  it('aparece primeiro no exercício, mesmo adicionado depois', () => {
+describe('warm-up: rules', () => {
+  it('appears first in the exercise, even if added later', () => {
     const sets = [
       makeSet({ position: 0, type: 'normal' }),
       makeSet({ position: 1, type: 'normal' }),
@@ -54,7 +54,7 @@ describe('aquecimento: regras', () => {
     expect(group.sets.map((s) => s.type)).toEqual(['warmup', 'normal', 'normal'])
   })
 
-  it('não recebe número: as séries de trabalho continuam 1, 2, 3', () => {
+  it('gets no number: the working sets stay 1, 2, 3', () => {
     const sets = [
       makeSet({ type: 'warmup' }),
       makeSet({ type: 'normal' }),
@@ -64,7 +64,7 @@ describe('aquecimento: regras', () => {
     expect(numberSets(sets)).toEqual([null, 1, 2])
   })
 
-  it('não conta no volume nem nas séries feitas', () => {
+  it('does not count toward volume or completed sets', () => {
     const sets = [
       makeSet({ type: 'warmup', weightKg: 20, reps: 10, completedAt: 1 }),
       makeSet({ type: 'normal', weightKg: 40, reps: 8, completedAt: 2 }),
@@ -74,7 +74,7 @@ describe('aquecimento: regras', () => {
     expect(completedWorkingSets(sets)).toHaveLength(1)
   })
 
-  it('sugere metade da carga da primeira série, em múltiplos de 2,5 kg', () => {
+  it('suggests half the load of the first set, in multiples of 2.5 kg', () => {
     expect(warmupValues([makeSet({ weightKg: 65, reps: 7 })])).toEqual({
       weightKg: 32.5,
       reps: 7,
@@ -87,7 +87,7 @@ describe('aquecimento: regras', () => {
   })
 })
 
-describe('aquecimento: no banco', () => {
+describe('warm-up: in the database', () => {
   let db: EncoreDB
 
   beforeEach(async () => {
@@ -99,7 +99,7 @@ describe('aquecimento: no banco', () => {
     await db.delete()
   })
 
-  it('não entra na "última vez" do próximo treino', async () => {
+  it('does not enter the "last time" of the next workout', async () => {
     const [upperA] = await listRoutinesWithExercises(db)
     const bench = upperA.items[0].exerciseId
     const workout = await startWorkout(db, upperA.routine.id)
@@ -119,7 +119,7 @@ describe('aquecimento: no banco', () => {
   })
 })
 
-describe('aquecimento: na tela', () => {
+describe('warm-up: on screen', () => {
   beforeEach(async () => {
     await Promise.all(appDb.tables.map((table) => table.clear()))
     localStorage.clear()
@@ -127,12 +127,12 @@ describe('aquecimento: na tela', () => {
     await importTestProgram(appDb)
   })
 
-  it('"+ Aquecimento" cria a série "AQ" no topo do exercício', async () => {
+  it('"+ Aquecimento" creates the "AQ" set at the top of the exercise', async () => {
     const router = createMemoryRouter(routes, { initialEntries: ['/treino'] })
     render(<RouterProvider router={router} />)
     fireEvent.click(await screen.findByRole('button', { name: /Upper A/ }))
 
-    // "+ Aquecimento" fica no menu ⋯ do cartão do exercício.
+    // "+ Aquecimento" lives in the ⋯ menu of the exercise card.
     fireEvent.click(
       await screen.findByRole('button', { name: 'Mais opções: Supino reto com barra' }),
     )
@@ -141,7 +141,7 @@ describe('aquecimento: na tela', () => {
 
     const warmupRow = await screen.findByRole('button', { name: /^Editar série AQ/ })
     expect(warmupRow).toHaveTextContent('12,5 kg × 8')
-    // Continua sendo o primeiro da lista do exercício, antes da série 1.
+    // Still the first in the exercise list, before set 1.
     const list = warmupRow.closest('ol')
     expect(list).not.toBeNull()
     const rows = within(list as HTMLElement).getAllByRole('button', {

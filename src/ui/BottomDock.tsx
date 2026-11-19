@@ -2,26 +2,26 @@ import { createContext, useContext, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 
 /*
- * "Doca": a faixa fixa logo acima das abas, onde ficam os avisos que flutuam
- * sobre a tela (descanso, nova versão, treino em andamento).
+ * "Dock": the fixed strip right above the tabs, where the notices that float
+ * over the screen live (rest, new version, workout in progress).
  *
- * Antes cada aviso se posicionava sozinho no mesmo lugar e um cobria o outro.
- * Agora todos são "teletransportados" (createPortal) para dentro de UM container
- * em coluna: se aparecerem dois ao mesmo tempo, eles se empilham.
+ * Before, each notice positioned itself in the same spot and one covered the other.
+ * Now they are all "teleported" (createPortal) into ONE column container:
+ * if two show up at the same time, they stack.
  */
 
-/** O elemento da doca. `undefined` = não há provider (ex.: nos testes de um componente só). */
+/** The dock element. `undefined` = no provider (e.g. in single-component tests). */
 const DockContext = createContext<HTMLElement | null | undefined>(undefined)
 
-// pointer-events-none no container: a área vazia da doca não "rouba" toques da tela.
-// `*:` aplica nos filhos diretos (cada aviso), que voltam a receber toques
-// e sobem do rodapé ao aparecer (animate-dock-in).
+// pointer-events-none on the container: the dock's empty area does not "steal" touches from the screen.
+// `*:` applies to direct children (each notice), which receive touches again
+// and rise from the bottom when they appear (animate-dock-in).
 const dockClasses =
   'pointer-events-none fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 flex flex-col gap-2 px-4 pb-3 *:pointer-events-auto *:mx-auto *:w-full *:max-w-xl *:animate-dock-in'
 
-/** Cria a doca. Fica uma vez só, em volta do app inteiro (App.tsx). */
+/** Creates the dock. Exists once, around the whole app (App.tsx). */
 export function BottomDockProvider({ children }: { children: ReactNode }) {
-  // Guardamos o elemento em estado (via ref de função) para os avisos saberem quando ele existe.
+  // We keep the element in state (via a function ref) so notices know when it exists.
   const [node, setNode] = useState<HTMLDivElement | null>(null)
   return (
     <DockContext value={node}>
@@ -31,15 +31,15 @@ export function BottomDockProvider({ children }: { children: ReactNode }) {
   )
 }
 
-/** Um aviso dentro da doca. `children` deve ser UM elemento (o cartão do aviso). */
+/** A notice inside the dock. `children` must be ONE element (the notice card). */
 export function DockItem({ children }: { children: ReactNode }) {
   const node = useContext(DockContext)
   if (node === undefined) {
-    // Sem provider: funciona sozinho, no mesmo lugar (sem empilhar).
+    // No provider: works on its own, in the same place (no stacking).
     return <div className={dockClasses}>{children}</div>
   }
   if (node === null) {
-    return null // a doca ainda está sendo montada (dura um instante)
+    return null // the dock is still mounting (lasts an instant)
   }
   return createPortal(children, node)
 }

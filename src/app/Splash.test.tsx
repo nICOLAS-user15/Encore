@@ -8,18 +8,18 @@ afterEach(() => {
 })
 
 describe('Splash', () => {
-  it('aparece ao abrir e some sozinha depois da animação', () => {
+  it('shows on open and disappears by itself after the animation', () => {
     vi.useFakeTimers()
     render(<Splash />)
     expect(screen.getByTestId('splash')).toBeInTheDocument()
 
-    // `act` avisa o React que o tempo passou e ele deve atualizar a tela.
+    // `act` tells React that time has passed and it must update the screen.
     act(() => vi.advanceTimersByTime(SPLASH_DURATION_MS))
 
     expect(screen.queryByTestId('splash')).not.toBeInTheDocument()
   })
 
-  it('não aparece para quem pediu "reduzir movimento"', () => {
+  it('does not show for those who asked for "reduce motion"', () => {
     vi.stubGlobal('matchMedia', (query: string) => ({
       matches: query === '(prefers-reduced-motion: reduce)',
     }))

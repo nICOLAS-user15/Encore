@@ -8,7 +8,7 @@ import {
   workoutDurationMs,
 } from './workoutStats'
 
-/** Cria uma série de mentira só com o que importa para o teste. */
+/** Creates a fake set with only what matters for the test. */
 function makeSet(overrides: Partial<SetEntry>): SetEntry {
   return {
     id: crypto.randomUUID(),
@@ -27,7 +27,7 @@ function makeSet(overrides: Partial<SetEntry>): SetEntry {
 }
 
 describe('groupSetsByExercise', () => {
-  it('agrupa por exercício na ordem em que cada um aparece', () => {
+  it('groups by exercise in the order each one appears', () => {
     const sets = [
       makeSet({ exerciseId: 'b', position: 2 }),
       makeSet({ exerciseId: 'a', position: 0 }),
@@ -46,27 +46,27 @@ describe('groupSetsByExercise', () => {
 describe('suggestNextRoutineId', () => {
   const ids = ['upperA', 'lowerA', 'upperB', 'lowerB']
 
-  it('sugere a rotina seguinte à última treinada', () => {
+  it('suggests the routine after the last trained one', () => {
     expect(suggestNextRoutineId(ids, 'upperA')).toBe('lowerA')
     expect(suggestNextRoutineId(ids, 'upperB')).toBe('lowerB')
   })
 
-  it('volta para a primeira depois da última', () => {
+  it('wraps to the first after the last', () => {
     expect(suggestNextRoutineId(ids, 'lowerB')).toBe('upperA')
   })
 
-  it('sem histórico (ou rotina apagada), sugere a primeira', () => {
+  it('with no history (or deleted routine), suggests the first', () => {
     expect(suggestNextRoutineId(ids, null)).toBe('upperA')
     expect(suggestNextRoutineId(ids, 'apagada')).toBe('upperA')
   })
 
-  it('sem rotinas, não sugere nada', () => {
+  it('with no routines, suggests nothing', () => {
     expect(suggestNextRoutineId([], null)).toBeNull()
   })
 })
 
 describe('totalVolumeKg', () => {
-  it('soma carga × reps só das séries concluídas', () => {
+  it('sums load × reps of completed sets only', () => {
     const sets = [
       makeSet({ weightKg: 100, reps: 5, completedAt: 1 }),
       makeSet({ weightKg: 27.5, reps: 8, completedAt: 2 }),
@@ -80,19 +80,19 @@ describe('totalVolumeKg', () => {
 describe('workoutDurationMs', () => {
   const base = { startedAt: 1_000, endedAt: 100_000 }
 
-  it('usa o cronômetro quando ele foi iniciado e parado', () => {
+  it('uses the timer when it was started and stopped', () => {
     expect(
       workoutDurationMs({ ...base, timerStartedAt: 10_000, timerStoppedAt: 70_000 }),
     ).toBe(60_000)
   })
 
-  it('cronômetro iniciado e não parado conta até o fim do treino', () => {
+  it('timer started and not stopped counts until the end of the workout', () => {
     expect(
       workoutDurationMs({ ...base, timerStartedAt: 10_000, timerStoppedAt: null }),
     ).toBe(90_000)
   })
 
-  it('sem cronômetro, estima pela abertura e finalização do treino', () => {
+  it('without the timer, estimates from the workout opening and finish', () => {
     expect(
       workoutDurationMs({ ...base, timerStartedAt: null, timerStoppedAt: null }),
     ).toBe(99_000)
@@ -101,8 +101,8 @@ describe('workoutDurationMs', () => {
 
 describe('nextPendingSetId', () => {
   /**
-   * Treino com dois exercícios, A (3 séries) e B (2 séries).
-   * `done` diz quais séries foram concluídas e em que horário.
+   * Workout with two exercises, A (3 sets) and B (2 sets).
+   * `done` says which sets were completed and at what time.
    */
   function workout(done: Record<string, number> = {}) {
     const ids = ['a1', 'a2', 'a3', 'b1', 'b2']
@@ -117,28 +117,28 @@ describe('nextPendingSetId', () => {
     return groupSetsByExercise(sets)
   }
 
-  it('sem nada feito, é a primeira série', () => {
+  it('with nothing done, it is the first set', () => {
     expect(nextPendingSetId(workout())).toBe('a1')
   })
 
-  it('segue para a próxima série do mesmo exercício', () => {
+  it('moves to the next set of the same exercise', () => {
     expect(nextPendingSetId(workout({ a1: 1, a2: 2 }))).toBe('a3')
   })
 
-  it('exercício terminado: vai para o próximo exercício', () => {
+  it('exercise finished: goes to the next exercise', () => {
     expect(nextPendingSetId(workout({ a1: 1, a2: 2, a3: 3 }))).toBe('b1')
   })
 
-  it('acompanha o usuário quando ele pula um exercício', () => {
-    // Máquina do A ocupada: começou pelo B.
+  it('follows the user when they skip an exercise', () => {
+    // Machine for A busy: started with B.
     expect(nextPendingSetId(workout({ b1: 1 }))).toBe('b2')
   })
 
-  it('no fim da lista, volta para o exercício que ficou para trás', () => {
+  it('at the end of the list, goes back to the exercise left behind', () => {
     expect(nextPendingSetId(workout({ b1: 1, b2: 2 }))).toBe('a1')
   })
 
-  it('tudo feito: não há próxima', () => {
+  it('all done: there is no next', () => {
     expect(nextPendingSetId(workout({ a1: 1, a2: 2, a3: 3, b1: 4, b2: 5 }))).toBeNull()
   })
 })

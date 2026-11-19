@@ -10,20 +10,20 @@ import { useSettings } from '../settings/useSettings'
 import type { DraftItem } from './routineDraft'
 
 type RoutineItemSheetProps = {
-  /** Exercício do rascunho sendo editado, ou `null` com o painel fechado. */
+  /** Draft exercise being edited, or `null` with the sheet closed. */
   item: DraftItem | null
   exerciseName: string
-  /** Muda campos do exercício NO RASCUNHO (nada vai para o banco antes do "Salvar"). */
+  /** Changes exercise fields IN THE DRAFT (nothing goes to the database before "Salvar"). */
   onChange: (changes: Partial<DraftItem>) => void
-  /** Tira o exercício do rascunho. */
+  /** Removes the exercise from the draft. */
   onRemove: () => void
   onClose: () => void
 }
 
 /**
- * Painel para editar a meta de um exercício da rotina: séries, repetições, carga
- * de referência, descanso e observação. As mudanças ficam no rascunho da rotina e
- * só são gravadas quando o usuário toca em "Salvar" na tela da rotina.
+ * Sheet to edit a routine exercise's target: sets, reps, reference load,
+ * rest and note. Changes stay in the routine draft and are only written when the
+ * user taps "Salvar" on the routine screen.
  */
 export function RoutineItemSheet({
   item,
@@ -85,7 +85,7 @@ function RoutineItemForm({ item, onChange, onRemove, onClose }: RoutineItemFormP
           unit={t.common.kg}
           step={2.5}
           value={item.referenceWeightKg ?? 0}
-          // 0 na tela = "sem referência" no banco.
+          // 0 on screen = "no reference" in the database.
           onChange={(kg) => onChange({ referenceWeightKg: kg > 0 ? kg : null })}
         />
         <p className="text-sm text-muted">{t.routines.referenceHint}</p>
@@ -96,7 +96,7 @@ function RoutineItemForm({ item, onChange, onRemove, onClose }: RoutineItemFormP
           {t.routines.rest}
         </legend>
         <div className="flex flex-wrap gap-2">
-          {/* `null` = segue o padrão das Configurações (mostrado entre parênteses). */}
+          {/* `null` = follows the Settings default (shown in parentheses). */}
           {[null, ...REST_OPTIONS].map((seconds) => (
             <button
               key={seconds ?? 'default'}

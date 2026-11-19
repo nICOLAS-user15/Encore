@@ -3,10 +3,10 @@ import { db } from '../../db/db'
 import type { Exercise, ID } from '../../db/types'
 
 /**
- * Todos os exercícios (inclusive excluídos) num Map id -> exercício.
- * Inclui os excluídos porque o histórico precisa mostrar o nome de um
- * exercício mesmo depois que ele foi apagado da biblioteca.
- * `undefined` enquanto carrega.
+ * All exercises (including deleted ones) in an id -> exercise Map.
+ * Includes deleted ones because the history needs to show an exercise's
+ * name even after it was removed from the library.
+ * `undefined` while loading.
  */
 export function useExerciseMap(): Map<ID, Exercise> | undefined {
   return useLiveQuery(async () => {

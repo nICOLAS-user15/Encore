@@ -23,12 +23,12 @@ dist-ssr
 *.sln
 *.sw?
 
-# Ambiente e relatórios
+# Environment and reports
 .env
 .env.*
 !.env.example
 coverage
 *.tsbuildinfo
 
-# Ferramentas de IA (configurações locais)
+# AI tooling (local settings)
 .claude/

@@ -2,7 +2,7 @@ import type { EncoreDB } from './db'
 import { isActive } from './repository'
 import type { Exercise, Language } from './types'
 
-/** Exercícios não excluídos, em ordem alfabética no idioma escolhido (respeitando acentos). */
+/** Non-deleted exercises, in alphabetical order in the chosen language (respecting accents). */
 export async function listActiveExercises(
   db: EncoreDB,
   language: Language = 'pt',

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { applyUpdate, UPDATE_RELOAD_FALLBACK_MS } from './applyUpdate'
 
-/** O jsdom não tem service worker: um EventTarget imita o `navigator.serviceWorker`. */
+/** jsdom has no service worker: an EventTarget imitates `navigator.serviceWorker`. */
 let serviceWorker: EventTarget
 
 beforeEach(() => {
@@ -19,9 +19,9 @@ afterEach(() => {
 })
 
 describe('applyUpdate', () => {
-  it('recarrega quando o service worker novo assume o controle', async () => {
+  it('reloads when the new service worker takes control', async () => {
     const reload = vi.fn()
-    // Quando a mensagem de "assumir" chega, o navegador troca o controlador.
+    // When the "take over" message arrives, the browser swaps the controller.
     const updateServiceWorker = vi.fn(async () => {
       serviceWorker.dispatchEvent(new Event('controllerchange'))
     })
@@ -30,10 +30,10 @@ describe('applyUpdate', () => {
     vi.advanceTimersByTime(UPDATE_RELOAD_FALLBACK_MS)
 
     expect(updateServiceWorker).toHaveBeenCalledWith(true)
-    expect(reload).toHaveBeenCalledTimes(1) // uma vez só, mesmo com o tempo de segurança
+    expect(reload).toHaveBeenCalledTimes(1) // only once, even with the safety timeout
   })
 
-  it('recarrega mesmo se nada acontecer (nenhum worker esperando)', async () => {
+  it('reloads even if nothing happens (no worker waiting)', async () => {
     const reload = vi.fn()
 
     await applyUpdate(async () => {}, reload)
@@ -43,7 +43,7 @@ describe('applyUpdate', () => {
     expect(reload).toHaveBeenCalledTimes(1)
   })
 
-  it('recarrega mesmo se o updateServiceWorker falhar', async () => {
+  it('reloads even if updateServiceWorker fails', async () => {
     const reload = vi.fn()
 
     await applyUpdate(async () => {

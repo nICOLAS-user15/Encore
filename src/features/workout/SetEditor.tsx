@@ -8,13 +8,13 @@ import { Sheet } from '../../ui/Sheet'
 export type SetValues = Pick<SetEntry, 'weightKg' | 'reps'>
 
 type SetEditorProps = {
-  /** Série sendo editada, ou `null` com o painel fechado. */
+  /** Set being edited, or `null` with the panel closed. */
   set: SetEntry | null
   title: string
-  /** Salto dos botões −/+ de carga (depende do equipamento: Configurações). */
+  /** Step of the load −/+ buttons (depends on the equipment: Settings). */
   weightStepKg: number
   onClose: () => void
-  /** `complete: true` = salvar e marcar como concluída. */
+  /** `complete: true` = save and mark as completed. */
   onSave: (values: SetValues, complete: boolean) => void
   onDelete: () => void
 }
@@ -29,7 +29,7 @@ export function SetEditor({
 }: SetEditorProps) {
   return (
     <Sheet open={set !== null} title={title} onClose={onClose} dismissOnBackdrop={false}>
-      {/* `key` faz o formulário "recomeçar" ao abrir outra série. */}
+      {/* `key` makes the form "restart" when another set is opened. */}
       {set && (
         <SetEditorForm
           key={set.id}
@@ -52,7 +52,7 @@ type SetEditorFormProps = {
 
 function SetEditorForm({ set, weightStepKg, onSave, onDelete }: SetEditorFormProps) {
   const { t } = useI18n()
-  // Cópia local: nada é gravado até tocar em um dos botões.
+  // Local copy: nothing is saved until one of the buttons is tapped.
   const [weightKg, setWeightKg] = useState(set.weightKg)
   const [reps, setReps] = useState(set.reps)
   const values: SetValues = { weightKg, reps }
@@ -64,7 +64,7 @@ function SetEditorForm({ set, weightStepKg, onSave, onDelete }: SetEditorFormPro
         label={t.workout.weight}
         unit={t.common.kg}
         step={weightStepKg}
-        // Mesmo com salto inteiro (halteres de 2 em 2), dá para digitar 12,5.
+        // Even with a whole-number step (dumbbells in steps of 2), you can type 12.5.
         decimal
         value={weightKg}
         onChange={setWeightKg}

@@ -13,20 +13,20 @@ import { RouteErrorScreen } from './ErrorScreen'
 import type { RouteHandle } from './routeHandle'
 
 /**
- * Lista de rotas separada da criação do router: assim os testes conseguem
- * montar as mesmas rotas com `createMemoryRouter` (sem depender da URL real).
+ * Route list separate from the router creation: that way tests can
+ * mount the same routes with `createMemoryRouter` (without depending on the real URL).
  *
- * `handle.backTo` marca as telas internas (mostram "Voltar" no topo).
+ * `handle.backTo` marks the inner screens (they show "Voltar" at the top).
  */
 export const routes: RouteObject[] = [
   {
     path: '/',
     element: <AppLayout />,
-    // Erro durante a renderização de qualquer tela: mensagem no idioma do app, com "Recarregar".
+    // Error during the rendering of any screen: message in the app language, with "Recarregar".
     errorElement: <RouteErrorScreen />,
     children: [
       { index: true, element: <Navigate to="/treino" replace /> },
-      // Lista de treinos; o escolhido abre na rota de baixo, com "Voltar" para a lista.
+      // Workout list; the chosen one opens on the route below, with "Voltar" to the list.
       { path: 'treino', element: <StartWorkout /> },
       {
         path: 'treino/:workoutId',
@@ -34,7 +34,7 @@ export const routes: RouteObject[] = [
         handle: { backTo: '/treino' } satisfies RouteHandle,
       },
       { path: 'rotinas', element: <RoutinesScreen /> },
-      // Rotina nova: só passa a existir no banco quando o usuário toca em "Salvar".
+      // New routine: it only exists in the database when the user taps "Salvar".
       {
         path: 'rotinas/nova',
         element: <RoutineEditorScreen />,
@@ -47,7 +47,7 @@ export const routes: RouteObject[] = [
       },
       { path: 'exercicios', element: <ExercisesScreen /> },
       { path: 'historico', element: <HistoryScreen /> },
-      // `:workoutId` é um parâmetro: /historico/abc-123 -> workoutId = "abc-123".
+      // `:workoutId` is a parameter: /historico/abc-123 -> workoutId = "abc-123".
       {
         path: 'historico/:workoutId',
         element: <WorkoutDetailScreen />,
@@ -63,7 +63,7 @@ export const routes: RouteObject[] = [
         element: <AboutScreen />,
         handle: { backTo: '/treino' } satisfies RouteHandle,
       },
-      // Qualquer URL desconhecida volta para a tela principal.
+      // Any unknown URL goes back to the main screen.
       { path: '*', element: <Navigate to="/treino" replace /> },
     ],
   },

@@ -1,35 +1,35 @@
 /*
- * Conversão de unidades de carga.
+ * Weight unit conversion.
  *
- * Regra do projeto: o banco SEMPRE guarda em kg (`weightKg`). Estas funções
- * existem só para a hora de EXIBIR (ou de ler o que o usuário digitou em lb).
+ * Project rule: the database ALWAYS stores kg (`weightKg`). These functions
+ * exist only for DISPLAY time (or for reading what the user typed in lb).
  */
 
 export type WeightUnit = 'kg' | 'lb'
 
-/** Definição oficial (exata) da libra internacional. */
+/** Official (exact) definition of the international pound. */
 export const KG_PER_LB = 0.45359237
 
 /**
- * TODO (exercício 1 de 2): implemente as três funções abaixo.
+ * TODO (exercise 1 of 2): implement the three functions below.
  *
- * 1. `kgToLb(kg)`: converte kg para lb. Sem arredondar.
- *    Dica: 1 lb = KG_PER_LB kg, então lb = kg / KG_PER_LB.
+ * 1. `kgToLb(kg)`: converts kg to lb. No rounding.
+ *    Tip: 1 lb = KG_PER_LB kg, so lb = kg / KG_PER_LB.
  *
- * 2. `lbToKg(lb)`: o caminho inverso. Também sem arredondar.
+ * 2. `lbToKg(lb)`: the reverse path. Also no rounding.
  *
- * 3. `formatWeight(kg, unit)`: texto pronto para a tela.
- *    - Se `unit` for 'lb', converta antes.
- *    - No máximo 1 casa decimal, sem ",0" sobrando, e com vírgula (pt-BR):
+ * 3. `formatWeight(kg, unit)`: ready-to-display text.
+ *    - If `unit` is 'lb', convert first.
+ *    - At most 1 decimal place, no leftover ",0", and with a comma (pt-BR):
  *        formatWeight(102.5, 'kg') -> '102,5 kg'
  *        formatWeight(100, 'kg')   -> '100 kg'
  *        formatWeight(100, 'lb')   -> '220,5 lb'
- *    - Dica: pesquise `Intl.NumberFormat` e a opção `maximumFractionDigits`.
+ *    - Tip: look up `Intl.NumberFormat` and the `maximumFractionDigits` option.
  *
- * Como saber se acertou: em `units.test.ts`, troque `describe.skip` por
- * `describe` e rode `pnpm test`. Os testes já estão escritos.
+ * How to know if you got it right: in `units.test.ts`, change `describe.skip` to
+ * `describe` and run `pnpm test`. The tests are already written.
  *
- * (Os retornos abaixo são só placeholders para o projeto compilar.)
+ * (The returns below are just placeholders so the project compiles.)
  */
 export function kgToLb(kg: number): number {
   return kg

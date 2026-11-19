@@ -3,21 +3,21 @@ import { SEED_EXERCISES_V1 } from '../seed'
 import type { ID, Translated } from '../types'
 
 /*
- * Migração do banco da versão 1 para a 2. Roda UMA vez, sozinha, na primeira
- * abertura do app depois da atualização (o Dexie cuida disso), dentro de uma
- * transação: ou tudo dá certo, ou nada muda.
+ * Migration of the database from version 1 to 2. Runs ONCE, on its own, on the first
+ * app open after the update (Dexie takes care of it), inside a
+ * transaction: either everything works, or nothing changes.
  *
- * O que muda:
- * 1. Exercícios: `name` (texto) vira `names` ({ pt, en }).
- * 2. Exercícios duplicados se juntam. Ex.: "Bench Press" (criado por um programa
- *    pronto) e "Supino reto com barra" (do seed) eram dois registros do
- *    mesmo exercício. As séries e rotinas do duplicado passam a apontar para o
- *    do seed, e o duplicado é excluído (exclusão lógica). Nenhuma série se perde.
- * 3. Treinos ganham os campos do cronômetro (`timerStartedAt`/`timerStoppedAt`),
- *    preenchidos com o início/fim que o treino já tinha.
+ * What changes:
+ * 1. Exercises: `name` (text) becomes `names` ({ pt, en }).
+ * 2. Duplicate exercises are merged. E.g. "Bench Press" (created by a ready-made
+ *    program) and "Supino reto com barra" (from the seed) were two records of the
+ *    same exercise. The sets and routines of the duplicate now point to the
+ *    seed one, and the duplicate is deleted (soft delete). No set is lost.
+ * 3. Workouts get the timer fields (`timerStartedAt`/`timerStoppedAt`),
+ *    filled with the start/end the workout already had.
  */
 
-/** Formato de um exercício na versão 1 (só o que a migração precisa). */
+/** Shape of an exercise in version 1 (only what the migration needs). */
 type LegacyExercise = {
   id: ID
   name?: string
@@ -41,20 +41,20 @@ function normalize(name: string): string {
 }
 
 /*
- * Só a lista ORIGINAL do seed (a que existia na versão 1): uma migração usa os
- * dados do momento em que foi escrita. Com a lista atual, exercícios do
- * programa seriam "fundidos" com exercícios que nem existem num banco v1.
+ * Only the ORIGINAL seed list (the one that existed in version 1): a migration uses the
+ * data from the moment it was written. With the current list, exercises from the
+ * program would be "merged" with exercises that do not even exist in a v1 database.
  */
-/** Nomes do seed por id. */
+/** Seed names by id. */
 const seedNamesById = new Map(SEED_EXERCISES_V1.map((seed) => [seed.id, seed.names]))
-/** Id do seed pelo nome em inglês (que é o mesmo nome usado no programa). */
+/** Seed id by English name (which is the same name used in the program). */
 const seedIdByEnglishName = new Map(
   SEED_EXERCISES_V1.map((seed) => [normalize(seed.names.en), seed.id]),
 )
 /**
- * Tradução em português de exercícios que o app antigo criava a partir de um
- * programa pronto (só nomes, em inglês -> português). Lista congelada: serve
- * apenas para bancos da versão 1.
+ * Portuguese translation of exercises the old app created from a
+ * ready-made program (names only, English -> Portuguese). Frozen list: used
+ * only for version 1 databases.
  */
 const LEGACY_PROGRAM_NAMES: Array<[en: string, pt: string]> = [
   ['Abs Machine', 'Abdominal na máquina'],
@@ -87,10 +87,10 @@ const programNamesByEnglish = new Map(
 
 export async function upgradeToV2(tx: Transaction): Promise<void> {
   const now = Date.now()
-  /** id do duplicado -> id do exercício do seed que fica. */
+  /** id of the duplicate -> id of the seed exercise that stays. */
   const mergeInto = new Map<ID, ID>()
 
-  // 1 e 2: nomes traduzidos + marcar duplicados.
+  // 1 and 2: translated names + mark duplicates.
   await tx
     .table<LegacyExercise>('exercises')
     .toCollection()
@@ -102,7 +102,7 @@ export async function upgradeToV2(tx: Transaction): Promise<void> {
       if (seedNamesById.has(exercise.id)) {
         exercise.names = seedNamesById.get(exercise.id)
       } else if (exercise.isCustom && seedTarget !== undefined) {
-        // Duplicado de um exercício do seed: some da lista, o histórico vai para o seed.
+        // Duplicate of a seed exercise: disappears from the list, history goes to the seed.
         mergeInto.set(exercise.id, seedTarget)
         exercise.names = { pt: oldName, en: oldName }
         exercise.deletedAt = exercise.deletedAt ?? now
@@ -114,7 +114,7 @@ export async function upgradeToV2(tx: Transaction): Promise<void> {
       exercise.updatedAt = now
     })
 
-  // 2: séries e rotinas do duplicado passam a apontar para o exercício do seed.
+  // 2: sets and routines of the duplicate now point to the seed exercise.
   if (mergeInto.size > 0) {
     for (const tableName of ['routineExercises', 'setEntries']) {
       await tx
@@ -130,7 +130,7 @@ export async function upgradeToV2(tx: Transaction): Promise<void> {
     }
   }
 
-  // 3: cronômetro dos treinos que já existiam.
+  // 3: timer of the workouts that already existed.
   await tx
     .table<LegacyWorkout>('workouts')
     .toCollection()

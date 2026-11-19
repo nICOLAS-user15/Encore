@@ -2,12 +2,12 @@ import { createContext, useCallback, useContext } from 'react'
 import { useI18n } from '../i18n/context'
 
 export type ToastApi = {
-  /** Mostra um aviso com botão "Desfazer". */
+  /** Shows a notice with a "Desfazer" button. */
   showUndo: (message: string, undo: () => void | Promise<unknown>) => void
   showError: (message: string) => void
 }
 
-/** Sem provider (testes de um componente só): não mostra nada, mas não quebra. */
+/** Without a provider (single-component tests): shows nothing, but does not break. */
 const noop: ToastApi = { showUndo: () => {}, showError: () => {} }
 export const ToastContext = createContext<ToastApi>(noop)
 
@@ -16,8 +16,8 @@ export function useToast(): ToastApi {
 }
 
 /**
- * Executa uma ação assíncrona do usuário (gravar série, iniciar treino...) e, se o
- * banco recusar (disco cheio, modo privado), mostra o erro em vez de falhar em silêncio.
+ * Runs an async user action (save set, start workout...) and, if the
+ * database refuses (disk full, private mode), shows the error instead of failing silently.
  * Uso: `const run = useAction(); onClick={() => run(() => toggleSetCompleted(db, id))}`.
  */
 export function useAction() {

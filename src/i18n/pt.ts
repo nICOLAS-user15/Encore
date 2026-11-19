@@ -1,10 +1,10 @@
 import type { Equipment, MuscleGroup } from '../db/types'
 
 /*
- * Textos do app em português. Este arquivo é a FONTE DA VERDADE: o tipo
- * `Messages` sai daqui, e o `en.ts` é obrigado a ter exatamente as mesmas chaves.
+ * Texts of the app in Portuguese. This file is the SOURCE OF TRUTH: the type
+ * `Messages` comes from here, and `en.ts` must have exactly the same keys.
  *
- * Texto que depende de um valor (plural, nome, número) é uma função.
+ * Text that depends on a value (plural, name, number) is a function.
  */
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
@@ -38,7 +38,7 @@ export const pt = {
     cancel: 'Cancelar',
     save: 'Salvar',
     undo: 'Desfazer',
-    // Unidade de carga (hoje só kg; kg/lb entra quando as funções de units.ts existirem).
+    // Weight unit (for now only kg; kg/lb comes in when the units.ts functions exist).
     kg: 'kg',
     actionFailed: 'Não foi possível gravar. Tente de novo.',
     back: 'Voltar',
@@ -87,7 +87,7 @@ export const pt = {
     noRoutinesDescription:
       'Comece um treino livre, ou carregue suas rotinas na aba Rotinas.',
     seeRoutines: 'Ver rotinas',
-    /** `days` = dias desde o último backup; `null` = nunca fez. */
+    /** `days` = days since the last backup; `null` = never done. */
     backupReminder: (days: number | null) =>
       days === null
         ? 'Você ainda não fez backup. Seus treinos ficam só neste aparelho.'
@@ -107,13 +107,13 @@ export const pt = {
     encore: 'Encore',
     addWarmup: '+ Aquecimento',
     warmup: 'Aquecimento',
-    /** Rótulo curto no lugar do número da série de aquecimento. */
+    /** Short label in place of the warm-up set number. */
     warmupShort: 'AQ',
     removeExercise: 'Remover exercício',
     moreOptions: (name: string) => `Mais opções: ${name}`,
-    // `label` é o número da série (1, 2...) ou "AQ" no aquecimento.
-    // O nome inclui exercício e valores: há várias "série 1" na tela e o leitor de tela
-    // precisa saber de qual se trata.
+    // `label` is the set number (1, 2...) or "AQ" for warm-up.
+    // The name includes exercise and values: there are several "set 1" on screen and the screen reader
+    // needs to know which one it is.
     editSet: (label: number | string, details: string) =>
       `Editar série ${label}: ${details}`,
     completeSet: (label: number | string) => `Concluir série ${label}`,
@@ -184,13 +184,13 @@ export const pt = {
     addRoutines: 'Adicionar rotinas',
     deleteSplit: 'Excluir divisão',
     deleteTitle: 'Excluir divisão?',
-    /** `n` = quantas rotinas a divisão tem (elas são excluídas junto). */
+    /** `n` = how many routines the split has (they are deleted along with it). */
     deleteDescription: (n: number) =>
       n === 0
         ? 'A divisão está vazia e sai da lista.'
         : `A divisão e ${n === 1 ? 'a rotina dela serão excluídas' : `as ${n} rotinas dela serão excluídas`}. Os treinos que você já fez continuam no histórico.`,
     deleteConfirm: 'Excluir',
-    /** Título do seletor no editor da rotina. */
+    /** Title of the selector in the routine editor. */
     ofRoutine: 'Divisão',
     ofRoutineHint: 'Toque em outra divisão para mover esta rotina para lá.',
   },

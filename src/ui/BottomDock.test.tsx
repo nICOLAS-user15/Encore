@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { BottomDockProvider, DockItem } from './BottomDock'
 
 describe('BottomDock', () => {
-  it('empilha dois avisos no mesmo container (um não cobre o outro)', () => {
+  it('stacks two notices in the same container (one does not cover the other)', () => {
     render(
       <BottomDockProvider>
         <main>
@@ -19,12 +19,12 @@ describe('BottomDock', () => {
 
     const rest = screen.getByText('Descanso')
     const update = screen.getByText('Nova versão')
-    // Os dois saíram do <main> e foram para a mesma doca, um embaixo do outro.
+    // Both left the <main> and went to the same dock, one below the other.
     expect(rest.parentElement).toBe(update.parentElement)
     expect(rest.closest('main')).toBeNull()
   })
 
-  it('sem provider, o aviso aparece mesmo assim', () => {
+  it('without a provider, the notice still shows up', () => {
     render(
       <DockItem>
         <p>Descanso</p>

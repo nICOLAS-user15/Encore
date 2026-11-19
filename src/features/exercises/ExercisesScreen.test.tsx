@@ -11,12 +11,12 @@ beforeEach(async () => {
   await syncSeedExercises(db)
 })
 
-describe('aba Exercícios: livres x máquinas', () => {
-  it('o seletor separa exercícios livres e em máquinas', async () => {
+describe('Exercícios tab: free x machines', () => {
+  it('the selector separates free and machine exercises', async () => {
     const router = createMemoryRouter(routes, { initialEntries: ['/exercicios'] })
     render(<RouterProvider router={router} />)
 
-    // Começa em "Todos": aparecem os dois tipos.
+    // Starts on "Todos": both types show.
     expect(await screen.findByText('Supino reto com barra')).toBeInTheDocument()
     expect(screen.getByText('Tríceps na polia')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Todos' })).toHaveAttribute(
@@ -35,7 +35,7 @@ describe('aba Exercícios: livres x máquinas', () => {
     expect(screen.queryByText('Tríceps na polia')).not.toBeInTheDocument()
   })
 
-  it('o tipo e o grupo muscular se somam', async () => {
+  it('type and muscle group add up', async () => {
     const router = createMemoryRouter(routes, { initialEntries: ['/exercicios'] })
     render(<RouterProvider router={router} />)
 

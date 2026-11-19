@@ -1,27 +1,27 @@
 import { describe, expect, it } from 'vitest'
 import { formatWeight, kgToLb, lbToKg } from './units'
 
-// TODO (exercício 1): depois de implementar units.ts, troque `describe.skip` por `describe`.
+// TODO (exercise 1): after implementing units.ts, change `describe.skip` to `describe`.
 describe.skip('units', () => {
-  it('converte kg para lb', () => {
+  it('converts kg to lb', () => {
     expect(kgToLb(100)).toBeCloseTo(220.462, 3)
     expect(kgToLb(0)).toBe(0)
   })
 
-  it('converte lb para kg', () => {
+  it('converts lb to kg', () => {
     expect(lbToKg(45)).toBeCloseTo(20.412, 3)
   })
 
-  it('ida e volta devolve o valor original', () => {
+  it('round trip returns the original value', () => {
     expect(lbToKg(kgToLb(82.5))).toBeCloseTo(82.5, 10)
   })
 
-  it('formata em kg com vírgula e sem ",0"', () => {
+  it('formats in kg with a comma and no ",0"', () => {
     expect(formatWeight(102.5, 'kg')).toBe('102,5 kg')
     expect(formatWeight(100, 'kg')).toBe('100 kg')
   })
 
-  it('formata em lb, convertendo e arredondando para 1 casa', () => {
+  it('formats in lb, converting and rounding to 1 decimal place', () => {
     expect(formatWeight(100, 'lb')).toBe('220,5 lb')
     expect(formatWeight(20, 'lb')).toBe('44,1 lb')
   })

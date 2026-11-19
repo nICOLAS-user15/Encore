@@ -1,25 +1,25 @@
 import { describe, expect, it } from 'vitest'
 import { estimateOneRepMax } from './oneRepMax'
 
-// TODO (exercício 2): depois de implementar oneRepMax.ts, troque `describe.skip` por `describe`.
+// TODO (exercise 2): after implementing oneRepMax.ts, change `describe.skip` to `describe`.
 describe.skip('estimateOneRepMax (Epley)', () => {
-  it('uma repetição é o próprio 1RM', () => {
+  it('one repetition is the 1RM itself', () => {
     expect(estimateOneRepMax(100, 1)).toBe(100)
   })
 
-  it('aplica a fórmula e arredonda para 1 casa', () => {
+  it('applies the formula and rounds to 1 decimal place', () => {
     expect(estimateOneRepMax(100, 5)).toBe(116.7)
     expect(estimateOneRepMax(100, 10)).toBe(133.3)
     expect(estimateOneRepMax(60, 8)).toBe(76)
   })
 
-  it('devolve 0 para séries inválidas', () => {
+  it('returns 0 for invalid sets', () => {
     expect(estimateOneRepMax(100, 0)).toBe(0)
     expect(estimateOneRepMax(0, 5)).toBe(0)
     expect(estimateOneRepMax(-20, 5)).toBe(0)
   })
 
-  it('100 x 5 vale mais que 105 x 1', () => {
+  it('100 x 5 is worth more than 105 x 1', () => {
     expect(estimateOneRepMax(100, 5)).toBeGreaterThan(estimateOneRepMax(105, 1))
   })
 })

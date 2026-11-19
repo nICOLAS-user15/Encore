@@ -7,20 +7,20 @@ const iconButtonClasses =
   'flex size-12 items-center justify-center text-text active:text-muted [&>svg]:size-6'
 
 type TopBarProps = {
-  /** Se definido, a tela é interna: mostra "Voltar" (e este é o destino de reserva). */
+  /** If set, the screen is an inner one: shows "Voltar" (and this is the fallback destination). */
   backTo?: string
   onOpenMenu: () => void
 }
 
-/** Barra do topo: menu + configurações nas abas; "Voltar" nas telas internas. */
+/** Top bar: menu + settings on the tabs; "Voltar" on inner screens. */
 export function TopBar({ backTo, onOpenMenu }: TopBarProps) {
   const { t } = useI18n()
   const navigate = useNavigate()
   const location = useLocation()
 
   function goBack() {
-    // `key === 'default'` = esta é a primeira página da sessão (ex.: o app abriu
-    // direto aqui). Não há para onde "voltar", então vamos para a tela pai.
+    // `key === 'default'` = this is the first page of the session (e.g. the app opened
+    // straight here). There is nowhere to "go back" to, so we go to the parent screen.
     if (location.key === 'default' && backTo) {
       void navigate(backTo, { replace: true })
     } else {
@@ -29,7 +29,7 @@ export function TopBar({ backTo, onOpenMenu }: TopBarProps) {
   }
 
   return (
-    // pt-safe: no iPhone, a barra começa abaixo do notch / relógio.
+    // pt-safe: on iPhone, the bar starts below the notch / clock.
     <div className="pt-safe">
       <div className="flex h-14 items-center justify-between px-1">
         {backTo ? (
@@ -51,7 +51,7 @@ export function TopBar({ backTo, onOpenMenu }: TopBarProps) {
             >
               <MenuIcon />
             </button>
-            {/* Menu e configurações têm a mesma largura: o logo fica centralizado. */}
+            {/* Menu and settings have the same width: the logo stays centered. */}
             <Logo variant="wordmark" className="h-4 w-auto" />
             <Link
               to="/configuracoes"

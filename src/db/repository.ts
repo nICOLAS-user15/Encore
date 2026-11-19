@@ -2,12 +2,12 @@ import type { Table } from 'dexie'
 import type { BaseRecord, ID, NewRecord } from './types'
 
 /*
- * Funções genéricas de escrita. Toda gravação passa por aqui para garantir
- * que `id`, `createdAt`, `updatedAt` e `deletedAt` sejam sempre preenchidos
- * do mesmo jeito, em qualquer tabela.
+ * Generic write functions. Every write goes through here to guarantee
+ * that `id`, `createdAt`, `updatedAt` and `deletedAt` are always filled in
+ * the same way, in any table.
  */
 
-/** Campos automáticos de um registro novo. */
+/** Automatic fields of a new record. */
 export function newBaseRecord(now: number = Date.now()): BaseRecord {
   return {
     id: crypto.randomUUID(),
@@ -17,22 +17,22 @@ export function newBaseRecord(now: number = Date.now()): BaseRecord {
   }
 }
 
-/** Insere um registro novo e devolve o registro completo (com id e datas). */
+/** Inserts a new record and returns the full record (with id and dates). */
 export async function createRecord<T extends BaseRecord>(
   table: Table<T, ID>,
   data: NewRecord<T>,
 ): Promise<T> {
-  // O TypeScript não consegue provar que "dados + campos base" formam um T
-  // quando T é genérico, por isso o `as T`. As duas metades estão tipadas acima.
+  // TypeScript cannot prove that "data + base fields" form a T
+  // when T is generic, hence the `as T`. Both halves are typed above.
   const record = { ...data, ...newBaseRecord() } as T
   await table.add(record)
   return record
 }
 
 /**
- * Lê e grava o registro numa transação só: duas chamadas seguidas (ex.: toque duplo)
- * não leem o mesmo estado antigo e uma apaga a outra. Dentro de outra transação,
- * o Dexie simplesmente participa dela.
+ * Reads and writes the record in a single transaction: two calls in a row (e.g. double tap)
+ * do not read the same old state and overwrite each other. Inside another transaction,
+ * Dexie simply joins it.
  */
 async function modifyRecord<T extends BaseRecord>(
   table: Table<T, ID>,
@@ -42,13 +42,13 @@ async function modifyRecord<T extends BaseRecord>(
   await table.db.transaction('rw', table, async () => {
     const record = await table.get(id)
     if (!record) {
-      throw new Error(`Registro ${id} não encontrado`)
+      throw new Error(`Record ${id} not found`)
     }
     await table.put(change(record, Date.now()))
   })
 }
 
-/** Atualiza campos de um registro e renova o `updatedAt`. */
+/** Updates fields of a record and renews `updatedAt`. */
 export async function updateRecord<T extends BaseRecord>(
   table: Table<T, ID>,
   id: ID,
@@ -58,8 +58,8 @@ export async function updateRecord<T extends BaseRecord>(
 }
 
 /**
- * Como `updateRecord`, mas os campos novos dependem do valor ATUAL do registro
- * (ex.: alternar "concluída"). Ler e gravar acontecem na mesma transação.
+ * Like `updateRecord`, but the new fields depend on the CURRENT value of the record
+ * (e.g. toggling "completed"). Reading and writing happen in the same transaction.
  */
 export async function updateRecordWith<T extends BaseRecord>(
   table: Table<T, ID>,
@@ -73,7 +73,7 @@ export async function updateRecordWith<T extends BaseRecord>(
   }))
 }
 
-/** Exclusão lógica: marca `deletedAt` em vez de apagar a linha. */
+/** Soft delete: sets `deletedAt` instead of deleting the row. */
 export async function softDelete<T extends BaseRecord>(
   table: Table<T, ID>,
   id: ID,
@@ -85,7 +85,7 @@ export async function softDelete<T extends BaseRecord>(
   }))
 }
 
-/** Desfaz uma exclusão lógica (botão "Desfazer"). Novo `updatedAt`: vence o tombstone na sincronização. */
+/** Undoes a soft delete ("Undo" button). New `updatedAt`: it beats the tombstone during sync. */
 export async function restoreRecord<T extends BaseRecord>(
   table: Table<T, ID>,
   id: ID,
@@ -97,7 +97,7 @@ export async function restoreRecord<T extends BaseRecord>(
   }))
 }
 
-/** `true` se o registro não foi excluído. Use em `.filter(isActive)`. */
+/** `true` if the record was not deleted. Use in `.filter(isActive)`. */
 export function isActive(record: BaseRecord): boolean {
   return record.deletedAt === null
 }

@@ -22,9 +22,9 @@ type SideMenuProps = {
 type MenuItem = { to: string; label: string; icon: ReactNode }
 
 /**
- * Menu que abre pela esquerda: desliza para dentro e a logo dá um "glitch"
- * rápido. Fecha (sem animação, para ser imediato) tocando fora, no X, com Esc
- * ou ao escolher um destino. É um `<dialog>` nativo, como o Sheet (veja useModalDialog).
+ * Menu that opens from the left: it slides in and the logo does a quick
+ * "glitch". It closes (without animation, to be immediate) by tapping outside, on the X, with Esc
+ * or when choosing a destination. It is a native `<dialog>`, like the Sheet (see useModalDialog).
  */
 export function SideMenu({ open, onClose }: SideMenuProps) {
   const { t } = useI18n()
@@ -46,7 +46,7 @@ export function SideMenu({ open, onClose }: SideMenuProps) {
       ref={ref}
       aria-label={t.app.menu}
       onClose={onClose}
-      // Toque fora do menu (área transparente do <dialog>) fecha.
+      // Tap outside the menu (transparent area of the <dialog>) closes it.
       onClick={(event) => {
         if (event.target === event.currentTarget) {
           onClose()
@@ -54,7 +54,7 @@ export function SideMenu({ open, onClose }: SideMenuProps) {
       }}
       className="m-0 size-full max-h-none max-w-none border-0 bg-transparent p-0 text-text backdrop:animate-fade-in backdrop:bg-background/85 open:flex"
     >
-      {/* Como o conteúdo só existe aberto, as animações rodam a cada abertura. */}
+      {/* Since the content only exists when open, the animations run on every opening. */}
       {open && (
         <nav
           aria-label={t.app.menu}

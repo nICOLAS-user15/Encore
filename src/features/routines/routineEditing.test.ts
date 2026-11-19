@@ -15,7 +15,7 @@ import { getRoutineWithExercises, listRoutinesWithExercises } from './routineQue
 const [bench, incline] = SEED_EXERCISES.map((seed) => seed.id)
 
 let db: EncoreDB
-// Toda rotina pertence a uma divisão: estes testes usam uma só.
+// Every routine belongs to a split: these tests use a single one.
 let splitId: string
 
 beforeEach(async () => {
@@ -28,8 +28,8 @@ afterEach(async () => {
   await db.delete()
 })
 
-describe('criar e editar rotinas', () => {
-  it('cria rotinas vazias no fim da sequência', async () => {
+describe('create and edit routines', () => {
+  it('creates empty routines at the end of the sequence', async () => {
     const a = await createRoutine(db, 'Push', splitId)
     const b = await createRoutine(db, 'Pull', splitId)
 
@@ -38,7 +38,7 @@ describe('criar e editar rotinas', () => {
     expect(routines[0].items).toEqual([])
   })
 
-  it('renomeia e guarda observações', async () => {
+  it('renames and stores notes', async () => {
     const id = await createRoutine(db, 'Nova rotina', splitId)
 
     await updateRoutine(db, id, { name: 'Peito e tríceps', notes: 'Aquecer bem' })
@@ -50,7 +50,7 @@ describe('criar e editar rotinas', () => {
     })
   })
 
-  it('adiciona exercícios no fim, com a meta padrão', async () => {
+  it('adds exercises at the end, with the default target', async () => {
     const id = await createRoutine(db, 'Push', splitId)
 
     await addExerciseToRoutine(db, id, bench)
@@ -65,7 +65,7 @@ describe('criar e editar rotinas', () => {
     })
   })
 
-  it('edita a meta de um exercício', async () => {
+  it('edits an exercise target', async () => {
     const id = await createRoutine(db, 'Push', splitId)
     const item = await addExerciseToRoutine(db, id, bench)
 
@@ -85,7 +85,7 @@ describe('criar e editar rotinas', () => {
     })
   })
 
-  it('remove um exercício da rotina', async () => {
+  it('removes an exercise from the routine', async () => {
     const id = await createRoutine(db, 'Push', splitId)
     const item = await addExerciseToRoutine(db, id, bench)
 
@@ -95,7 +95,7 @@ describe('criar e editar rotinas', () => {
     expect((await db.routineExercises.get(item.id))?.deletedAt).toBeTypeOf('number')
   })
 
-  it('excluir a rotina tira ela e os exercícios dela das listas', async () => {
+  it('deleting the routine removes it and its exercises from the lists', async () => {
     const id = await createRoutine(db, 'Push', splitId)
     await addExerciseToRoutine(db, id, bench)
 

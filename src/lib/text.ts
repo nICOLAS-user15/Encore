@@ -1,7 +1,7 @@
 /**
- * Chave para comparar nomes: sem acentos, minúsculo, sem espaços nas pontas e
- * com espaços repetidos viram um só. "Elevação  Lateral" e "elevacao lateral"
- * geram a mesma chave.
+ * Key for comparing names: no accents, lowercase, no spaces at the ends, and
+ * repeated spaces become one. "Elevação  Lateral" and "elevacao lateral"
+ * produce the same key.
  */
 export function nameKey(text: string): string {
   return text

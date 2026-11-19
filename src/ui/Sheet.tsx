@@ -8,19 +8,19 @@ type SheetProps = {
   title: string
   onClose: () => void
   /**
-   * Tocar fora do painel fecha? Padrão: sim. Painéis com algo digitado (editor de série)
-   * usam `false`: um toque errado com a mão suada não pode jogar o valor fora.
+   * Does tapping outside the sheet close it? Default: yes. Sheets with typed input (set editor)
+   * use `false`: a wrong tap with a sweaty hand must not throw the value away.
    */
   dismissOnBackdrop?: boolean
   children: ReactNode
 }
 
 /**
- * Painel que sobe da parte de baixo da tela (fácil de alcançar com o polegar).
- * Fecha tocando fora, na seta ← ("Voltar") ou com Esc.
+ * Sheet that slides up from the bottom of the screen (easy to reach with the thumb).
+ * Closes by tapping outside, the ← arrow ("Voltar") or Esc.
  *
- * É um `<dialog>` nativo (veja useModalDialog). Ele ocupa a tela inteira e é
- * transparente; o painel visível é a <section> encostada embaixo.
+ * It is a native `<dialog>` (see useModalDialog). It fills the whole screen and is
+ * transparent; the visible sheet is the <section> pinned to the bottom.
  */
 export function Sheet({
   open,
@@ -37,10 +37,10 @@ export function Sheet({
     <dialog
       ref={ref}
       aria-labelledby={titleId}
-      // O evento "close" chega por qualquer caminho (Esc, gesto de voltar, nosso
-      // close()): avisamos o pai, que guarda o estado. Chamar duas vezes não faz mal.
+      // The "close" event arrives from any path (Esc, back gesture, our
+      // close()): we notify the parent, which keeps the state. Calling twice is harmless.
       onClose={onClose}
-      // Toque fora do painel: o alvo é o próprio <dialog> (a área transparente).
+      // Tap outside the sheet: the target is the <dialog> itself (the transparent area).
       onClick={(event) => {
         if (dismissOnBackdrop && event.target === event.currentTarget) {
           onClose()
@@ -48,10 +48,10 @@ export function Sheet({
       }}
       className="m-0 size-full max-h-none max-w-none flex-col justify-end border-0 bg-transparent p-0 text-text backdrop:animate-fade-in backdrop:bg-background/85 open:flex"
     >
-      {/* O conteúdo só existe aberto: cada abertura começa do zero (e sobe de novo). */}
+      {/* The content only exists while open: each opening starts from scratch (and slides up again). */}
       {open && (
         <section className="pb-safe mx-auto flex max-h-[92dvh] w-full max-w-xl animate-sheet-in flex-col border-t-4 border-text bg-surface">
-          {/* Seta à esquerda, como o "Voltar" das telas internas: mesmo gesto, mesmo lugar. */}
+          {/* Arrow on the left, like the "Voltar" of inner screens: same gesture, same place. */}
           <header className="flex items-center gap-1 border-b-2 border-line py-2 pr-4 pl-1">
             <button
               type="button"
@@ -68,7 +68,7 @@ export function Sheet({
               {title}
             </h2>
           </header>
-          {/* overscroll-contain: rolar o painel não arrasta a página de trás. */}
+          {/* overscroll-contain: scrolling the sheet does not drag the page behind it. */}
           <div className="overflow-y-auto overscroll-contain p-4">{children}</div>
         </section>
       )}

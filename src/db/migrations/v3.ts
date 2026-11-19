@@ -2,26 +2,26 @@ import type { Transaction } from 'dexie'
 import { SETTINGS_ID, type ID, type Language } from '../types'
 
 /*
- * Migração do banco da versão 2 para a 3: divisões de treino.
+ * Migration of the database from version 2 to 3: workout splits.
  *
- * Roda UMA vez, sozinha, na primeira abertura depois da atualização, dentro de
- * uma transação (ou tudo dá certo, ou nada muda).
+ * Runs ONCE, on its own, on the first open after the update, inside
+ * a transaction (either everything works, or nothing changes).
  *
- * O que muda:
- * 1. Nasce a tabela `splits` (divisões: Upper/Lower, PPL...).
- * 2. Toda rotina ganha o campo `splitId`. As rotinas que o usuário já tem vão
- *    para UMA divisão criada aqui. Nenhuma rotina, exercício ou treino é apagado.
+ * What changes:
+ * 1. The `splits` table is created (splits: Upper/Lower, PPL...).
+ * 2. Every routine gets the `splitId` field. The routines the user already has go
+ *    into ONE split created here. No routine, exercise or workout is deleted.
  *
- * O id da divisão criada é FIXO (como os ids do seed). Assim, o aparelho que
- * migrou e um backup antigo convertido (veja backup.ts) falam da MESMA divisão:
- * importar um no outro não cria duas divisões iguais.
+ * The id of the created split is FIXED (like the seed ids). That way, the device that
+ * migrated and an old converted backup (see backup.ts) refer to the SAME split:
+ * importing one into the other does not create two identical splits.
  */
 export const LEGACY_SPLIT_ID: ID = 'dbb9c1b2-9102-4b78-8080-425be21939b1'
 
 /**
- * Nome da divisão criada para as rotinas que já existiam. Se todas se chamam
- * "Upper..." ou "Lower...", a divisão leva o nome "Upper / Lower"; senão, um
- * nome neutro (o usuário renomeia depois).
+ * Name of the split created for the routines that already existed. If all are called
+ * "Upper..." or "Lower...", the split is named "Upper / Lower"; otherwise, a
+ * neutral name (the user renames it later).
  */
 export function legacySplitName(routineNames: string[], language: Language): string {
   const isUpperLower =
@@ -33,7 +33,7 @@ export function legacySplitName(routineNames: string[], language: Language): str
   return language === 'en' ? 'My routines' : 'Minhas rotinas'
 }
 
-/** Formato mínimo de uma rotina antes da versão 3 (sem `splitId`). */
+/** Minimal shape of a routine before version 3 (without `splitId`). */
 type LegacyRoutine = {
   name: string
   splitId?: ID
@@ -41,7 +41,7 @@ type LegacyRoutine = {
   updatedAt: number
 }
 
-/** O mesmo código serve ao banco (esta migração) e ao arquivo de backup antigo. */
+/** The same code serves the database (this migration) and the old backup file. */
 export function legacySplitRecord(name: string, now: number) {
   return {
     id: LEGACY_SPLIT_ID,
@@ -60,7 +60,7 @@ export async function upgradeToV3(tx: Transaction): Promise<void> {
     (routine) => routine.deletedAt === null,
   )
   if (active.length === 0) {
-    // Nada a organizar: quem começa do zero cria as próprias divisões.
+    // Nothing to organize: whoever starts from scratch creates their own splits.
     return
   }
 
@@ -78,8 +78,8 @@ export async function upgradeToV3(tx: Transaction): Promise<void> {
     ),
   )
 
-  // `updatedAt` muda: a sincronização futura (e a importação de backup) precisam
-  // enxergar que esta rotina foi alterada.
+  // `updatedAt` changes: future sync (and backup import) need to
+  // see that this routine was changed.
   await routines.toCollection().modify((routine) => {
     routine.splitId = LEGACY_SPLIT_ID
     routine.updatedAt = now

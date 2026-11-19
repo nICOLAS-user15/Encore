@@ -29,7 +29,7 @@ beforeEach(async () => {
   splitId = await createSplit(db, 'PPL')
 })
 
-/** Cria no banco uma rotina "Push" com o supino, pelo mesmo caminho do botão Salvar. */
+/** Creates a "Push" routine with the bench press in the database, through the same path as the Save button. */
 async function createPush() {
   return saveRoutine(db, null, {
     ...blankDraft(splitId, 0),
@@ -38,7 +38,7 @@ async function createPush() {
   })
 }
 
-/** Escolhe um exercício pelo seletor "+ Adicionar exercício", buscando pelo texto. */
+/** Picks an exercise through the "+ Adicionar exercício" picker, searching by text. */
 async function addExercise(search: string, name: RegExp) {
   fireEvent.click(screen.getByRole('button', { name: '+ Adicionar exercício' }))
   const picker = await screen.findByRole('dialog', { name: 'Adicionar exercício' })
@@ -49,8 +49,8 @@ async function addExercise(search: string, name: RegExp) {
   await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
 }
 
-describe('rotina nova', () => {
-  it('só existe depois de "Salvar", com tudo o que foi montado', async () => {
+describe('new routine', () => {
+  it('only exists after "Salvar", with everything that was built', async () => {
     const router = renderAt(['/rotinas'])
 
     fireEvent.click(await screen.findByRole('button', { name: '+ Nova rotina' }))
@@ -59,7 +59,7 @@ describe('rotina nova', () => {
     ).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/rotinas/nova')
 
-    // Sem nome, não dá para salvar, e a tela diz por quê.
+    // Without a name it cannot be saved, and the screen says why.
     const save = screen.getByRole('button', { name: 'Salvar' })
     expect(save).toBeDisabled()
     expect(screen.getByText('Dê um nome à rotina para salvar')).toBeInTheDocument()
@@ -73,7 +73,7 @@ describe('rotina nova', () => {
     await addExercise('supino reto', /Supino reto com barra/)
     await addExercise('tríceps na polia', /^Tríceps na polia/)
 
-    // Edita a meta do supino: 3 séries -> 4 (no painel, que só mexe no rascunho).
+    // Edit the bench press target: 3 sets -> 4 (in the sheet, which only touches the draft).
     fireEvent.click(
       await screen.findByRole('button', { name: 'Editar Supino reto com barra' }),
     )
@@ -86,7 +86,7 @@ describe('rotina nova', () => {
       ).toHaveTextContent('4 × 8–12'),
     )
 
-    // Reordena: tríceps sobe para o primeiro lugar.
+    // Reorder: triceps moves up to first place.
     fireEvent.click(
       screen.getByRole('button', { name: 'Mover Tríceps na polia para cima' }),
     )
@@ -95,13 +95,13 @@ describe('rotina nova', () => {
       expect(items[0]).toHaveTextContent('Tríceps na polia')
     })
 
-    // Até aqui NADA foi para o banco.
+    // Up to here NOTHING went to the database.
     expect(await db.routines.count()).toBe(0)
     expect(await db.routineExercises.count()).toBe(0)
 
     fireEvent.click(save)
 
-    // Salvou e voltou para a lista, que mostra a rotina nova.
+    // Saved and went back to the list, which shows the new routine.
     expect(
       await screen.findByRole('heading', { level: 2, name: 'Push' }),
     ).toBeInTheDocument()
@@ -115,7 +115,7 @@ describe('rotina nova', () => {
     expect(items[1].exerciseId).toBe(bench)
   })
 
-  it('sem nenhuma divisão, não há onde criar: volta para as Rotinas', async () => {
+  it('with no split, there is nowhere to create: goes back to Rotinas', async () => {
     await db.splits.clear()
     const router = renderAt(['/rotinas/nova'])
 
@@ -123,20 +123,20 @@ describe('rotina nova', () => {
   })
 })
 
-describe('editar uma rotina que existe', () => {
-  it('as mudanças só valem depois de "Salvar"', async () => {
+describe('edit an existing routine', () => {
+  it('changes only count after "Salvar"', async () => {
     const id = await createPush()
     const router = renderAt(['/rotinas', `/rotinas/${id}`])
 
     const name = await screen.findByRole('textbox', { name: 'Nome' })
     expect(name).toHaveValue('Push')
-    // Sem alterações, não há o que salvar.
+    // With no changes, there is nothing to save.
     expect(screen.getByRole('button', { name: 'Salvar' })).toBeDisabled()
     expect(screen.getByText('Nenhuma alteração')).toBeInTheDocument()
 
     fireEvent.change(name, { target: { value: 'Push A' } })
     expect(screen.getByRole('button', { name: 'Salvar' })).toBeEnabled()
-    // No banco ainda é o nome antigo.
+    // The database still has the old name.
     expect((await db.routines.get(id))?.name).toBe('Push')
 
     fireEvent.click(screen.getByRole('button', { name: 'Salvar' }))
@@ -145,7 +145,7 @@ describe('editar uma rotina que existe', () => {
     expect((await db.routines.get(id))?.name).toBe('Push A')
   })
 
-  it('remover um exercício pelo painel também só vale ao salvar', async () => {
+  it('removing an exercise through the sheet also only counts on save', async () => {
     const id = await createPush()
     renderAt(['/rotinas', `/rotinas/${id}`])
 
@@ -173,7 +173,7 @@ describe('editar uma rotina que existe', () => {
     )
   })
 
-  it('escolher o descanso 2:00 e salvar grava 120 segundos; "Padrão" volta a seguir as Configurações', async () => {
+  it('choosing 2:00 rest and saving stores 120 seconds; "Padrão" goes back to following Settings', async () => {
     const id = await createPush()
     renderAt(['/rotinas', `/rotinas/${id}`])
 
@@ -195,14 +195,14 @@ describe('editar uma rotina que existe', () => {
     })
   })
 
-  it('mover para outra divisão e para outra posição vale ao salvar', async () => {
+  it('moving to another split and another position counts on save', async () => {
     const other = await createSplit(db, 'Upper / Lower')
     const id = await createPush()
     await saveRoutine(db, null, { ...blankDraft(other, 0), name: 'Upper A' })
     renderAt(['/rotinas', `/rotinas/${id}`])
 
     fireEvent.click(await screen.findByRole('button', { name: 'Upper / Lower' }))
-    // Na divisão nova ele entra no fim (2ª de 2); no banco ainda não mudou nada.
+    // In the new split it goes to the end (2nd of 2); the database has not changed yet.
     expect(await screen.findByText('2 de 2')).toBeInTheDocument()
     expect((await db.routines.get(id))?.splitId).toBe(splitId)
     fireEvent.click(screen.getByRole('button', { name: 'Subir' }))
@@ -212,17 +212,17 @@ describe('editar uma rotina que existe', () => {
 
     await waitFor(async () => expect((await db.routines.get(id))?.splitId).toBe(other))
     expect((await db.routines.get(id))?.order).toBe(0)
-    // Espera a lista aparecer (o editor também tem uma aba marcada, e some ao salvar).
+    // Wait for the list to appear (the editor also has a selected tab, which goes away on save).
     await screen.findByRole('heading', { level: 1, name: 'Rotinas' })
-    // E a lista abre na divisão para onde a rotina foi.
+    // And the list opens on the split the routine went to.
     expect(
       await screen.findByRole('button', { name: 'Upper / Lower', pressed: true }),
     ).toBeInTheDocument()
   })
 })
 
-describe('sair sem salvar', () => {
-  it('com alterações, pede confirmação; "Cancelar" continua editando e "Descartar" sai sem gravar', async () => {
+describe('leaving without saving', () => {
+  it('with changes, asks for confirmation; "Cancelar" keeps editing and "Descartar" leaves without saving', async () => {
     const id = await createPush()
     const router = renderAt(['/rotinas', `/rotinas/${id}`])
     fireEvent.change(await screen.findByRole('textbox', { name: 'Nome' }), {
@@ -233,12 +233,12 @@ describe('sair sem salvar', () => {
     const confirm = await screen.findByRole('dialog', { name: 'Descartar alterações?' })
     expect(router.state.location.pathname).toBe(`/rotinas/${id}`)
 
-    // Cancelar: continua na tela, com o que digitou.
+    // Cancel: stays on the screen, with what was typed.
     fireEvent.click(within(confirm).getByRole('button', { name: 'Cancelar' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(screen.getByRole('textbox', { name: 'Nome' })).toHaveValue('Mudei de ideia')
 
-    // Descartar: sai, e o banco continua com o nome antigo.
+    // Discard: leaves, and the database keeps the old name.
     fireEvent.click(screen.getByRole('button', { name: 'Voltar' }))
     fireEvent.click(
       within(
@@ -249,7 +249,7 @@ describe('sair sem salvar', () => {
     expect((await db.routines.get(id))?.name).toBe('Push')
   })
 
-  it('sem alterações, "Voltar" sai direto', async () => {
+  it('with no changes, "Voltar" leaves right away', async () => {
     const id = await createPush()
     const router = renderAt(['/rotinas', `/rotinas/${id}`])
     await screen.findByRole('textbox', { name: 'Nome' })
@@ -262,7 +262,7 @@ describe('sair sem salvar', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('uma rotina nova que o usuário desistiu de criar não deixa nada no banco', async () => {
+  it('a new routine the user gave up creating leaves nothing in the database', async () => {
     const router = renderAt(['/rotinas', '/rotinas/nova'])
     fireEvent.change(await screen.findByRole('textbox', { name: 'Nome' }), {
       target: { value: 'Rascunho' },
@@ -280,8 +280,8 @@ describe('sair sem salvar', () => {
   })
 })
 
-describe('excluir a rotina', () => {
-  it('pede confirmação e leva de volta para a lista', async () => {
+describe('delete the routine', () => {
+  it('asks for confirmation and goes back to the list', async () => {
     const id = await createPush()
     const router = renderAt(['/rotinas', `/rotinas/${id}`])
 

@@ -1,15 +1,15 @@
-// Roda antes de cada arquivo de teste.
+// Runs before each test file.
 
-// O Node não tem IndexedDB: esta lib cria uma implementação em memória.
+// Node has no IndexedDB: this lib creates an in-memory implementation.
 import 'fake-indexeddb/auto'
-// Matchers extras para o DOM, como `toBeInTheDocument()` e `toBeDisabled()`.
+// Extra matchers for the DOM, like `toBeInTheDocument()` and `toBeDisabled()`.
 import '@testing-library/jest-dom/vitest'
 import { cleanup, configure } from '@testing-library/react'
 import { afterEach } from 'vitest'
 
-// O jsdom ainda não implementa `showModal()`/`close()` do <dialog> (usados pelo
-// Sheet e pelo SideMenu). Imitação mínima: liga/desliga o atributo `open` e
-// dispara o evento "close", como o navegador faz. Não imita foco nem fundo inerte.
+// jsdom does not implement `showModal()`/`close()` of <dialog> yet (used by the
+// Sheet and the SideMenu). Minimal imitation: toggles the `open` attribute and
+// fires the "close" event, as the browser does. It does not imitate focus or an inert background.
 if (typeof HTMLDialogElement.prototype.showModal !== 'function') {
   HTMLDialogElement.prototype.showModal = function () {
     this.open = true
@@ -22,11 +22,11 @@ if (typeof HTMLDialogElement.prototype.showModal !== 'function') {
   }
 }
 
-// Com os testes rodando em paralelo (jsdom + banco em memória), 1 s de espera padrão do
-// findBy*/waitFor estoura à toa; 5 s ainda falha rápido quando o erro é de verdade.
+// With tests running in parallel (jsdom + in-memory database), the default 1 s wait of
+// findBy*/waitFor times out for no reason; 5 s still fails fast when the error is real.
 configure({ asyncUtilTimeout: 5000 })
 
-// Desmonta os componentes renderizados entre um teste e outro.
+// Unmounts rendered components between tests.
 afterEach(() => {
   cleanup()
 })

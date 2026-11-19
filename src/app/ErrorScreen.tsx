@@ -5,13 +5,13 @@ import { EmptyState } from '../ui/EmptyState'
 import { BarbellIcon } from '../ui/icons'
 
 type ErrorScreenProps = {
-  /** Mensagem técnica extra (não é mostrada ao usuário; vai para o console). */
+  /** Extra technical message (not shown to the user; goes to the console). */
   error?: unknown
-  /** `true` = o banco local não abriu (nada vai funcionar até resolver). */
+  /** `true` = the local database did not open (nothing will work until it is resolved). */
   database?: boolean
 }
 
-/** Tela de erro: mostra algo útil em vez da tela vazia (ou da página de erro padrão em inglês). */
+/** Error screen: shows something useful instead of a blank screen (or the default error page in English). */
 export function ErrorScreen({ error, database = false }: ErrorScreenProps) {
   const { t } = useI18n()
   if (error !== undefined) {
@@ -33,7 +33,7 @@ export function ErrorScreen({ error, database = false }: ErrorScreenProps) {
   )
 }
 
-/** Versão para o `errorElement` das rotas (lê o erro lançado durante a renderização). */
+/** Version for the routes' `errorElement` (reads the error thrown during rendering). */
 export function RouteErrorScreen() {
   return <ErrorScreen error={useRouteError()} />
 }

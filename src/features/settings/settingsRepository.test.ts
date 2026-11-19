@@ -18,9 +18,9 @@ afterEach(async () => {
   await db.delete()
 })
 
-describe('saltos de carga nas configurações', () => {
-  it('configurações salvas antes do campo existir recebem os saltos padrão', async () => {
-    // Registro como estava no celular antes desta versão (sem weightStepsKg).
+describe('load steps in settings', () => {
+  it('settings saved before the field existed get the default steps', async () => {
+    // Record as it was on the phone before this version (without weightStepsKg).
     await db.settings.put({
       id: SETTINGS_ID,
       createdAt: 1,
@@ -31,16 +31,16 @@ describe('saltos de carga nas configurações', () => {
       autoStartRest: true,
       keepScreenOn: true,
       restSound: false,
-      // O tipo atual exige weightStepsKg; o "as unknown as" simula o registro antigo.
+      // The current type requires weightStepsKg; the "as unknown as" simulates the old record.
     } as unknown as Settings)
 
     const settings = await getSettings(db)
 
-    expect(settings.restSeconds).toBe(120) // o que o usuário escolheu continua
+    expect(settings.restSeconds).toBe(120) // what the user chose stays
     expect(settings.weightStepsKg).toEqual(DEFAULT_SETTINGS.weightStepsKg)
   })
 
-  it('trocar o salto de um equipamento mantém os outros', async () => {
+  it('changing the step of one equipment keeps the others', async () => {
     const before = await getSettings(db)
     await updateSettings(db, { weightStepsKg: { ...before.weightStepsKg, dumbbell: 1 } })
 
@@ -52,7 +52,7 @@ describe('saltos de carga nas configurações', () => {
     })
   })
 
-  it('cada equipamento usa o seu salto; peso corporal anda de 2,5 em 2,5', () => {
+  it('each equipment uses its own step; bodyweight moves in 2.5 steps', () => {
     expect(weightStepFor(DEFAULT_SETTINGS, 'barbell')).toBe(2.5)
     expect(weightStepFor(DEFAULT_SETTINGS, 'dumbbell')).toBe(2)
     expect(weightStepFor(DEFAULT_SETTINGS, 'machine')).toBe(5)

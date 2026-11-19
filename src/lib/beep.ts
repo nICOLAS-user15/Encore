@@ -1,18 +1,18 @@
 /*
- * Bipe sintetizado com a Web Audio API (sem arquivo de som: nada a mais no cache).
+ * Beep synthesized with the Web Audio API (no sound file: nothing extra in the cache).
  *
- * Regra dos navegadores (principalmente iOS): áudio só toca se foi "destravado"
- * por um toque do usuário. Por isso `unlockAudio()` deve ser chamado DENTRO de
- * um toque (ex.: ao concluir uma série), e o bipe pode tocar depois, sozinho.
- * Obs.: no iPhone, a chave de silencioso também silencia este som.
+ * Browser rule (mainly iOS): audio only plays if it was "unlocked"
+ * by a user tap. So `unlockAudio()` must be called INSIDE
+ * a tap (e.g. when completing a set), and the beep can play later, on its own.
+ * Note: on iPhone, the silent switch also mutes this sound.
  */
 
 let context: AudioContext | null = null
 
-/** Prepara o áudio. Chame no momento de um toque do usuário. */
+/** Prepares the audio. Call it at the moment of a user tap. */
 export function unlockAudio(): void {
   if (typeof window.AudioContext !== 'function') {
-    return // navegador sem Web Audio (ou ambiente de teste)
+    return // browser without Web Audio (or test environment)
   }
   context ??= new AudioContext()
   if (context.state === 'suspended') {
@@ -20,7 +20,7 @@ export function unlockAudio(): void {
   }
 }
 
-/** Três bipes curtos e agudos ("bip-bip-bip"). Não faz nada se o áudio não foi destravado. */
+/** Three short, high beeps ("beep-beep-beep"). Does nothing if audio was not unlocked. */
 export function playRestBeep(): void {
   if (!context) {
     return
@@ -31,8 +31,8 @@ export function playRestBeep(): void {
     const oscillator = context.createOscillator()
     const gain = context.createGain()
     oscillator.type = 'square'
-    oscillator.frequency.value = 880 // Lá agudo: corta o barulho da academia.
-    // Envelope: sobe rápido e cai, para não "estalar" no começo e no fim.
+    oscillator.frequency.value = 880 // High A: cuts through the gym noise.
+    // Envelope: rises fast and falls, to avoid a "click" at the start and end.
     gain.gain.setValueAtTime(0.0001, begin)
     gain.gain.exponentialRampToValueAtTime(0.2, begin + 0.01)
     gain.gain.exponentialRampToValueAtTime(0.0001, begin + 0.15)

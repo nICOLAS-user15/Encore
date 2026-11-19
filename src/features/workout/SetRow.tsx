@@ -6,22 +6,22 @@ import { CheckIcon } from '../../ui/icons'
 
 type SetRowProps = {
   set: SetEntry
-  /** Rótulo à esquerda: número da série (1, 2, 3...) ou "AQ" no aquecimento. */
+  /** Label on the left: set number (1, 2, 3...) or "AQ" for warm-up. */
   label: number | string
-  /** Nome do exercício, só para o nome acessível do botão. */
+  /** Exercise name, only for the button's accessible name. */
   exerciseName: string
-  /** É a próxima série a fazer ("onde estou"): ganha borda clara. */
+  /** It is the next set to do ("where I am"): gets a light border. */
   isNext: boolean
   onEdit: () => void
   onToggle: () => void
 }
 
 /**
- * Uma série: tocar na linha abre o editor; tocar no ✓ conclui (ou desfaz).
- * Os dois alvos são grandes e separados para não errar com a mão suada.
+ * A set: tapping the row opens the editor; tapping the ✓ completes it (or undoes it).
+ * Both targets are large and separate so you do not miss with a sweaty hand.
  *
- * Três estados visuais, sem cor nova: próxima (borda clara), pendente (borda
- * escura) e concluída (✓ invertido, números apagados: já ficou para trás).
+ * Three visual states, no new color: next (light border), pending (dark
+ * border) and completed (inverted ✓, dimmed numbers: already left behind).
  */
 export function SetRow({
   set,
@@ -34,8 +34,8 @@ export function SetRow({
   const { t, format } = useI18n()
   const completed = set.completedAt !== null
   const warmup = set.type === 'warmup'
-  // O ✓ "carimba" só quando o usuário acabou de tocar nele, e não sempre que
-  // uma série concluída aparece na tela (ex.: ao voltar para o treino).
+  // The ✓ "stamps" only when the user has just tapped it, and not every time that
+  // a completed set appears on screen (e.g. when returning to the workout).
   const [justTapped, setJustTapped] = useState(false)
 
   function handleToggle() {
@@ -44,7 +44,7 @@ export function SetRow({
   }
 
   return (
-    // aria-current="step": leitores de tela anunciam "passo atual".
+    // aria-current="step": screen readers announce "current step".
     <li className="flex items-stretch gap-2" aria-current={isNext ? 'step' : undefined}>
       <button
         type="button"
@@ -54,7 +54,7 @@ export function SetRow({
           `${exerciseName}, ${format.set(set.weightKg, set.reps)}`,
         )}
         className={cn(
-          // transition-colors: o destaque de "próxima" passa de uma série à outra suavemente.
+          // transition-colors: the "next" highlight moves from one set to the other smoothly.
           'flex min-h-14 min-w-0 flex-1 items-center gap-3 rounded-sm border-2 bg-background px-3 text-left transition-colors duration-200 active:border-text',
           isNext ? 'border-text' : 'border-line-strong',
         )}
@@ -65,9 +65,9 @@ export function SetRow({
         <span
           className={cn(
             'font-display font-bold tabular-nums',
-            // Aquecimento menor: o olho vai direto para as séries de trabalho.
+            // Smaller warm-up: the eye goes straight to the working sets.
             warmup ? 'text-xl' : 'text-2xl',
-            // Aquecimento e séries concluídas em tom apagado.
+            // Warm-up and completed sets in a dimmed tone.
             (warmup || completed) && 'text-muted',
           )}
         >
@@ -88,13 +88,13 @@ export function SetRow({
         aria-pressed={completed}
         aria-label={completed ? t.workout.undoSet(label) : t.workout.completeSet(label)}
         className={cn(
-          // active:scale-90: o botão afunda sob o dedo (confirma que o toque pegou).
+          // active:scale-90: the button sinks under the finger (confirms the tap registered).
           'flex size-14 shrink-0 items-center justify-center rounded-sm border-2 transition-transform duration-75 active:scale-90 [&>svg]:size-7',
-          // A classe entra quando a série vira "concluída" depois do toque: carimba uma vez.
+          // The class is added when the set becomes "completed" after the tap: stamps once.
           completed && justTapped && 'animate-stamp',
-          // Concluída = cores invertidas. Sem acento: ele fica para PRs.
+          // Completed = inverted colors. No accent: it is reserved for PRs.
           completed && 'border-text bg-text text-background',
-          // Próxima: ✓ com borda e ícone claros, chamando o toque.
+          // Next: ✓ with light border and icon, inviting the tap.
           !completed &&
             (isNext ? 'border-text text-text' : 'border-line-strong text-muted'),
         )}

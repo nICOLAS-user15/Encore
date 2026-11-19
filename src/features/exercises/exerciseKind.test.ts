@@ -3,7 +3,7 @@ import { EQUIPMENT } from '../../db/types'
 import { exerciseKind } from './exerciseKind'
 
 describe('exerciseKind', () => {
-  it('máquina e polia são "máquinas"; o resto é "livre"', () => {
+  it('machine and cable are "machines"; the rest is "free"', () => {
     const kinds = Object.fromEntries(EQUIPMENT.map((item) => [item, exerciseKind(item)]))
 
     expect(kinds).toEqual({

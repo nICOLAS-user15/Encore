@@ -13,7 +13,7 @@ function renderSheet(open = true) {
 }
 
 describe('Sheet', () => {
-  it('abre como <dialog> nativo, com o título como nome', () => {
+  it('opens as a native <dialog>, with the title as its name', () => {
     renderSheet()
 
     const dialog = screen.getByRole('dialog', { name: 'Supino' })
@@ -21,18 +21,18 @@ describe('Sheet', () => {
     expect(dialog).toHaveAttribute('open')
   })
 
-  it('toque fora do painel fecha; toque dentro não', () => {
+  it('tapping outside the sheet closes it; tapping inside does not', () => {
     const { onClose } = renderSheet()
 
     fireEvent.click(screen.getByText('Conteúdo'))
     expect(onClose).not.toHaveBeenCalled()
 
-    // A área transparente em volta do painel é o próprio <dialog>.
+    // The transparent area around the sheet is the <dialog> itself.
     fireEvent.click(screen.getByRole('dialog'))
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
-  it('a seta ← "Voltar" fecha o painel', () => {
+  it('the ← "Voltar" arrow closes the sheet', () => {
     const { onClose } = renderSheet()
 
     fireEvent.click(screen.getByRole('button', { name: 'Voltar' }))
@@ -40,7 +40,7 @@ describe('Sheet', () => {
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
-  it('fechado pelo navegador (Esc, gesto de voltar) avisa o pai', () => {
+  it('closed by the browser (Esc, back gesture) notifies the parent', () => {
     const { onClose } = renderSheet()
 
     fireEvent(screen.getByRole('dialog'), new Event('close'))
@@ -48,7 +48,7 @@ describe('Sheet', () => {
     expect(onClose).toHaveBeenCalled()
   })
 
-  it('fechado, não mostra o conteúdo', () => {
+  it('when closed, it does not show the content', () => {
     renderSheet(false)
 
     expect(screen.queryByText('Conteúdo')).not.toBeInTheDocument()

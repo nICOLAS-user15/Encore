@@ -6,22 +6,22 @@ import { listRoutineExercises } from './routineQueries'
 
 /*
  * ---------------------------------------------------------------------------
- * Criar e editar rotinas.
+ * Create and edit routines.
  *
- * A tela de edição trabalha com um RASCUNHO (routineDraft.ts) e só grava quando o
- * usuário toca em "Salvar": é a `saveRoutine`, que aplica tudo de uma vez. As
- * funções menores abaixo são os passos que ela usa.
+ * The edit screen works on a DRAFT (routineDraft.ts) and only writes when the
+ * user taps "Salvar": that is `saveRoutine`, which applies everything at once. The
+ * smaller functions below are the steps it uses.
  * ---------------------------------------------------------------------------
  */
 
-/** Posição livre no fim da sequência de uma divisão. */
+/** Free position at the end of a split's sequence. */
 async function nextRoutineOrder(db: EncoreDB, splitId: ID): Promise<number> {
   const routines = await db.routines.filter(isActive).toArray()
   const inSplit = routines.filter((routine) => routine.splitId === splitId)
   return Math.max(-1, ...inSplit.map((routine) => routine.order)) + 1
 }
 
-/** Cria uma rotina vazia no fim da sequência da divisão e devolve o id dela. */
+/** Creates an empty routine at the end of the split's sequence and returns its id. */
 export async function createRoutine(
   db: EncoreDB,
   name: string,
@@ -39,8 +39,8 @@ export async function createRoutine(
 }
 
 /**
- * Muda a rotina de divisão. Ela vai para o fim da sequência da divisão nova
- * (não faz sentido carregar a posição que tinha na antiga).
+ * Moves the routine to another split. It goes to the end of the new split's sequence
+ * (carrying over its old position makes no sense).
  */
 export async function moveRoutineToSplit(
   db: EncoreDB,
@@ -67,7 +67,7 @@ export async function updateRoutine(
   await updateRecord(db.routines, routineId, changes)
 }
 
-/** Exclui a rotina e os exercícios dela (exclusão lógica). Treinos antigos continuam no histórico. */
+/** Deletes the routine and its exercises (soft delete). Past workouts stay in the history. */
 export async function deleteRoutine(db: EncoreDB, routineId: ID): Promise<void> {
   await db.transaction('rw', [db.routines, db.routineExercises], async () => {
     for (const item of await listRoutineExercises(db, routineId)) {
@@ -78,8 +78,8 @@ export async function deleteRoutine(db: EncoreDB, routineId: ID): Promise<void> 
 }
 
 /**
- * Põe a rotina na posição pedida (0 = a primeira) da sequência da divisão dela.
- * Renumera a divisão inteira (0, 1, 2...), mexendo só nas rotinas que mudaram de número.
+ * Puts the routine at the given position (0 = first) in its split's sequence.
+ * Renumbers the whole split (0, 1, 2...), touching only the routines whose number changed.
  */
 async function placeRoutine(
   db: EncoreDB,
@@ -102,7 +102,7 @@ async function placeRoutine(
   }
 }
 
-/** Adiciona um exercício no fim da rotina, com a meta padrão. */
+/** Adds an exercise at the end of the routine, with the default target. */
 export async function addExerciseToRoutine(
   db: EncoreDB,
   routineId: ID,
@@ -138,8 +138,8 @@ export type RoutineItemChanges = Partial<
 >
 
 /**
- * Descanso de um exercício da rotina, ou `null` (= padrão das Configurações).
- * O `?? null` cobre itens gravados antes do campo existir (sem migração).
+ * Rest of a routine exercise, or `null` (= Settings default).
+ * The `?? null` covers items saved before the field existed (no migration).
  */
 export function restSecondsOf(item: Pick<RoutineExercise, 'restSeconds'>): number | null {
   return item.restSeconds ?? null
@@ -157,7 +157,7 @@ export async function removeRoutineExercise(db: EncoreDB, itemId: ID): Promise<v
   await softDelete(db.routineExercises, itemId)
 }
 
-/** Algum campo editável do exercício mudou? (Evita regravar, e mexer no `updatedAt`, sem necessidade.) */
+/** Did any editable field of the exercise change? (Avoids rewriting, and touching `updatedAt`, needlessly.) */
 function itemChanged(
   old: RoutineExercise,
   fields: Required<RoutineItemChanges>,
@@ -174,16 +174,16 @@ function itemChanged(
 }
 
 /**
- * O botão "Salvar" do editor: aplica o rascunho inteiro de uma vez.
+ * The editor's "Salvar" button: applies the whole draft at once.
  *
- * - `routineId === null`: rotina nova (é criada aqui; antes disso ela não existe).
- * - Dados da rotina (nome, observações) e a divisão.
- * - Exercícios: os que saíram do rascunho são excluídos (exclusão lógica), os
- *   novos são criados e os que mudaram são atualizados, já na ordem do rascunho.
- * - Posição da rotina na sequência da divisão.
+ * - `routineId === null`: new routine (created here; it does not exist before that).
+ * - Routine data (name, notes) and the split.
+ * - Exercises: those removed from the draft are deleted (soft delete), new ones
+ *   are created and changed ones are updated, already in the draft's order.
+ * - Routine position in the split's sequence.
  *
- * Tudo numa transação: se algo falhar no meio, nada fica pela metade.
- * Devolve o id da rotina.
+ * All in one transaction: if something fails midway, nothing is left half done.
+ * Returns the routine id.
  */
 export async function saveRoutine(
   db: EncoreDB,
@@ -203,12 +203,12 @@ export async function saveRoutine(
       id = routineId
       const current = await db.routines.get(id)
       if (!current || !isActive(current)) {
-        throw new Error(`Rotina ${id} não encontrada`)
+        throw new Error(`Routine ${id} not found`)
       }
       if (current.name !== name || current.notes !== draft.notes) {
         await updateRoutine(db, id, { name, notes: draft.notes })
       }
-      await moveRoutineToSplit(db, id, draft.splitId) // sem efeito se a divisão é a mesma
+      await moveRoutineToSplit(db, id, draft.splitId) // no effect if the split is the same
     }
 
     const existing = routineId === null ? [] : await listRoutineExercises(db, id)

@@ -1,13 +1,13 @@
 /*
- * Tema do Encore: tokens do design system + CSS base pensado para celular.
- * Tailwind v4 é configurado aqui no CSS (bloco @theme), não em tailwind.config.js.
+ * Encore theme: design system tokens + base CSS designed for mobile.
+ * Tailwind v4 is configured here in CSS (@theme block), not in tailwind.config.js.
  */
 @import 'tailwindcss';
 
 /* ------------------------------------------------------------------ */
-/* Fontes self-hosted (funcionam offline).                             */
-/* Só o subconjunto "latin" (cobre português: ã, ç, é...). Importar o  */
-/* pacote inteiro colocaria cirílico, grego etc. no cache offline.     */
+/* Self-hosted fonts (work offline).                                   */
+/* Only the "latin" subset (covers Portuguese: ã, ç, é...). Importing  */
+/* the whole package would put Cyrillic, Greek etc. in offline cache.  */
 /* ------------------------------------------------------------------ */
 @font-face {
   font-family: 'Oswald Variable';
@@ -29,22 +29,22 @@
 
 /* ------------------------------------------------------------------ */
 /* Tokens                                                              */
-/* `--x-*: initial` apaga a escala padrão do Tailwind. Assim só existem */
-/* as cores, raios e sombras do design system: usar `bg-blue-500` ou   */
-/* `rounded-xl` simplesmente não funciona.                             */
+/* `--x-*: initial` erases Tailwind's default scale. That way only the */
+/* design system's colors, radii and shadows exist: using `bg-blue-500` */
+/* or `rounded-xl` simply does not work.                               */
 /* ------------------------------------------------------------------ */
 @theme {
   --color-*: initial;
   --color-background: #0e0d0c;
   --color-surface: #1a1917;
   --color-text: #e8e4dc;
-  /* Neutros de apoio (não são acento): texto secundário e bordas. */
+  /* Supporting neutrals (not accent): secondary text and borders. */
   --color-muted: #9a948a;
   --color-line: #3a3733;
-  /* Bordas de CONTROLES (botão, campo, chip): ~3:1 sobre o fundo (WCAG 1.4.11).
-     `line` fica só para divisores e cartões. */
+  /* Borders of CONTROLS (button, field, chip): ~3:1 over the background (WCAG 1.4.11).
+     `line` stays only for dividers and cards. */
   --color-line-strong: #6b6760;
-  /* Acento único: só ações principais e recordes (PRs). */
+  /* Single accent: only main actions and records (PRs). */
   --color-accent: #c0281f;
   --color-accent-bright: #d63a2f;
   --color-accent-pressed: #8e1b16;
@@ -53,54 +53,54 @@
   --font-display: 'Oswald Variable', 'Arial Narrow', sans-serif;
   --font-sans: 'Inter Variable', system-ui, sans-serif;
 
-  /* Raio pequeno e reto: 2px ou 4px, nada além disso. */
+  /* Small, straight radius: 2px or 4px, nothing more. */
   --radius-*: initial;
   --radius-sm: 2px;
   --radius-md: 4px;
 
-  /* Proibido: sombras suaves. */
+  /* Forbidden: soft shadows. */
   --shadow-*: initial;
   --inset-shadow-*: initial;
   --drop-shadow-*: initial;
 
   /*
-   * Animações. Regra do design system: movimento SÓ quando ajuda a entender
-   * algo (de onde veio, o que mudou, que o toque funcionou). Curtas (até ~450ms),
-   * secas, sem "quicar" (exceto o carimbo). Nada de animação em loop.
-   * "Reduzir movimento" no sistema desliga todas (regra no fim do arquivo).
-   * Uso: classe `animate-<nome>` (ex.: `animate-sheet-in`).
+   * Animations. Design system rule: motion ONLY when it helps understand
+   * something (where it came from, what changed, that the tap worked). Short (up to ~450ms),
+   * dry, no "bouncing" (except the stamp). No looping animation.
+   * "Reduce motion" in the system turns them all off (rule at the end of the file).
+   * Usage: class `animate-<name>` (e.g. `animate-sheet-in`).
    */
   --animate-*: initial;
 
-  /* Entrada do app (Splash): ~1,8s no total. Deve bater com SPLASH_DURATION_MS. */
+  /* App entry (Splash): ~1.8s in total. Must match SPLASH_DURATION_MS. */
   --animate-splash-stamp: splash-stamp 450ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
   --animate-splash-bar: splash-bar 520ms 350ms cubic-bezier(0.6, 0, 0.2, 1) both;
   --animate-splash-out: splash-out 250ms 1550ms ease-in both;
 
-  /* Painel sobe de baixo; menu entra pela esquerda; fundo escurece junto. */
+  /* Sheet slides up from the bottom; menu enters from the left; backdrop darkens along. */
   --animate-sheet-in: sheet-in 220ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
   --animate-menu-in: menu-in 200ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
   --animate-fade-in: fade-in 200ms ease-out both;
 
-  /* Troca de tela: o conteúdo novo sobe uns pixels enquanto aparece. */
+  /* Screen change: the new content rises a few pixels while appearing. */
   --animate-screen-in: screen-in 180ms ease-out both;
-  /* Avisos da doca (descanso, treino em andamento, nova versão) sobem do rodapé. */
+  /* Dock notices (rest, workout in progress, new version) rise from the bottom. */
   --animate-dock-in: dock-in 220ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
 
-  /* ✓ da série "carimba" ao concluir (mesma ideia do selo da logo). */
+  /* The set's ✓ "stamps" on completion (same idea as the logo stamp). */
   --animate-stamp: stamp 240ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
-  /* Fim do descanso: um tranco curto para o lado ("Bora!"). */
+  /* End of rest: a short jolt to the side ("Bora!"). */
   --animate-nudge: nudge 380ms ease-in-out both;
 
   /*
-   * Logo "suja" ao abrir o menu: falha de impressão. A logo pula em fatias
-   * (clip-path) e uma cópia vermelha desalinhada aparece e some. `steps(1)` faz
-   * cada quadro "pular" para o próximo, sem transição suave: dá o ar de glitch.
+   * "Dirty" logo when opening the menu: print glitch. The logo jumps in slices
+   * (clip-path) and a misaligned red copy appears and disappears. `steps(1)` makes
+   * each frame "jump" to the next, with no smooth transition: gives the glitch look.
    */
   --animate-glitch: glitch 440ms 120ms steps(1, end) both;
   --animate-glitch-ghost: glitch-ghost 440ms 120ms steps(1, end) both;
 
-  /* O selo "carimba": entra um pouco maior e assenta no lugar. */
+  /* The stamp "stamps": enters a bit larger and settles into place. */
   @keyframes splash-stamp {
     from {
       opacity: 0;
@@ -111,7 +111,7 @@
       transform: scale(1);
     }
   }
-  /* A barra vermelha corre da esquerda para a direita. */
+  /* The red bar runs from left to right. */
   @keyframes splash-bar {
     from {
       transform: scaleX(0);
@@ -120,7 +120,7 @@
       transform: scaleX(1);
     }
   }
-  /* A tela de entrada some. */
+  /* The entry screen disappears. */
   @keyframes splash-out {
     to {
       opacity: 0;
@@ -237,7 +237,7 @@
   }
 }
 
-/* Utilitários de safe area (notch e barra inferior do iPhone). */
+/* Safe area utilities (iPhone notch and bottom bar). */
 @utility pt-safe {
   padding-top: env(safe-area-inset-top);
 }
@@ -252,26 +252,26 @@
   html {
     color-scheme: dark;
     background-color: var(--color-background);
-    /* Impede o iOS de aumentar a fonte sozinho ao girar a tela. */
+    /* Stops iOS from enlarging the font on its own when rotating the screen. */
     -webkit-text-size-adjust: 100%;
-    /* Remove o "flash" azul ao tocar em links/botões no Android. */
+    /* Removes the blue "flash" when tapping links/buttons on Android. */
     -webkit-tap-highlight-color: transparent;
   }
 
   html,
   body {
-    /* Sem pull-to-refresh e sem "elástico" que arrasta a tela toda. */
+    /* No pull-to-refresh and no "rubber band" that drags the whole screen. */
     overscroll-behavior: none;
   }
 
-  /* Painel aberto (<dialog> do Sheet/SideMenu): a página de trás não rola. */
+  /* Sheet open (<dialog> of Sheet/SideMenu): the page behind does not scroll. */
   html:has(dialog[open]) {
     overflow: hidden;
   }
 
   /*
-   * Acessibilidade: quem ativou "reduzir movimento" no celular não vê animação
-   * nenhuma (elas terminam na hora, já no estado final).
+   * Accessibility: whoever enabled "reduce motion" on their phone sees no
+   * animation at all (they finish instantly, already in the final state).
    */
   @media (prefers-reduced-motion: reduce) {
     *,
@@ -290,17 +290,17 @@
     color: var(--color-text);
     background-color: var(--color-background);
     /*
-     * Textura de grão: SVG minúsculo (gerado pelo navegador com feTurbulence),
-     * em tons de cinza e com ~5% de opacidade. Nenhuma imagem é baixada.
+     * Grain texture: tiny SVG (generated by the browser with feTurbulence),
+     * in grayscale and ~5% opacity. No image is downloaded.
      */
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
-    /* Elementos de UI não são selecionáveis (evita seleção acidental ao tocar). */
+    /* UI elements are not selectable (avoids accidental selection when tapping). */
     -webkit-user-select: none;
     user-select: none;
     -webkit-touch-callout: none;
   }
 
-  /* ...mas campos de texto continuam selecionáveis. */
+  /* ...but text fields stay selectable. */
   input,
   textarea,
   [contenteditable='true'] {
@@ -308,14 +308,14 @@
     user-select: text;
   }
 
-  /* 16px no mínimo: abaixo disso o iOS dá zoom ao focar o campo. */
+  /* 16px minimum: below that, iOS zooms in when focusing the field. */
   input,
   select,
   textarea {
     font-size: max(16px, 1rem);
   }
 
-  /* Foco visível só para teclado, grosso e reto. */
+  /* Focus visible only for keyboard, thick and straight. */
   :focus-visible {
     outline: 2px solid var(--color-accent-bright);
     outline-offset: 2px;

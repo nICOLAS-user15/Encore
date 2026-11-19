@@ -1,24 +1,24 @@
 import type { Timestamp } from '../../db/types'
 
 /*
- * Lembrete de backup. Os treinos vivem só no aparelho: trocar de celular ou
- * limpar os dados do navegador apaga tudo. Um lembrete discreto de tempos em
- * tempos é a defesa mais barata contra isso.
+ * Backup reminder. Workouts live only on the device: switching phones or
+ * clearing browser data wipes everything. A discreet reminder from time to
+ * time is the cheapest defense against that.
  */
 
-/** Depois de quantos dias sem backup o lembrete aparece. */
+/** After how many days without a backup the reminder appears. */
 export const BACKUP_REMINDER_DAYS = 14
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
-/** Dias inteiros desde `since` (0 = menos de 24h). */
+/** Whole days since `since` (0 = less than 24h). */
 export function daysSince(since: Timestamp, now: Timestamp): number {
   return Math.max(0, Math.floor((now - since) / DAY_MS))
 }
 
 /**
- * Mostrar o lembrete? Só quando já existe algo a perder (pelo menos um treino
- * finalizado) e nunca houve backup, ou o último tem 14 dias ou mais.
+ * Show the reminder? Only when there is something to lose (at least one finished
+ * workout) and there was never a backup, or the last one is 14 days old or more.
  */
 export function needsBackupReminder(
   lastBackupAt: Timestamp | null,

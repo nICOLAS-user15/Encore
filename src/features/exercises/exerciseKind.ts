@@ -1,10 +1,10 @@
 import type { Equipment } from '../../db/types'
 
 /*
- * Tipo do exercício, derivado do equipamento (não é guardado no banco):
- * - "free" (livres): barra, halteres, kettlebell e peso corporal;
- * - "machine" (máquinas): máquina e polia (a polia também é uma estação fixa).
- * Derivar em vez de guardar evita dois campos que podem discordar.
+ * Exercise type, derived from the equipment (not stored in the database):
+ * - "free" (livres): barbell, dumbbells, kettlebell and bodyweight;
+ * - "machine" (máquinas): machine and cable (the cable is also a fixed station).
+ * Deriving instead of storing avoids two fields that can disagree.
  */
 
 export const EXERCISE_KINDS = ['free', 'machine'] as const

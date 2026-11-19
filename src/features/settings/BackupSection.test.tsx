@@ -9,7 +9,7 @@ beforeEach(async () => {
   await Promise.all(db.tables.map((table) => table.clear()))
 })
 
-/** Simula o usuário escolhendo um arquivo no seletor. */
+/** Simulates the user picking a file in the file picker. */
 function chooseFile(content: string) {
   const input = screen.getByLabelText('Importar backup', { selector: 'input' })
   const file = new File([content], 'backup.json', { type: 'application/json' })
@@ -17,8 +17,8 @@ function chooseFile(content: string) {
 }
 
 describe('BackupSection', () => {
-  it('importa um backup e mostra quantos registros entraram', async () => {
-    // Gera um backup com o seed e depois esvazia o banco ("aparelho novo").
+  it('imports a backup and shows how many records came in', async () => {
+    // Generates a backup with the seed and then empties the database ("new device").
     await syncSeedExercises(db)
     const backup = JSON.stringify(await exportBackup(db))
     await db.exercises.clear()
@@ -34,7 +34,7 @@ describe('BackupSection', () => {
     expect(await db.exercises.count()).toBe(SEED_EXERCISES.length)
   })
 
-  it('explica quando o arquivo não é um backup', async () => {
+  it('explains when the file is not a backup', async () => {
     render(<BackupSection />)
     chooseFile('{"qualquer": "coisa"}')
 
@@ -44,8 +44,8 @@ describe('BackupSection', () => {
   })
 })
 
-describe('exportar e "último backup"', () => {
-  /** Finge a tela de compartilhar do celular; `share` decide o que o usuário fez. */
+describe('export and "last backup"', () => {
+  /** Fakes the phone's share sheet; `share` decides what the user did. */
   function fakeShareSheet(share: () => Promise<void>) {
     Object.defineProperty(navigator, 'canShare', {
       value: () => true,
@@ -55,12 +55,12 @@ describe('exportar e "último backup"', () => {
   }
 
   afterEach(() => {
-    // Remove as funções falsas: o jsdom não tem nenhuma das duas.
+    // Removes the fake functions: jsdom has neither of them.
     Reflect.deleteProperty(navigator, 'canShare')
     Reflect.deleteProperty(navigator, 'share')
   })
 
-  it('compartilhar o arquivo grava a data do backup', async () => {
+  it('sharing the file records the backup date', async () => {
     fakeShareSheet(() => Promise.resolve())
     render(<BackupSection />)
     expect(await screen.findByText('Último backup: nunca')).toBeInTheDocument()
@@ -71,13 +71,13 @@ describe('exportar e "último backup"', () => {
     expect(await screen.findByText('Último backup: hoje')).toBeInTheDocument()
   })
 
-  it('fechar a tela de compartilhar sem escolher nada não conta como backup', async () => {
+  it('closing the share sheet without choosing anything does not count as a backup', async () => {
     fakeShareSheet(() => Promise.reject(new DOMException('cancelou', 'AbortError')))
     render(<BackupSection />)
 
     fireEvent.click(await screen.findByRole('button', { name: 'Exportar backup' }))
 
-    // Espera o botão voltar a funcionar (a exportação terminou).
+    // Waits for the button to work again (the export finished).
     await waitFor(() =>
       expect(screen.getByRole('button', { name: 'Exportar backup' })).toBeEnabled(),
     )

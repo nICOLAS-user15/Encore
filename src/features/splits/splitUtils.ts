@@ -1,13 +1,13 @@
 import type { ID, Routine, Split, Workout } from '../../db/types'
 
 /*
- * Regras puras sobre divisões de treino (sem banco, sem React): fáceis de testar.
+ * Pure rules about workout splits (no database, no React): easy to test.
  */
 
 /**
- * Qual divisão está escolhida nas abas. Usa a que o usuário salvou; se ela não
- * existe mais (excluída, ou veio de outro aparelho), cai na primeira da lista.
- * Sem nenhuma divisão: `null`.
+ * Which split is selected in the tabs. Uses the one the user saved; if it no
+ * longer exists (deleted, or came from another device), falls back to the first in the list.
+ * With no splits: `null`.
  */
 export function resolveActiveSplit(
   splits: Split[],
@@ -17,10 +17,10 @@ export function resolveActiveSplit(
 }
 
 /**
- * As rotinas de uma divisão, mantendo a ordem em que vieram.
+ * The routines of a split, keeping the order they came in.
  *
- * Rotina "órfã" (aponta para uma divisão que não existe: foi excluída em outro
- * aparelho, por exemplo) aparece na PRIMEIRA divisão em vez de sumir da tela.
+ * An "orphaned" routine (points to a split that does not exist: it was deleted on another
+ * device, for example) shows in the FIRST split instead of vanishing from the screen.
  */
 export function routinesOfSplit<T extends { routine: Pick<Routine, 'splitId'> }>(
   entries: T[],
@@ -37,11 +37,11 @@ export function routinesOfSplit<T extends { routine: Pick<Routine, 'splitId'> }>
 }
 
 /**
- * A rotina do último treino finalizado DESTA divisão. É daí que sai o "próximo
- * da sequência": cada divisão guarda a sua própria sequência. Quem alterna entre
- * PPL e Upper/Lower não perde o ponto onde parou em nenhuma das duas.
+ * The routine of the last finished workout IN THIS split. This is where the "next in the
+ * sequence" comes from: each split keeps its own sequence. Someone who alternates between
+ * PPL and Upper/Lower does not lose their place in either one.
  *
- * @param finishedNewestFirst treinos finalizados, do mais recente para o mais antigo
+ * @param finishedNewestFirst finished workouts, from newest to oldest
  */
 export function lastRoutineIdInSplit(
   finishedNewestFirst: Array<Pick<Workout, 'routineId'>>,

@@ -24,7 +24,7 @@ const benchPress = {
 let db: EncoreDB
 
 beforeEach(() => {
-  // Banco novo e com nome único em cada teste: nenhum teste interfere no outro.
+  // Fresh database with a unique name in each test: no test affects another.
   db = createDatabase(`encore-test-${crypto.randomUUID()}`)
 })
 
@@ -34,7 +34,7 @@ afterEach(async () => {
 })
 
 describe('createRecord', () => {
-  it('gera UUID e preenche as datas automaticamente', async () => {
+  it('generates a UUID and fills in the dates automatically', async () => {
     const exercise = await createRecord(db.exercises, benchPress)
 
     expect(exercise.id).toMatch(UUID_PATTERN)
@@ -44,7 +44,7 @@ describe('createRecord', () => {
     expect(await db.exercises.get(exercise.id)).toEqual(exercise)
   })
 
-  it('gera um id diferente para cada registro', async () => {
+  it('generates a different id for each record', async () => {
     const a = await createRecord(db.exercises, benchPress)
     const b = await createRecord(db.exercises, benchPress)
 
@@ -53,8 +53,8 @@ describe('createRecord', () => {
 })
 
 describe('updateRecord', () => {
-  it('altera os campos e renova o updatedAt, sem mexer no createdAt', async () => {
-    // Só o Date é "falso" aqui; os timers reais continuam (o IndexedDB precisa deles).
+  it('changes the fields and renews updatedAt, without touching createdAt', async () => {
+    // Only Date is "fake" here; real timers keep running (IndexedDB needs them).
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date('2026-01-01T10:00:00Z'))
     const exercise = await createRecord(db.exercises, benchPress)
@@ -71,8 +71,8 @@ describe('updateRecord', () => {
   })
 })
 
-describe('softDelete (exclusão lógica)', () => {
-  it('marca deletedAt e mantém a linha no banco', async () => {
+describe('softDelete (soft delete)', () => {
+  it('sets deletedAt and keeps the row in the database', async () => {
     const exercise = await createRecord(db.exercises, benchPress)
 
     await softDelete(db.exercises, exercise.id)
@@ -84,7 +84,7 @@ describe('softDelete (exclusão lógica)', () => {
     expect(isActive(stored as Exercise)).toBe(false)
   })
 
-  it('remove o registro das listagens', async () => {
+  it('removes the record from listings', async () => {
     const kept = await createRecord(db.exercises, benchPress)
     const removed = await createRecord(db.exercises, {
       ...benchPress,
@@ -97,30 +97,30 @@ describe('softDelete (exclusão lógica)', () => {
     expect(list.map((exercise) => exercise.id)).toEqual([kept.id])
   })
 
-  it('falha com mensagem clara se o id não existe', async () => {
+  it('fails with a clear message if the id does not exist', async () => {
     await expect(softDelete(db.exercises, 'nao-existe')).rejects.toThrow(
-      'Registro nao-existe não encontrado',
+      'Record nao-existe not found',
     )
   })
 })
 
 describe('syncSeedExercises', () => {
-  it('insere os exercícios iniciais quando o banco está vazio', async () => {
+  it('inserts the initial exercises when the database is empty', async () => {
     const inserted = await syncSeedExercises(db)
 
     expect(inserted).toBe(SEED_EXERCISES.length)
     expect(await db.exercises.count()).toBe(SEED_EXERCISES.length)
   })
 
-  it('rodar de novo não insere nada (tudo já existe)', async () => {
+  it('running again inserts nothing (everything already exists)', async () => {
     await syncSeedExercises(db)
 
     expect(await syncSeedExercises(db)).toBe(0)
     expect(await db.exercises.count()).toBe(SEED_EXERCISES.length)
   })
 
-  it('num banco já em uso, adiciona só os exercícios novos', async () => {
-    // Simula um aparelho com a versão antiga: só os 25 primeiros exercícios.
+  it('on a database already in use, adds only the new exercises', async () => {
+    // Simulates a device with the old version: only the first 25 exercises.
     const now = Date.now()
     await db.exercises.bulkAdd(
       SEED_EXERCISES.slice(0, 25).map((seed) => ({
@@ -136,8 +136,8 @@ describe('syncSeedExercises', () => {
     expect(await db.exercises.count()).toBe(SEED_EXERCISES.length)
   })
 
-  it('não duplica um exercício que já existe com o mesmo nome (ex.: do programa)', async () => {
-    // Criado pelo import do programa, com outro id, mesmo nome (e outro acento/caixa).
+  it('does not duplicate an exercise that already exists with the same name (e.g. from the program)', async () => {
+    // Created by the program import, with another id, same name (and different accent/case).
     await createRecord(db.exercises, {
       names: { pt: 'remada CAVALINHO', en: 'T-Bar Row' },
       muscleGroup: 'back',
@@ -153,13 +153,13 @@ describe('syncSeedExercises', () => {
     expect(tBarRows).toHaveLength(1)
   })
 
-  it('não duplica quando chamado duas vezes ao mesmo tempo', async () => {
+  it('does not duplicate when called twice at the same time', async () => {
     await Promise.all([syncSeedExercises(db), syncSeedExercises(db)])
 
     expect(await db.exercises.count()).toBe(SEED_EXERCISES.length)
   })
 
-  it('não "ressuscita" exercícios do seed que o usuário excluiu', async () => {
+  it('does not "resurrect" seed exercises the user deleted', async () => {
     await syncSeedExercises(db)
     const all = await db.exercises.toArray()
     for (const exercise of all) {
@@ -170,7 +170,7 @@ describe('syncSeedExercises', () => {
     expect(await listActiveExercises(db)).toEqual([])
   })
 
-  it('cobre todos os grupos musculares, sem ids ou nomes repetidos', () => {
+  it('covers all muscle groups, with no repeated ids or names', () => {
     const groups = new Set(SEED_EXERCISES.map((exercise) => exercise.muscleGroup))
     const ids = new Set(SEED_EXERCISES.map((exercise) => exercise.id))
     const namesPt = new Set(SEED_EXERCISES.map((exercise) => exercise.names.pt))
@@ -186,8 +186,8 @@ describe('syncSeedExercises', () => {
   })
 })
 
-describe('índices', () => {
-  it('[exerciseId+completedAt] traz o histórico do exercício em ordem e ignora séries não concluídas', async () => {
+describe('indexes', () => {
+  it('[exerciseId+completedAt] returns the exercise history in order and ignores uncompleted sets', async () => {
     const exerciseId = crypto.randomUUID()
     const workoutId = crypto.randomUUID()
     const set = (position: number, completedAt: number | null) =>
@@ -203,7 +203,7 @@ describe('índices', () => {
 
     await set(0, 3000)
     await set(1, 1000)
-    await set(2, null) // ainda não concluída
+    await set(2, null) // not completed yet
 
     const history = await db.setEntries
       .where('[exerciseId+completedAt]')
@@ -214,16 +214,16 @@ describe('índices', () => {
   })
 })
 
-describe('versão do schema', () => {
-  it('SCHEMA_VERSION acompanha a maior db.version(...) (o backup grava este número)', async () => {
+describe('schema version', () => {
+  it('SCHEMA_VERSION follows the highest db.version(...) (the backup records this number)', async () => {
     await db.open()
-    // O Dexie guarda a versão do IndexedDB multiplicada por 10.
+    // Dexie stores the IndexedDB version multiplied by 10.
     expect(db.verno).toBe(SCHEMA_VERSION)
   })
 })
 
-describe('repository: escritas atômicas e desfazer', () => {
-  it('duas atualizações seguidas no mesmo registro não perdem nenhuma', async () => {
+describe('repository: atomic writes and undo', () => {
+  it('two updates in a row on the same record lose neither', async () => {
     const created = await createRecord(db.exercises, { ...benchPress })
 
     await Promise.all([
@@ -235,7 +235,7 @@ describe('repository: escritas atômicas e desfazer', () => {
     expect(saved).toMatchObject({ equipment: 'machine', muscleGroup: 'back' })
   })
 
-  it('restoreRecord desfaz o softDelete', async () => {
+  it('restoreRecord undoes the softDelete', async () => {
     const created = await createRecord(db.exercises, { ...benchPress })
     await softDelete(db.exercises, created.id)
     expect((await db.exercises.get(created.id))?.deletedAt).toBeTypeOf('number')

@@ -6,7 +6,7 @@ type SplitTabsProps = {
   splits: Split[]
   activeId: ID | null
   onSelect: (splitId: ID) => void
-  /** Se passado, mostra o botão "+ Nova divisão" no fim da fileira. */
+  /** If passed, shows the "+ Nova divisão" button at the end of the row. */
   onAdd?: () => void
 }
 
@@ -14,8 +14,8 @@ const chipClasses =
   'min-h-12 shrink-0 rounded-sm border-2 px-4 font-display text-lg font-semibold tracking-wide uppercase transition active:scale-[0.97]'
 
 /**
- * Abas das divisões de treino: uma fileira de botões que rola para o lado no
- * celular. A escolhida fica em cores invertidas (como os outros filtros do app).
+ * Workout split tabs: a row of buttons that scrolls sideways on
+ * mobile. The selected one has inverted colors (like the app's other filters).
  */
 export function SplitTabs({ splits, activeId, onSelect, onAdd }: SplitTabsProps) {
   const { t } = useI18n()
@@ -46,7 +46,7 @@ export function SplitTabs({ splits, activeId, onSelect, onAdd }: SplitTabsProps)
         <button
           type="button"
           onClick={onAdd}
-          // Tracejado: parece "um lugar vazio para preencher", não uma divisão.
+          // Dashed: looks like "an empty slot to fill", not a split.
           className={cn(chipClasses, 'border-dashed border-line-strong text-muted')}
         >
           {t.splits.newSplit}

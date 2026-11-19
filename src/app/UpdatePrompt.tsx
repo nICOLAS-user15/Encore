@@ -5,8 +5,8 @@ import { Button } from '../ui/Button'
 import { applyUpdate } from './applyUpdate'
 
 /**
- * Registra o service worker e, quando existe uma versão nova do app já baixada,
- * mostra um aviso na doca acima das abas. Nada muda até o usuário tocar em "Atualizar".
+ * Registers the service worker and, when there is a new app version already downloaded,
+ * shows a notice in the dock above the tabs. Nothing changes until the user taps "Atualizar".
  */
 export function UpdatePrompt() {
   const { t } = useI18n()
@@ -30,7 +30,7 @@ export function UpdatePrompt() {
           <Button variant="ghost" onClick={() => setNeedRefresh(false)}>
             {t.update.later}
           </Button>
-          {/* Sem vermelho: o aviso aparece por cima de telas que já têm sua ação principal. */}
+          {/* No red: the notice shows over screens that already have their main action. */}
           <Button onClick={() => void applyUpdate(updateServiceWorker)}>
             {t.update.update}
           </Button>

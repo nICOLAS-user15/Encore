@@ -6,8 +6,8 @@ import { LEGACY_SPLIT_ID, legacySplitName } from './v3'
 const base = { createdAt: 1, updatedAt: 1, deletedAt: null }
 
 /**
- * Cria um banco no formato da VERSÃO 2 (o que está no seu computador e no celular
- * antes desta atualização): rotinas sem `splitId` e sem tabela de divisões.
+ * Creates a database in the VERSION 2 format (what is on your computer and phone
+ * before this update): routines without `splitId` and without a splits table.
  */
 async function createV2Database(
   name: string,
@@ -52,8 +52,8 @@ async function createV2Database(
   legacy.close()
 }
 
-describe('migração v2 -> v3 (divisões de treino)', () => {
-  it('põe as rotinas atuais numa divisão "Upper / Lower" sem perder nada', async () => {
+describe('migration v2 -> v3 (workout splits)', () => {
+  it('puts the current routines in an "Upper / Lower" split without losing anything', async () => {
     const name = `encore-migration-${crypto.randomUUID()}`
     await createV2Database(name, [
       { id: 'r1', name: 'Upper A' },
@@ -74,7 +74,7 @@ describe('migração v2 -> v3 (divisões de treino)', () => {
       deletedAt: null,
     })
 
-    // Todas as rotinas apontam para a divisão, na mesma ordem de antes.
+    // All routines point to the split, in the same order as before.
     const routines = await db.routines.orderBy('order').toArray()
     expect(routines.map((routine) => [routine.name, routine.splitId])).toEqual([
       ['Upper A', LEGACY_SPLIT_ID],
@@ -82,17 +82,17 @@ describe('migração v2 -> v3 (divisões de treino)', () => {
       ['Upper B', LEGACY_SPLIT_ID],
       ['Lower B', LEGACY_SPLIT_ID],
     ])
-    // A mudança fica visível para backup e sincronização.
+    // The change is visible to backup and sync.
     expect(routines.every((routine) => routine.updatedAt > 1)).toBe(true)
 
-    // O resto dos dados não foi tocado.
+    // The rest of the data was not touched.
     expect(await db.routineExercises.count()).toBe(1)
     expect((await db.workouts.get('w1'))?.routineId).toBe('r1')
 
     await db.delete()
   })
 
-  it('rotinas com outros nomes vão para "Minhas rotinas" (ou "My routines" em inglês)', async () => {
+  it('routines with other names go to "Minhas rotinas" (or "My routines" in English)', async () => {
     const portuguese = `encore-migration-${crypto.randomUUID()}`
     await createV2Database(portuguese, [{ id: 'r1', name: 'Peito e tríceps' }])
     const db = createDatabase(portuguese)
@@ -112,7 +112,7 @@ describe('migração v2 -> v3 (divisões de treino)', () => {
     await dbEn.delete()
   })
 
-  it('sem rotinas (ou só com rotinas excluídas), não cria divisão nenhuma', async () => {
+  it('with no routines (or only deleted routines), creates no split', async () => {
     const empty = `encore-migration-${crypto.randomUUID()}`
     await createV2Database(empty, [])
     const dbEmpty = createDatabase(empty)
@@ -130,7 +130,7 @@ describe('migração v2 -> v3 (divisões de treino)', () => {
 })
 
 describe('legacySplitName', () => {
-  it('só "Upper..." e "Lower..." contam como o programa Upper / Lower', () => {
+  it('only "Upper..." and "Lower..." count as the Upper / Lower program', () => {
     expect(legacySplitName(['Upper A', 'lower b'], 'pt')).toBe('Upper / Lower')
     expect(legacySplitName(['Upper A', 'Push'], 'pt')).toBe('Minhas rotinas')
     expect(legacySplitName([], 'pt')).toBe('Minhas rotinas')

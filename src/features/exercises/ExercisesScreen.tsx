@@ -9,11 +9,11 @@ import { ExerciseBrowser } from './ExerciseBrowser'
 
 export function ExercisesScreen() {
   const { t, language } = useI18n()
-  // useLiveQuery re-executa a consulta quando a tabela muda (ou o idioma, pela lista de deps)
-  // e devolve `undefined` enquanto a primeira leitura não termina.
+  // useLiveQuery re-runs the query when the table changes (or the language, via the deps list)
+  // and returns `undefined` until the first read finishes.
   const exercises = useLiveQuery(() => listActiveExercises(db, language), [language])
 
-  let content = null // carregando: não mostra nada (leva milissegundos)
+  let content = null // loading: shows nothing (takes milliseconds)
   if (exercises && exercises.length === 0) {
     content = (
       <EmptyState

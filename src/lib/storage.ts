@@ -1,9 +1,9 @@
 /**
- * Pede ao navegador para NÃO apagar os dados do app quando o espaço em disco
- * apertar. Sem isso, o IndexedDB é "best effort" e pode ser limpo pelo sistema
- * (o Safari, por exemplo, limpa dados de sites não usados por alguns dias).
+ * Asks the browser NOT to erase the app data when disk space
+ * gets tight. Without this, IndexedDB is "best effort" and can be cleared by the system
+ * (Safari, for example, clears data from sites not used for a few days).
  *
- * Devolve `true` se o armazenamento ficou persistente.
+ * Returns `true` if storage became persistent.
  */
 export async function requestPersistentStorage(): Promise<boolean> {
   if (!navigator.storage?.persist) {

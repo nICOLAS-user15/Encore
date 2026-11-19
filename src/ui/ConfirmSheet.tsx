@@ -7,13 +7,13 @@ type ConfirmSheetProps = {
   title: string
   description: string
   confirmLabel: string
-  /** A ação apaga algo (descartar, excluir, remover): botão sem o vermelho. */
+  /** The action deletes something (discard, delete, remove): button without red. */
   destructive?: boolean
   onConfirm: () => void
   onCancel: () => void
 }
 
-/** Pede confirmação antes de uma ação importante (finalizar, descartar, excluir). */
+/** Asks for confirmation before an important action (finish, discard, delete). */
 export function ConfirmSheet({
   open,
   title,

@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react'
 
 /**
- * Devolve `Date.now()` e faz o componente renderizar de novo a cada `intervalMs`.
- * Útil para cronômetros: o tempo exibido é sempre calculado a partir de um
- * horário guardado (ex.: `startedAt`), nunca contando "ticks". Assim, se o
- * celular pausar o JavaScript com a tela apagada, o tempo continua certo.
+ * Returns `Date.now()` and makes the component re-render every `intervalMs`.
+ * Useful for timers: the displayed time is always computed from a
+ * stored timestamp (e.g. `startedAt`), never by counting "ticks". That way, if the
+ * phone pauses JavaScript with the screen off, the time stays correct.
  */
 export function useNow(intervalMs = 1000): number {
   const [now, setNow] = useState(() => Date.now())
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), intervalMs)
-    // Limpeza: para o intervalo quando o componente sai da tela.
+    // Cleanup: stops the interval when the component leaves the screen.
     return () => window.clearInterval(id)
   }, [intervalMs])
 

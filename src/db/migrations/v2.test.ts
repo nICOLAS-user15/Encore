@@ -3,17 +3,17 @@ import { describe, expect, it } from 'vitest'
 import { getLastPerformance } from '../../features/workout/workoutQueries'
 import { createDatabase, SCHEMA_V1 } from '../db'
 
-const SEED_BENCH = 'd583a392-b227-4970-a6ff-07c929916fd3' // "Supino reto com barra" no seed
+const SEED_BENCH = 'd583a392-b227-4970-a6ff-07c929916fd3' // "Supino reto com barra" in the seed
 const base = { createdAt: 1, updatedAt: 1, deletedAt: null }
 
-/** Cria um banco no formato ANTIGO (versão 1), como o que está no seu celular. */
+/** Creates a database in the OLD format (version 1), like the one on your phone. */
 async function createLegacyDatabase(name: string) {
   const legacy = new Dexie(name)
   legacy.version(1).stores(SCHEMA_V1)
   await legacy.open()
 
   await legacy.table('exercises').bulkAdd([
-    // Do seed (nome só em português)
+    // From the seed (name only in Portuguese)
     {
       id: SEED_BENCH,
       name: 'Supino reto com barra',
@@ -22,7 +22,7 @@ async function createLegacyDatabase(name: string) {
       isCustom: false,
       ...base,
     },
-    // Criados pelo programa Upper/Lower (nome em inglês). O primeiro é duplicado do seed.
+    // Created by the Upper/Lower program (name in English). The first is a duplicate of the seed.
     {
       id: 'program-bench',
       name: 'Bench Press',
@@ -39,7 +39,7 @@ async function createLegacyDatabase(name: string) {
       isCustom: true,
       ...base,
     },
-    // Um nome que a migração não conhece
+    // A name the migration does not know
     {
       id: 'mine',
       name: 'Meu exercício',
@@ -85,16 +85,16 @@ async function createLegacyDatabase(name: string) {
   legacy.close()
 }
 
-describe('migração v1 -> v2', () => {
-  it('traduz nomes, junta duplicados sem perder séries e preenche o cronômetro', async () => {
+describe('migration v1 -> v2', () => {
+  it('translates names, merges duplicates without losing sets and fills in the timer', async () => {
     const name = `encore-migration-${crypto.randomUUID()}`
     await createLegacyDatabase(name)
 
-    // Abrir com o código novo dispara a migração.
+    // Opening with the new code triggers the migration.
     const db = createDatabase(name)
     await db.open()
 
-    // Nomes nos dois idiomas; o campo antigo `name` some.
+    // Names in both languages; the old `name` field goes away.
     const bench = await db.exercises.get(SEED_BENCH)
     expect(bench?.names).toEqual({ pt: 'Supino reto com barra', en: 'Bench Press' })
     expect(bench && 'name' in bench).toBe(false)
@@ -107,22 +107,22 @@ describe('migração v1 -> v2', () => {
       en: 'Meu exercício',
     })
 
-    // O duplicado foi excluído (lógico) e tudo que apontava para ele foi para o seed.
+    // The duplicate was deleted (soft) and everything that pointed to it went to the seed.
     expect((await db.exercises.get('program-bench'))?.deletedAt).toBeTypeOf('number')
     expect((await db.routineExercises.get('re1'))?.exerciseId).toBe(SEED_BENCH)
     expect((await db.setEntries.get('s1'))?.exerciseId).toBe(SEED_BENCH)
 
-    // O histórico do exercício unificado encontra a série antiga (índice atualizado).
+    // The unified exercise history finds the old set (updated index).
     const last = await getLastPerformance(db, SEED_BENCH)
     expect(last?.sets.map((set) => set.id)).toEqual(['s1'])
 
-    // Cronômetro: treinos antigos usam o início e o fim que já tinham.
+    // Timer: old workouts use the start and end they already had.
     expect(await db.workouts.get('w1')).toMatchObject({
       timerStartedAt: 1000,
       timerStoppedAt: 5000,
     })
 
-    // Tabela nova existe.
+    // The new table exists.
     expect(await db.settings.count()).toBe(0)
 
     await db.delete()

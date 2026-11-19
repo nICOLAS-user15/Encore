@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react'
 import { Logo } from '../ui/Logo'
 
 /**
- * Duração total da entrada (deve bater com o fim de `splash-out` no theme.css:
- * 1550 + 250 ms). O selo fica ~1s parado na tela, para dar tempo de ver.
+ * Total duration of the entry (must match the end of `splash-out` in theme.css:
+ * 1550 + 250 ms). The stamp stays still on screen for ~1s, to leave time to see it.
  */
 export const SPLASH_DURATION_MS = 1800
 
-/** `true` se o usuário pediu "reduzir movimento" no sistema (acessibilidade). */
+/** `true` if the user asked for "reduce motion" in the system (accessibility). */
 function prefersReducedMotion(): boolean {
   return (
     typeof window.matchMedia === 'function' &&
@@ -16,12 +16,12 @@ function prefersReducedMotion(): boolean {
 }
 
 /**
- * Animação de entrada: o selo "carimba", uma barra vermelha corre embaixo e a
- * tela some. Aparece só ao abrir o app (fica fora do router, então trocar de
- * aba não a repete). Com "reduzir movimento" ligado, não aparece.
+ * Entry animation: the stamp "stamps", a red bar runs underneath and the
+ * screen disappears. Shows only when opening the app (it is outside the router, so
+ * switching tabs does not repeat it). With "reduce motion" on, it does not show.
  */
 export function Splash() {
-  // A função passada ao useState só roda na primeira renderização.
+  // The function passed to useState only runs on the first render.
   const [visible, setVisible] = useState(() => !prefersReducedMotion())
 
   useEffect(() => {
@@ -37,11 +37,11 @@ export function Splash() {
   }
 
   return (
-    // aria-hidden: é só visual; leitores de tela vão direto para o app.
+    // aria-hidden: it is visual only; screen readers go straight to the app.
     <div
       aria-hidden="true"
       data-testid="splash"
-      // Um toque pula a entrada: quem abre o app na academia quer o treino, não a animação.
+      // A tap skips the entry: whoever opens the app at the gym wants the workout, not the animation.
       onClick={() => setVisible(false)}
       className="fixed inset-0 z-50 flex items-center justify-center bg-background animate-splash-out"
     >

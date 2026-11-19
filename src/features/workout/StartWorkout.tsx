@@ -28,38 +28,38 @@ import {
 import { suggestNextRoutineId, timerElapsedMs } from './workoutStats'
 
 /**
- * Aba Treino (/treino): a lista para escolher o treino. O treino escolhido abre
- * em /treino/:id, que tem "Voltar" para cá. Se já houver um treino aberto, ele
- * aparece no topo como "Continuar" (e vira a ação principal da tela).
+ * Workout tab (/treino): the list to pick a workout. The chosen workout opens
+ * at /treino/:id, which has "Voltar" back here. If a workout is already open, it
+ * shows at the top as "Continuar" (and becomes the screen's main action).
  *
- * As rotinas são organizadas por DIVISÃO (Upper/Lower, PPL...): abas no topo
- * escolhem a divisão, e a lista mostra só as rotinas dela. Cada divisão tem a sua
- * própria sequência, então "próximo da sequência" vale dentro da divisão escolhida.
+ * Routines are organized by SPLIT (Upper/Lower, PPL...): tabs at the top
+ * choose the split, and the list shows only its routines. Each split has its own
+ * sequence, so "next in the sequence" applies within the chosen split.
  */
 export function StartWorkout() {
   const { t, format } = useI18n()
   const navigate = useNavigate()
-  // Hora atual em estado (atualiza a cada segundo): data do topo e relógio do "Continuar".
+  // Current time in state (updates every second): date at the top and clock of "Continuar".
   const now = useNow(1000)
   const routines = useLiveQuery(() => listRoutinesWithExercises(db), [])
   const history = useLiveQuery(async () => {
     const finished = await listFinishedWorkouts(db)
-    // Do mais recente para o mais antigo: só o que a sequência por divisão precisa.
+    // Newest to oldest: only what the per-split sequence needs.
     return {
       count: finished.length,
       finished: finished.map((workout) => ({ routineId: workout.routineId })),
     }
   }, [])
-  // `select` grava a divisão escolhida: vale também na aba Rotinas.
+  // `select` saves the chosen split: it also applies to the Routines tab.
   const { splits, active: currentSplit, select: selectSplit } = useSplits()
-  // `loaded`: sem isso, o padrão ("nunca fez backup") faria o aviso piscar ao abrir.
+  // `loaded`: without it, the default ("never backed up") would make the reminder flash on open.
   const { settings, loaded: settingsLoaded } = useSettings()
   const showBackupReminder =
     settingsLoaded &&
     history !== undefined &&
     needsBackupReminder(settings.lastBackupAt, history.count, now)
   const active = useLiveQuery(() => getActiveWorkoutInfo(db), [])
-  // Outro treino com séries feitas está aberto: pergunta antes de trocar.
+  // Another workout with completed sets is open: ask before switching.
   const [blocked, setBlocked] = useState(false)
 
   const run = useAction()
@@ -78,7 +78,7 @@ export function StartWorkout() {
 
   const activeName = active ? (active.routineName ?? t.workout.freeWorkout) : ''
 
-  let content = null // carregando
+  let content = null // loading
   if (routines && routines.length === 0 && active === null) {
     content = (
       <EmptyState
@@ -101,8 +101,8 @@ export function StartWorkout() {
       />
     )
   } else if (routines && history && splits && active !== undefined) {
-    // Com um treino aberto, a ação principal é continuar: a sugestão da sequência
-    // perde o vermelho (só um destaque por tela).
+    // With an open workout, the main action is to continue: the sequence suggestion
+    // loses the red (only one highlight per screen).
     const visible = currentSplit
       ? routinesOfSplit(routines, splits, currentSplit)
       : routines
@@ -117,7 +117,7 @@ export function StartWorkout() {
       <div className="flex flex-col gap-3">
         {active && <ContinueCard info={active} name={activeName} now={now} />}
 
-        {/* Com uma divisão só, as abas não ajudam em nada: ficam escondidas. */}
+        {/* With only one split, the tabs do not help: they stay hidden. */}
         {splits.length > 1 && (
           <SplitTabs
             splits={splits}
@@ -153,7 +153,7 @@ export function StartWorkout() {
               onClick={() => void start(routine.id)}
               className={cn(
                 'flex min-h-20 items-center justify-between gap-4 rounded-sm border-2 px-4 py-3 text-left transition active:scale-[0.98]',
-                // A próxima da sequência é A ação principal da tela: ganha o acento.
+                // The next one in the sequence is THE main action of the screen: it gets the accent.
                 isNext
                   ? 'border-accent bg-accent active:border-accent-pressed active:bg-accent-pressed'
                   : 'border-line-strong bg-surface active:border-text',
@@ -221,7 +221,7 @@ type ContinueCardProps = {
   now: number
 }
 
-/** Cartão do treino aberto, no topo da lista: um toque volta para ele. */
+/** Open workout card, at the top of the list: one tap returns to it. */
 function ContinueCard({ info, name, now }: ContinueCardProps) {
   const { t } = useI18n()
   const { workout } = info

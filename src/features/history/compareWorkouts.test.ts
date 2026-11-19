@@ -22,7 +22,7 @@ function set(
   }
 }
 
-/** Treino que durou `minutes` minutos (cronômetro iniciado e parado). */
+/** Workout that lasted `minutes` minutes (timer started and stopped). */
 function workout(minutes: number) {
   return {
     startedAt: 0,
@@ -33,7 +33,7 @@ function workout(minutes: number) {
 }
 
 describe('compareWorkouts', () => {
-  it('mostra quanto mudou em volume, séries e duração', () => {
+  it('shows how much volume, sets and duration changed', () => {
     const previous = { workout: workout(60), sets: [set(25, 8), set(25, 8)] } // 400 kg
     const today = { workout: workout(55), sets: [set(25, 10), set(25, 10), set(25, 8)] } // 700 kg
 
@@ -44,7 +44,7 @@ describe('compareWorkouts', () => {
     })
   })
 
-  it('aquecimento não entra na comparação', () => {
+  it('warm-up is not part of the comparison', () => {
     const previous = { workout: workout(50), sets: [set(25, 8)] }
     const today = { workout: workout(50), sets: [set(25, 8), set(12.5, 8, 'warmup')] }
 

@@ -35,7 +35,7 @@ afterEach(async () => {
   await Promise.all(databases.splice(0).map((db) => db.delete()))
 })
 
-/** Cria um histórico de verdade: programa + um treino finalizado. */
+/** Creates a real history: program + one finished workout. */
 async function trainOnce(db: EncoreDB) {
   await importTestProgram(db)
   const [routine] = await db.routines.orderBy('order').toArray()
@@ -47,7 +47,7 @@ async function trainOnce(db: EncoreDB) {
 }
 
 describe('backup', () => {
-  it('exporta e importa: um aparelho vazio fica igual ao original', async () => {
+  it('exports and imports: an empty device ends up identical to the original', async () => {
     const workoutId = await trainOnce(phone)
     const text = JSON.stringify(await exportBackup(phone))
 
@@ -63,7 +63,7 @@ describe('backup', () => {
     expect((await newPhone.workouts.get(workoutId))?.endedAt).toBeTypeOf('number')
   })
 
-  it('importar de novo não duplica nada', async () => {
+  it('importing again duplicates nothing', async () => {
     await trainOnce(phone)
     const backup = await exportBackup(phone)
 
@@ -72,7 +72,7 @@ describe('backup', () => {
     expect(result).toMatchObject({ added: 0, updated: 0 })
   })
 
-  it('mantém a versão mais recente de cada registro (inclusive exclusões)', async () => {
+  it('keeps the most recent version of each record (including deletions)', async () => {
     const exercise = await createRecord(phone.exercises, {
       names: { pt: 'Meu exercício', en: 'My exercise' },
       muscleGroup: 'core',
@@ -81,23 +81,23 @@ describe('backup', () => {
     })
     const oldBackup = await exportBackup(phone)
 
-    // Depois do backup, o exercício foi excluído neste aparelho (mais recente).
+    // After the backup, the exercise was deleted on this device (more recent).
     await new Promise((resolve) => setTimeout(resolve, 2))
     await softDelete(phone.exercises, exercise.id)
 
     await importBackup(phone, oldBackup)
 
-    // O backup antigo não "ressuscita" o exercício.
+    // The old backup does not "resurrect" the exercise.
     expect((await phone.exercises.get(exercise.id))?.deletedAt).toBeTypeOf('number')
 
-    // E o caminho inverso: a exclusão chega num aparelho que tinha a versão antiga.
+    // And the reverse path: the deletion reaches a device that had the old version.
     const otherPhone = newDatabase()
     await importBackup(otherPhone, oldBackup)
     await importBackup(otherPhone, await exportBackup(phone))
     expect((await otherPhone.exercises.get(exercise.id))?.deletedAt).toBeTypeOf('number')
   })
 
-  it('recusa arquivos que não são backup do Encore', () => {
+  it('rejects files that are not Encore backups', () => {
     expect(() => parseBackup('não é json')).toThrow(BackupError)
     expect(() => parseBackup('{"format":"outra-coisa"}')).toThrow(BackupError)
     expect(() =>
@@ -111,7 +111,7 @@ describe('backup', () => {
     ).toThrow(BackupError)
   })
 
-  it('recusa backup de uma versão mais nova do app', async () => {
+  it('rejects a backup from a newer app version', async () => {
     const backup = await exportBackup(phone)
     const future = JSON.stringify({ ...backup, schemaVersion: SCHEMA_VERSION + 1 })
 
@@ -123,13 +123,13 @@ describe('backup', () => {
     }
   })
 
-  it('nome do arquivo leva a data', () => {
+  it('file name includes the date', () => {
     expect(backupFileName(new Date(2026, 10, 18))).toBe('encore-backup-2026-11-18.json')
   })
 })
 
-describe('backup de uma versão anterior (v2, antes das divisões)', () => {
-  /** Um arquivo como o app antigo exportava: sem tabela `splits` e sem `splitId`. */
+describe('backup from an earlier version (v2, before splits)', () => {
+  /** A file as the old app exported it: no `splits` table and no `splitId`. */
   async function oldBackupFile() {
     await importTestProgram(phone)
     const backup = await exportBackup(phone)
@@ -142,7 +142,7 @@ describe('backup de uma versão anterior (v2, antes das divisões)', () => {
     return JSON.stringify(old)
   }
 
-  it('é aceito e as rotinas vão para uma divisão "Upper / Lower"', async () => {
+  it('is accepted and the routines go to an "Upper / Lower" split"', async () => {
     const file = await oldBackupFile()
     const newPhone = newDatabase()
 
@@ -156,8 +156,8 @@ describe('backup de uma versão anterior (v2, antes das divisões)', () => {
     expect(routines.every((routine) => routine.splitId === splits[0].id)).toBe(true)
   })
 
-  it('importar duas vezes, ou num aparelho que já migrou, não cria divisão repetida', async () => {
-    // Este aparelho já tem as rotinas na divisão do programa, com o id da migração.
+  it('importing twice, or on a device that already migrated, does not create a duplicate split', async () => {
+    // This device already has the routines in the program's split, with the migration id.
     const file = await oldBackupFile()
     const migrated = newDatabase()
     await importBackup(migrated, parseBackup(file))
@@ -168,12 +168,12 @@ describe('backup de uma versão anterior (v2, antes das divisões)', () => {
     expect(await migrated.routines.count()).toBe(4)
   })
 
-  it('não desfaz uma divisão renomeada depois da migração', async () => {
+  it('does not undo a split renamed after the migration', async () => {
     const file = await oldBackupFile()
     const migrated = newDatabase()
     await importBackup(migrated, parseBackup(file))
     const [split] = await migrated.splits.toArray()
-    // O usuário renomeou depois (updatedAt mais novo que o do arquivo antigo).
+    // The user renamed it later (updatedAt newer than the old file's).
     await migrated.splits.update(split.id, {
       name: 'Meu ABC',
       updatedAt: Date.now() + 1000,
@@ -184,14 +184,14 @@ describe('backup de uma versão anterior (v2, antes das divisões)', () => {
     expect((await migrated.splits.get(split.id))?.name).toBe('Meu ABC')
   })
 
-  it('arquivo da versão 1, anterior ao backup, continua sendo recusado', () => {
+  it('a version 1 file, from before backups existed, is still rejected', () => {
     const v1 = JSON.stringify({ format: 'encore-backup', schemaVersion: 1, tables: {} })
     expect(() => parseBackup(v1)).toThrow(BackupError)
   })
 })
 
-describe('backup: arquivos malformados', () => {
-  /** Backup válido de um aparelho com o programa e um treino, já em objeto. */
+describe('backup: malformed files', () => {
+  /** Valid backup from a device with the program and one workout, already as an object. */
   async function validBackup() {
     await trainOnce(phone)
     return JSON.parse(JSON.stringify(await exportBackup(phone))) as ReturnType<
@@ -199,14 +199,14 @@ describe('backup: arquivos malformados', () => {
     >
   }
 
-  it('recusa exercício sem nomes (travaria as telas a cada abertura)', async () => {
+  it('rejects an exercise without names (it would freeze the screens on every open)', async () => {
     const backup = await validBackup()
     delete (backup.tables.exercises[0] as unknown as { names?: unknown }).names
 
     expect(() => parseBackup(JSON.stringify(backup))).toThrow(BackupError)
   })
 
-  it('recusa idioma desconhecido nas configurações e registro sem deletedAt', async () => {
+  it('rejects an unknown language in settings and a record without deletedAt', async () => {
     const backup = await validBackup()
     backup.tables.settings = [
       {
@@ -224,7 +224,7 @@ describe('backup: arquivos malformados', () => {
     expect(() => parseBackup(JSON.stringify(other))).toThrow(BackupError)
   })
 
-  it('descarta campos desconhecidos e aceita configurações de versão antiga', async () => {
+  it('drops unknown fields and accepts settings from an old version', async () => {
     const backup = await validBackup()
     ;(backup.tables.routines[0] as unknown as Record<string, unknown>).lixo = 'x'
     backup.tables.settings = [
@@ -244,9 +244,9 @@ describe('backup: arquivos malformados', () => {
   })
 })
 
-describe('backup: sem duplicar nem deixar treino fantasma', () => {
-  it('exercício com o mesmo nome de um que o aparelho já tem usa o do aparelho', async () => {
-    // Aparelho antigo: exercício criado antes da biblioteca (id aleatório, mesmo nome).
+describe('backup: no duplicates and no ghost workouts', () => {
+  it('an exercise with the same name as one the device already has uses the device one', async () => {
+    // Old device: exercise created before the library (random id, same name).
     const old = newDatabase()
     const created = await createRecord(old.exercises, {
       names: { pt: 'Abdominal na máquina', en: 'Abs Machine' },
@@ -275,32 +275,32 @@ describe('backup: sem duplicar nem deixar treino fantasma', () => {
     })
     const text = JSON.stringify(await exportBackup(old))
 
-    // Aparelho novo: o seed já criou "Abs Machine" com id fixo.
+    // New device: the seed already created "Abs Machine" with a fixed id.
     const before = await phone.exercises.count()
     await importBackup(phone, parseBackup(text))
 
-    expect(await phone.exercises.count()).toBe(before) // nada de exercício repetido
+    expect(await phone.exercises.count()).toBe(before) // no repeated exercise
     const [item] = await phone.routineExercises.toArray()
     const linked = await phone.exercises.get(item.exerciseId)
     expect(linked?.names.en).toBe('Abs Machine')
     expect(linked?.id).not.toBe(created.id)
   })
 
-  it('treino em andamento do arquivo entra finalizado se o aparelho já tem um aberto', async () => {
+  it('a workout in progress from the file comes in finished if the device already has one open', async () => {
     await importTestProgram(phone)
     const [routine] = await phone.routines.orderBy('order').toArray()
-    await startWorkout(phone, routine.id) // aberto aqui
+    await startWorkout(phone, routine.id) // open here
 
     const other = newDatabase()
     await importTestProgram(other)
     const [otherRoutine] = await other.routines.orderBy('order').toArray()
-    const open = await startWorkout(other, otherRoutine.id) // aberto lá também
+    const open = await startWorkout(other, otherRoutine.id) // open there too
     const text = JSON.stringify(await exportBackup(other))
 
     await importBackup(phone, parseBackup(text))
 
     const imported = await phone.workouts.get(open.id)
-    expect(imported?.endedAt).not.toBeNull() // foi para o histórico
+    expect(imported?.endedAt).not.toBeNull() // went to history
     const stillOpen = (await phone.workouts.toArray()).filter(
       (workout) => workout.endedAt === null && workout.deletedAt === null,
     )

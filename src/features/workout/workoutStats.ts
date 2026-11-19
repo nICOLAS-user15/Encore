@@ -1,8 +1,8 @@
 import type { ID, SetEntry, Workout } from '../../db/types'
 
 /*
- * Funções puras (sem banco, sem React) sobre as séries de um treino.
- * Puras = fáceis de testar: mesma entrada, mesma saída.
+ * Pure functions (no database, no React) over the sets of a workout.
+ * Pure = easy to test: same input, same output.
  */
 
 export type ExerciseGroup = {
@@ -11,9 +11,9 @@ export type ExerciseGroup = {
 }
 
 /**
- * Agrupa as séries por exercício. A ordem dos exercícios é a ordem em que
- * cada um aparece pela primeira vez no treino. Dentro de cada exercício, os
- * aquecimentos vêm primeiro (mesmo se adicionados depois), e o resto segue a ordem.
+ * Groups the sets by exercise. The order of the exercises is the order in which
+ * each one first appears in the workout. Within each exercise, the
+ * warm-ups come first (even if added later), and the rest keeps its order.
  */
 export function groupSetsByExercise(sets: SetEntry[]): ExerciseGroup[] {
   const ordered = [...sets].sort((a, b) => a.position - b.position)
@@ -31,22 +31,22 @@ export function groupSetsByExercise(sets: SetEntry[]): ExerciseGroup[] {
   }
 
   for (const group of groups) {
-    // sort é estável: entre séries do mesmo tipo, a ordem por posição se mantém.
+    // sort is stable: among sets of the same type, the position order is kept.
     group.sets.sort((a, b) => Number(isWorkingSet(a)) - Number(isWorkingSet(b)))
   }
   return groups
 }
 
 /**
- * A próxima série a fazer ("onde estou"): a primeira pendente DEPOIS da última
- * série concluída (pelo horário). Assim o destaque acompanha o usuário mesmo se
- * ele pular um exercício (máquina ocupada); o pulado volta no fim, dando a volta
- * na lista. Sem nada concluído, é a primeira pendente. Tudo feito: `null`.
+ * The next set to do ("where I am"): the first pending one AFTER the last
+ * completed set (by timestamp). This way the highlight follows the user even if
+ * they skip an exercise (busy machine); the skipped one comes back at the end, wrapping
+ * around the list. With nothing completed, it is the first pending one. All done: `null`.
  */
 export function nextPendingSetId(groups: ExerciseGroup[]): ID | null {
   const ordered = groups.flatMap((group) => group.sets)
 
-  // Posição da última série concluída (-1 = nenhuma ainda).
+  // Position of the last completed set (-1 = none yet).
   let lastIndex = -1
   let lastTime = Number.NEGATIVE_INFINITY
   ordered.forEach((set, index) => {
@@ -56,7 +56,7 @@ export function nextPendingSetId(groups: ExerciseGroup[]): ID | null {
     }
   })
 
-  // Anda para a frente a partir dela; o `%` (resto) faz voltar ao início da lista.
+  // Moves forward from it; the `%` (remainder) wraps back to the start of the list.
   for (let step = 1; step <= ordered.length; step++) {
     const set = ordered[(lastIndex + step) % ordered.length]
     if (!isCompleted(set)) {
@@ -70,14 +70,14 @@ export function isCompleted(set: SetEntry): boolean {
   return set.completedAt !== null
 }
 
-/** Série "de trabalho" = tudo que não é aquecimento. Só elas contam nos números. */
+/** "Working" set = everything that is not a warm-up. Only these count in the numbers. */
 export function isWorkingSet(set: Pick<SetEntry, 'type'>): boolean {
   return set.type !== 'warmup'
 }
 
 /**
- * Número de cada série dentro do exercício: 1, 2, 3... só para as de trabalho;
- * aquecimento recebe `null` (a tela mostra "AQ").
+ * Number of each set within the exercise: 1, 2, 3... only for working sets;
+ * warm-up gets `null` (the screen shows "AQ").
  */
 export function numberSets(sets: SetEntry[]): Array<number | null> {
   let count = 0
@@ -85,8 +85,8 @@ export function numberSets(sets: SetEntry[]): Array<number | null> {
 }
 
 /**
- * Carga sugerida para um aquecimento: metade da primeira série de trabalho,
- * arredondada para baixo em múltiplos de 2,5 kg, com as mesmas repetições.
+ * Suggested load for a warm-up: half of the first working set,
+ * rounded down to multiples of 2.5 kg, with the same reps.
  */
 export function warmupValues(sets: Array<Pick<SetEntry, 'type' | 'weightKg' | 'reps'>>): {
   weightKg: number
@@ -103,8 +103,8 @@ export function warmupValues(sets: Array<Pick<SetEntry, 'type' | 'weightKg' | 'r
 }
 
 /**
- * Próxima rotina da sequência: a que vem depois da última treinada
- * (voltando ao início no fim da lista). Sem histórico, sugere a primeira.
+ * Next routine in the sequence: the one after the last trained
+ * (wrapping to the start at the end of the list). With no history, suggests the first.
  */
 export function suggestNextRoutineId(
   routineIds: ID[],
@@ -113,7 +113,7 @@ export function suggestNextRoutineId(
   if (routineIds.length === 0) {
     return null
   }
-  // indexOf devolve -1 se não achar: -1 + 1 = 0, ou seja, a primeira.
+  // indexOf returns -1 if not found: -1 + 1 = 0, i.e. the first.
   const lastIndex = lastRoutineId === null ? -1 : routineIds.indexOf(lastRoutineId)
   return routineIds[(lastIndex + 1) % routineIds.length]
 }
@@ -124,8 +124,8 @@ type WorkoutTimes = Pick<
 >
 
 /**
- * Tempo mostrado no cronômetro (0 se não iniciou). Parado ou pausado, o relógio
- * congela no instante do "Parar"/"Pausar".
+ * Time shown on the timer (0 if not started). Stopped or paused, the clock
+ * freezes at the moment of "Parar"/"Pausar".
  */
 export function timerElapsedMs(
   workout: Pick<Workout, 'timerStartedAt' | 'timerStoppedAt' | 'timerPausedAt'>,
@@ -139,10 +139,10 @@ export function timerElapsedMs(
 }
 
 /**
- * Duração do treino para o histórico.
- * - Com cronômetro: do "Iniciar" até o "Parar" (ou até finalizar, se não parou).
- * - Sem cronômetro (o usuário nunca iniciou): da abertura até a finalização,
- *   como estimativa, para não mostrar "0 min".
+ * Workout duration for the history.
+ * - With the timer: from "Iniciar" to "Parar" (or until finishing, if it was not stopped).
+ * - Without the timer (the user never started it): from opening to finishing,
+ *   as an estimate, to avoid showing "0 min".
  */
 export function workoutDurationMs(workout: WorkoutTimes, now = Date.now()): number {
   if (workout.timerStartedAt !== null) {
@@ -152,12 +152,12 @@ export function workoutDurationMs(workout: WorkoutTimes, now = Date.now()): numb
   return (workout.endedAt ?? now) - workout.startedAt
 }
 
-/** Séries de trabalho concluídas (o que conta como "feito" no histórico). */
+/** Completed working sets (what counts as "done" in the history). */
 export function completedWorkingSets(sets: SetEntry[]): SetEntry[] {
   return sets.filter((set) => isCompleted(set) && isWorkingSet(set))
 }
 
-/** Volume = soma de carga × repetições das séries de trabalho concluídas. */
+/** Volume = sum of load × reps of the completed working sets. */
 export function totalVolumeKg(sets: SetEntry[]): number {
   return completedWorkingSets(sets).reduce(
     (total, set) => total + set.weightKg * set.reps,

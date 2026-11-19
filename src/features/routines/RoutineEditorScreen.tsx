@@ -43,12 +43,12 @@ const arrowButtonClasses =
   'flex size-12 shrink-0 items-center justify-center rounded-sm border-2 border-line-strong text-text active:border-text disabled:opacity-30 [&>svg]:size-5'
 
 /**
- * Editor de rotina. Duas rotas usam esta tela:
- * - /rotinas/:routineId: edita uma rotina que existe;
- * - /rotinas/nova?divisao=<id>: cria uma rotina nova dentro de uma divisão.
+ * Routine editor. Two routes use this screen:
+ * - /rotinas/:routineId: edits an existing routine;
+ * - /rotinas/nova?divisao=<id>: creates a new routine inside a split.
  *
- * Tudo o que o usuário muda fica num RASCUNHO e só vai para o banco quando ele
- * toca em "Salvar". Rotina nova só passa a existir nesse momento.
+ * Everything the user changes stays in a DRAFT and only goes to the database when
+ * they tap "Salvar". A new routine only starts to exist at that moment.
  */
 export function RoutineEditorScreen() {
   const { t } = useI18n()
@@ -57,7 +57,7 @@ export function RoutineEditorScreen() {
   const { splits, active: activeSplit } = useSplits()
   const allRoutines = useLiveQuery(() => listRoutinesWithExercises(db), [])
   const exerciseMap = useExerciseMap()
-  // `undefined` = carregando; `null` = rotina não encontrada; `'new'` = rotina nova.
+  // `undefined` = loading; `null` = routine not found; `'new'` = new routine.
   const loaded = useLiveQuery(
     async (): Promise<RoutineWithExercises | 'new' | null> =>
       routineId === undefined ? 'new' : await getRoutineWithExercises(db, routineId),
@@ -65,7 +65,7 @@ export function RoutineEditorScreen() {
   )
 
   if (loaded === undefined || !allRoutines || !splits || !exerciseMap) {
-    // Carregando: o cabeçalho já aparece, para a tela não "pular" quando o conteúdo chegar.
+    // Loading: the header already shows, so the screen does not "jump" when the content arrives.
     return <ScreenHeader title={t.routines.editorTitle} />
   }
 
@@ -84,14 +84,14 @@ export function RoutineEditorScreen() {
     )
   }
 
-  // Ponto de partida do rascunho.
+  // Starting point of the draft.
   let initial: RoutineDraft
   if (loaded === 'new') {
-    // A divisão vem da URL (a que estava escolhida na lista); se não vale, a escolhida nas abas.
+    // The split comes from the URL (the one selected in the list); if invalid, the one selected in the tabs.
     const fromUrl = splits.find((split) => split.id === searchParams.get('divisao'))
     const split = fromUrl ?? activeSplit
     if (!split) {
-      return <Navigate to="/rotinas" replace /> // sem divisão não há onde criar a rotina
+      return <Navigate to="/rotinas" replace /> // without a split there is nowhere to create the routine
     }
     const count = allRoutines.filter((entry) => entry.routine.splitId === split.id).length
     initial = blankDraft(split.id, count)
@@ -107,7 +107,7 @@ export function RoutineEditorScreen() {
   }
 
   return (
-    // `key`: abrir outra rotina (ou uma nova) recomeça o rascunho do zero.
+    // `key`: opening another routine (or a new one) restarts the draft from scratch.
     <RoutineEditorForm
       key={routineId ?? 'nova'}
       routineId={routineId ?? null}
@@ -120,7 +120,7 @@ export function RoutineEditorScreen() {
 }
 
 type RoutineEditorFormProps = {
-  /** `null` = rotina nova (ainda não existe no banco). */
+  /** `null` = new routine (does not exist in the database yet). */
   routineId: ID | null
   initial: RoutineDraft
   splits: Split[]
@@ -140,7 +140,7 @@ function RoutineEditorForm({
   const { select: selectSplit } = useSplits()
   const isNew = routineId === null
 
-  // `baseline` = como estava ao abrir (para saber se há algo a salvar); `draft` = o que está na tela.
+  // `baseline` = how it was on open (to know whether there is anything to save); `draft` = what is on screen.
   const [baseline] = useState(initial)
   const [draft, setDraft] = useState(initial)
   const [editingKey, setEditingKey] = useState<string | null>(null)
@@ -153,20 +153,20 @@ function RoutineEditorForm({
   const nameFilled = draft.name.trim() !== ''
   const canSave = nameFilled && (dirty || isNew) && !saving
 
-  // Sair da tela com alterações não salvas pede confirmação (Voltar, abas, menu).
-  // Guardamos o valor em refs porque o bloqueio é consultado só na hora de navegar.
+  // Leaving the screen with unsaved changes asks for confirmation (Back, tabs, menu).
+  // We keep the value in refs because the block is only checked at navigation time.
   const dirtyRef = useRef(dirty)
   useEffect(() => {
     dirtyRef.current = dirty
   }, [dirty])
-  // Ligada pelo Salvar e pelo Excluir, que saem da tela de propósito.
+  // Turned on by Save and Delete, which leave the screen on purpose.
   const allowLeave = useRef(false)
   const blocker = useBlocker(() => dirtyRef.current && !allowLeave.current)
 
   const editingItem = draft.items.find((item) => item.key === editingKey) ?? null
   const nameOf = (exerciseId: ID) => exerciseName(exerciseMap.get(exerciseId))
 
-  // As OUTRAS rotinas da divisão escolhida no rascunho: a posição é entre elas.
+  // The OTHER routines of the split chosen in the draft: the position is among them.
   const othersInSplit = allRoutines.filter(
     (entry) => entry.routine.splitId === draft.splitId && entry.routine.id !== routineId,
   ).length
@@ -180,7 +180,7 @@ function RoutineEditorForm({
     if (splitId === draft.splitId) {
       return
     }
-    // Voltou para a divisão original: volta também para a posição original.
+    // Back to the original split: also back to the original position.
     const position =
       splitId === baseline.splitId
         ? baseline.position
@@ -204,10 +204,10 @@ function RoutineEditorForm({
     setFailed(false)
     try {
       await saveRoutine(db, routineId, draft)
-      // A lista de Rotinas abre na divisão desta rotina (espera gravar antes de trocar de tela).
+      // The Routines list opens on this routine's split (waits for the write before switching screens).
       await selectSplit(draft.splitId)
       allowLeave.current = true
-      // replace: "Voltar" não deve trazer de volta o editor.
+      // replace: "Voltar" must not bring the editor back.
       navigate('/rotinas', { replace: true })
     } catch {
       setFailed(true)
@@ -224,7 +224,7 @@ function RoutineEditorForm({
     navigate('/rotinas', { replace: true })
   }
 
-  // Mensagem ao lado do botão: diz POR QUE ele está ligado ou desligado.
+  // Message next to the button: says WHY it is enabled or disabled.
   let status = t.routines.noChanges
   if (!nameFilled) {
     status = t.routines.needName
@@ -239,7 +239,7 @@ function RoutineEditorForm({
         eyebrow={splitName}
       />
 
-      {/* pb-36: espaço para a barra "Salvar" (fixa embaixo) não cobrir o fim da página. */}
+      {/* pb-36: room so the "Salvar" bar (fixed at the bottom) does not cover the end of the page. */}
       <div className="flex flex-col gap-8 px-4 py-6 pb-36">
         <div className="flex flex-col gap-4">
           <TextField
@@ -351,7 +351,7 @@ function RoutineEditorForm({
         )}
       </div>
 
-      {/* Barra "Salvar": fica na doca, acima das abas, e acompanha a rolagem. */}
+      {/* "Salvar" bar: sits in the dock, above the tabs, and follows the scroll. */}
       <DockItem>
         <div className="flex items-center gap-3 border-2 border-text bg-surface p-3">
           <p role="status" className="min-w-0 flex-1 text-sm font-semibold">
@@ -393,7 +393,7 @@ function RoutineEditorForm({
         onCancel={() => setConfirmDelete(false)}
       />
 
-      {/* Tentou sair com alterações não salvas. */}
+      {/* Tried to leave with unsaved changes. */}
       <ConfirmSheet
         open={blocker.state === 'blocked'}
         title={t.routines.discardTitle}

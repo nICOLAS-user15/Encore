@@ -1,8 +1,8 @@
 import type { SVGProps } from 'react'
 
 /*
- * Ícones desenhados à mão: traço grosso, pontas retas (square/miter),
- * combinando com as bordas duras do design system. Sem biblioteca externa.
+ * Hand-drawn icons: thick stroke, straight ends (square/miter),
+ * matching the design system's hard borders. No external library.
  */
 type IconProps = SVGProps<SVGSVGElement>
 
@@ -25,7 +25,7 @@ function Icon({ children, ...props }: IconProps) {
   )
 }
 
-/** Barra com anilhas: aba Treino. */
+/** Bar with plates: Workout tab. */
 export function BarbellIcon(props: IconProps) {
   return (
     <Icon {...props}>
@@ -34,7 +34,7 @@ export function BarbellIcon(props: IconProps) {
   )
 }
 
-/** Lista: aba Rotinas. */
+/** List: Routines tab. */
 export function ListIcon(props: IconProps) {
   return (
     <Icon {...props}>
@@ -44,8 +44,8 @@ export function ListIcon(props: IconProps) {
 }
 
 /**
- * Halter na diagonal: aba Exercícios. A pegada vai de canto a canto e cada
- * ponta tem duas anilhas (a de dentro maior), perpendiculares à pegada.
+ * Diagonal dumbbell: Exercises tab. The grip runs corner to corner and each
+ * end has two plates (the inner one larger), perpendicular to the grip.
  */
 export function DumbbellIcon(props: IconProps) {
   return (
@@ -57,7 +57,7 @@ export function DumbbellIcon(props: IconProps) {
   )
 }
 
-/** Calendário: aba Histórico. */
+/** Calendar: History tab. */
 export function CalendarIcon(props: IconProps) {
   return (
     <Icon {...props}>
@@ -74,7 +74,7 @@ export function PlusIcon(props: IconProps) {
   )
 }
 
-/** Três pontos (quadradinhos, no estilo reto): "mais opções". */
+/** Three dots (small squares, in the straight style): "more options". */
 export function MoreIcon(props: IconProps) {
   return (
     <Icon {...props}>
@@ -87,7 +87,7 @@ export function MoreIcon(props: IconProps) {
   )
 }
 
-/** Três barras: abrir o menu lateral. */
+/** Three bars: open the side menu. */
 export function MenuIcon(props: IconProps) {
   return (
     <Icon {...props}>
@@ -97,15 +97,15 @@ export function MenuIcon(props: IconProps) {
 }
 
 /**
- * Engrenagem: configurações. Anel + furo no centro + 8 dentes; as pontas
- * quadradas do traço (strokeLinecap="square") fazem os dentes ficarem retos.
+ * Gear: settings. Ring + center hole + 8 teeth; the square stroke
+ * ends (strokeLinecap="square") keep the teeth straight.
  */
 export function SettingsIcon(props: IconProps) {
   return (
     <Icon {...props}>
       <circle cx="12" cy="12" r="6.5" />
       <circle cx="12" cy="12" r="2.5" />
-      {/* Dentes: 4 nos eixos (cima, baixo, esquerda, direita) e 4 nas diagonais. */}
+      {/* Teeth: 4 on the axes (top, bottom, left, right) and 4 on the diagonals. */}
       <path d="M12 5V2.5M12 19v2.5M5 12H2.5M19 12h2.5" />
       <path d="M16.95 7.05l1.75-1.75M7.05 7.05L5.3 5.3M16.95 16.95l1.75 1.75M7.05 16.95L5.3 18.7" />
     </Icon>
@@ -152,7 +152,7 @@ export function CloseIcon(props: IconProps) {
   )
 }
 
-/** "i" dentro de um quadrado: sobre o app. */
+/** "i" inside a square: about the app. */
 export function InfoIcon(props: IconProps) {
   return (
     <Icon {...props}>

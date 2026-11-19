@@ -2,15 +2,15 @@ import type { ReactNode } from 'react'
 
 type ScreenHeaderProps = {
   title: string
-  /** Texto pequeno acima do título (ex.: data, contexto). */
+  /** Small text above the title (e.g. date, context). */
   eyebrow?: string
-  /** Espaço à direita para um botão de ação. */
+  /** Space on the right for an action button. */
   action?: ReactNode
 }
 
 /**
- * Título grande da tela. A barra com menu/voltar fica acima dele, no AppLayout
- * (que também cuida da safe area do notch).
+ * Big screen title. The bar with menu/back sits above it, in AppLayout
+ * (which also handles the notch safe area).
  */
 export function ScreenHeader({ title, eyebrow, action }: ScreenHeaderProps) {
   return (

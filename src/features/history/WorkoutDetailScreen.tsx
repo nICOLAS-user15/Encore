@@ -17,10 +17,10 @@ import { getWorkoutSummary } from './historyQueries'
 import { ComparisonCard } from './ComparisonCard'
 import { SummaryStats } from './SummaryStats'
 
-/** Detalhe de um treino do histórico (rota /historico/:workoutId). */
+/** Detail of a history workout (route /historico/:workoutId). */
 export function WorkoutDetailScreen() {
   const { t, format, exerciseName } = useI18n()
-  // useParams lê o pedaço `:workoutId` da URL.
+  // useParams reads the `:workoutId` piece of the URL.
   const { workoutId = '' } = useParams()
   const navigate = useNavigate()
   const summary = useLiveQuery(() => getWorkoutSummary(db, workoutId), [workoutId])
@@ -30,7 +30,7 @@ export function WorkoutDetailScreen() {
   const { showUndo } = useToast()
 
   if (summary === undefined || !exerciseMap) {
-    return <ScreenHeader title={t.history.title} /> // carregando
+    return <ScreenHeader title={t.history.title} /> // loading
   }
 
   if (summary === null) {
@@ -58,7 +58,7 @@ export function WorkoutDetailScreen() {
       return
     }
     showUndo(t.history.workoutDeleted, () => restoreWorkout(db, workout.id, setIds))
-    // replace: o botão "voltar" não deve trazer de volta um treino excluído.
+    // replace: the "back" button must not bring back a deleted workout.
     navigate('/historico', { replace: true })
   }
 

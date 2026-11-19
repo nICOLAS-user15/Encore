@@ -2,7 +2,7 @@ import { useI18n } from '../../i18n/context'
 import { Logo } from '../../ui/Logo'
 import { ScreenHeader } from '../../ui/ScreenHeader'
 
-/** Tela "Sobre o Encore": o que é o app, privacidade e versão. */
+/** "About Encore" screen: what the app is, privacy and version. */
 export function AboutScreen() {
   const { t } = useI18n()
 

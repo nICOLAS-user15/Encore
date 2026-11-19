@@ -15,7 +15,7 @@ function renderAt(path: string) {
   return router
 }
 
-/** Duas divisões, como a sua: Upper / Lower (2 rotinas) e PPL (2 rotinas). */
+/** Two splits, like yours: Upper / Lower (2 routines) and PPL (2 routines). */
 async function createTwoSplits() {
   const ul = await createSplit(db, 'Upper / Lower')
   const ppl = await createSplit(db, 'PPL')
@@ -26,7 +26,7 @@ async function createTwoSplits() {
   return { ul, ppl, upper, lower, push, pull }
 }
 
-/** Um treino já finalizado dessa rotina (para a sequência saber onde parou). */
+/** A finished workout of that routine (so the sequence knows where it stopped). */
 async function addFinishedWorkout(routineId: string) {
   const now = Date.now()
   await createRecord(db.workouts, {
@@ -44,12 +44,12 @@ beforeEach(async () => {
   localStorage.clear()
 })
 
-describe('aba Treino com várias divisões', () => {
-  it('as abas trocam a lista, e a escolha fica salva', async () => {
+describe('Treino tab with several splits', () => {
+  it('the tabs switch the list, and the choice is saved', async () => {
     await createTwoSplits()
     renderAt('/treino')
 
-    // Começa na primeira divisão: só as rotinas dela.
+    // Starts on the first split: only its routines.
     expect(await screen.findByRole('button', { name: /Upper A/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Lower A/ })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Push/ })).not.toBeInTheDocument()
@@ -64,33 +64,33 @@ describe('aba Treino com várias divisões', () => {
       'true',
     )
 
-    // A escolha foi gravada: vale ao reabrir o app.
+    // The choice was saved: it holds when reopening the app.
     await waitFor(async () => {
       const settings = await db.settings.get(SETTINGS_ID)
       expect(settings?.activeSplitId).toBeTruthy()
     })
   })
 
-  it('cada divisão tem a sua própria sequência ("próximo")', async () => {
+  it('each split has its own sequence ("next")', async () => {
     const { upper } = await createTwoSplits()
-    // Último treino finalizado: Upper A, da divisão Upper / Lower.
+    // Last finished workout: Upper A, from the Upper / Lower split.
     await addFinishedWorkout(upper)
     renderAt('/treino')
 
-    // Em Upper / Lower, o próximo depois de Upper A é Lower A...
+    // In Upper / Lower, the next after Upper A is Lower A...
     const lower = await screen.findByRole('button', { name: /Lower A/ })
     expect(lower).toHaveTextContent('próximo da sequência')
     expect(screen.getByRole('button', { name: /Upper A/ })).not.toHaveTextContent(
       'próximo',
     )
 
-    // ...e em PPL, que nunca foi treinada, o próximo é a primeira (Push).
+    // ...and in PPL, which was never trained, the next is the first one (Push).
     fireEvent.click(screen.getByRole('button', { name: 'PPL' }))
     const push = await screen.findByRole('button', { name: /Push/ })
     expect(push).toHaveTextContent('próximo da sequência')
   })
 
-  it('com uma divisão só, não mostra as abas', async () => {
+  it('with a single split, does not show the tabs', async () => {
     const ul = await createSplit(db, 'Upper / Lower')
     await createRoutine(db, 'Upper A', ul)
     renderAt('/treino')
@@ -101,10 +101,10 @@ describe('aba Treino com várias divisões', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('divisão sem rotinas explica e leva para as Rotinas', async () => {
+  it('split with no routines explains and leads to Rotinas', async () => {
     const ul = await createSplit(db, 'Upper / Lower')
     await createRoutine(db, 'Upper A', ul)
-    await createSplit(db, 'PPL') // vazia
+    await createSplit(db, 'PPL') // empty
     const router = renderAt('/treino')
 
     fireEvent.click(await screen.findByRole('button', { name: 'PPL' }))
@@ -117,8 +117,8 @@ describe('aba Treino com várias divisões', () => {
   })
 })
 
-describe('aba Rotinas: gerenciar divisões', () => {
-  it('cria uma divisão nova, dá o nome e ela fica escolhida', async () => {
+describe('Rotinas tab: manage splits', () => {
+  it('creates a new split, names it and it becomes the selected one', async () => {
     const ul = await createSplit(db, 'Upper / Lower')
     await createRoutine(db, 'Upper A', ul)
     renderAt('/rotinas')
@@ -134,24 +134,24 @@ describe('aba Rotinas: gerenciar divisões', () => {
       await screen.findByRole('button', { name: 'ABC', pressed: true }),
     ).toBeInTheDocument()
     expect(screen.getByText('Nenhuma rotina nesta divisão ainda.')).toBeInTheDocument()
-    // A rotina da outra divisão não aparece aqui.
+    // The other split's routine does not show here.
     expect(
       screen.queryByRole('heading', { level: 2, name: 'Upper A' }),
     ).not.toBeInTheDocument()
   })
 
-  it('exclui uma divisão com rotinas, depois de confirmar quantas vão junto', async () => {
+  it('deletes a split with routines, after confirming how many go along', async () => {
     const { push, pull, ppl } = await createTwoSplits()
     renderAt('/rotinas')
 
     fireEvent.click(await screen.findByRole('button', { name: 'PPL' }))
-    // Espera a aba trocar (a escolha é gravada no banco) antes de editar a divisão.
+    // Wait for the tab to switch (the choice is written to the database) before editing the split.
     await screen.findByRole('button', { name: 'PPL', pressed: true })
     fireEvent.click(await screen.findByRole('button', { name: 'Editar divisão' }))
     const sheet = await screen.findByRole('dialog', { name: 'PPL' })
     fireEvent.click(within(sheet).getByRole('button', { name: 'Excluir divisão' }))
 
-    // A confirmação diz quantas rotinas saem junto e que o histórico fica.
+    // The confirmation says how many routines go along and that the history stays.
     const confirm = await screen.findByRole('dialog', { name: 'Excluir divisão?' })
     expect(confirm).toHaveTextContent('A divisão e as 2 rotinas dela serão excluídas')
     expect(confirm).toHaveTextContent('continuam no histórico')
@@ -160,7 +160,7 @@ describe('aba Rotinas: gerenciar divisões', () => {
     await waitFor(() =>
       expect(screen.queryByRole('button', { name: 'PPL' })).not.toBeInTheDocument(),
     )
-    // Sobra só Upper / Lower, que volta a ser a escolhida.
+    // Only Upper / Lower is left, which becomes the selected one again.
     expect(
       await screen.findByRole('button', { name: 'Upper / Lower', pressed: true }),
     ).toBeInTheDocument()
@@ -169,27 +169,27 @@ describe('aba Rotinas: gerenciar divisões', () => {
     expect((await db.routines.get(pull))?.deletedAt).toBeTypeOf('number')
   })
 
-  it('no editor da rotina, mover para outra divisão só vale ao salvar', async () => {
+  it('in the routine editor, moving to another split only counts on save', async () => {
     const { ppl, ul, upper } = await createTwoSplits()
     const router = renderAt(`/rotinas/${upper}`)
 
-    // O editor mostra as abas das divisões; a atual está marcada.
+    // The editor shows the split tabs; the current one is marked.
     expect(
       await screen.findByRole('button', { name: 'Upper / Lower', pressed: true }),
     ).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'PPL' }))
 
-    // No rascunho, ela entra no fim da PPL (3ª de 3); no banco, nada mudou ainda.
+    // In the draft, it goes to the end of PPL (3rd of 3); in the database, nothing changed yet.
     expect(await screen.findByText('3 de 3')).toBeInTheDocument()
     expect((await db.routines.get(upper))?.splitId).toBe(ul)
 
     fireEvent.click(screen.getByRole('button', { name: 'Salvar' }))
 
     await waitFor(async () => expect((await db.routines.get(upper))?.splitId).toBe(ppl))
-    // Espera a lista aparecer (o editor também tem uma aba "PPL" marcada, e some ao salvar).
+    // Wait for the list to appear (the editor also has a marked "PPL" tab, which goes away on save).
     await screen.findByRole('heading', { level: 1, name: 'Rotinas' })
     expect(router.state.location.pathname).toBe('/rotinas')
-    // A lista de Rotinas abre na divisão para onde a rotina foi.
+    // The Routines list opens on the split the routine went to.
     expect(
       await screen.findByRole('button', { name: 'PPL', pressed: true }),
     ).toBeInTheDocument()

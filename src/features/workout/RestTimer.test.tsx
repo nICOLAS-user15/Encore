@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { playRestBeep } from '../../lib/beep'
 import { RestTimer } from './RestTimer'
 
-// Troca o módulo de som por uma versão falsa: o teste só verifica SE e QUANDO tocaria.
+// Replaces the sound module with a fake: the test only checks IF and WHEN it would play.
 vi.mock('../../lib/beep', () => ({ playRestBeep: vi.fn(), unlockAudio: vi.fn() }))
 
 beforeEach(() => {
@@ -23,7 +23,7 @@ function renderTimer(sound: boolean) {
 }
 
 describe('RestTimer', () => {
-  it('bipa uma vez quando o descanso acaba', () => {
+  it('beeps once when the rest ends', () => {
     renderTimer(true)
     expect(screen.getByText('0:02')).toBeInTheDocument()
     expect(playRestBeep).not.toHaveBeenCalled()
@@ -33,12 +33,12 @@ describe('RestTimer', () => {
     expect(screen.getByRole('timer')).toHaveTextContent('Descanso acabou')
     expect(playRestBeep).toHaveBeenCalledTimes(1)
 
-    // Continua na tela "acabou", mas não bipa de novo a cada segundo.
+    // Stays on screen as "finished", but does not beep again every second.
     act(() => vi.advanceTimersByTime(3_000))
     expect(playRestBeep).toHaveBeenCalledTimes(1)
   })
 
-  it('não bipa com o som desligado', () => {
+  it('does not beep with the sound off', () => {
     renderTimer(false)
 
     act(() => vi.advanceTimersByTime(2_500))
@@ -47,7 +47,7 @@ describe('RestTimer', () => {
     expect(playRestBeep).not.toHaveBeenCalled()
   })
 
-  it('uma barra que já nasce acabada não apita fora de hora', () => {
+  it('a bar that is born already finished does not beep at the wrong time', () => {
     render(
       <RestTimer
         endsAt={Date.now() - 1_000}
@@ -63,7 +63,7 @@ describe('RestTimer', () => {
     expect(playRestBeep).not.toHaveBeenCalled()
   })
 
-  it('anuncia o fim do descanso para leitores de tela', () => {
+  it('announces the end of the rest to screen readers', () => {
     renderTimer(false)
     act(() => vi.advanceTimersByTime(2_500))
 

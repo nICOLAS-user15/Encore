@@ -1,12 +1,12 @@
 import { defineConfig, minimal2023Preset } from '@vite-pwa/assets-generator/config'
 
 /*
- * Gera os ícones do app a partir de public/logo.svg.
- * Rode `pnpm generate-icons` sempre que trocar o logo (os PNGs vão para public/).
+ * Generates the app icons from public/logo.svg.
+ * Run `pnpm generate-icons` whenever the logo changes (the PNGs go to public/).
  *
- * `padding: 0`: o logo.svg já tem fundo próprio e deixa o desenho dentro da
- * zona segura (círculo central de 80%), então a margem extra do gerador só
- * deixaria o selo pequeno demais.
+ * `padding: 0`: logo.svg already has its own background and keeps the drawing inside the
+ * safe zone (80% central circle), so the generator's extra margin would only
+ * make the stamp too small.
  */
 const background = '#0e0d0c'
 
@@ -15,7 +15,7 @@ export default defineConfig({
   preset: {
     ...minimal2023Preset,
     transparent: { ...minimal2023Preset.transparent, padding: 0 },
-    // Fundo escuro em vez de branco nos ícones que não aceitam transparência.
+    // Dark background instead of white on icons that do not accept transparency.
     maskable: {
       ...minimal2023Preset.maskable,
       padding: 0,

@@ -20,6 +20,6 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
-  // Sempre por último: desliga regras de estilo que brigariam com o Prettier.
+  // Always last: turns off style rules that would clash with Prettier.
   prettier,
 ])

@@ -5,7 +5,7 @@ import { Card } from '../../ui/Card'
 import { compareWorkouts } from './compareWorkouts'
 import { getPreviousSummary, type WorkoutSummary } from './historyQueries'
 
-/** "+120", "−5" ou "=" (sem mudança). Usa o sinal de menos tipográfico (−). */
+/** "+120", "−5" or "=" (no change). Uses the typographic minus sign (−). */
 function signed(value: number, text: (absolute: number) => string): string {
   if (value === 0) {
     return '='
@@ -14,8 +14,8 @@ function signed(value: number, text: (absolute: number) => string): string {
 }
 
 /**
- * Comparação com a vez anterior da mesma rotina, no detalhe do treino.
- * Some quando não há com o que comparar (primeira vez ou treino livre).
+ * Comparison with the previous time of the same routine, on the workout detail.
+ * Disappears when there is nothing to compare with (first time or free workout).
  */
 export function ComparisonCard({ summary }: { summary: WorkoutSummary }) {
   const { t, format } = useI18n()

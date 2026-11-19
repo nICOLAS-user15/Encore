@@ -16,18 +16,18 @@ import { pt, type Messages } from './pt'
 
 const MESSAGES: Record<Language, Messages> = { pt, en }
 
-/** Tudo que um componente precisa para falar o idioma do usuário. */
+/** Everything a component needs to speak the user's language. */
 export type I18n = {
   language: Language
-  /** Textos: `t.workout.finish`, `t.history.count(3)`... */
+  /** Texts: `t.workout.finish`, `t.history.count(3)`... */
   t: Messages
-  /** Formatadores já presos ao idioma atual. */
+  /** Formatters already bound to the current language. */
   format: ReturnType<typeof createFormatters>
-  /** Nome do exercício no idioma atual. */
+  /** Exercise name in the current language. */
   exerciseName: (exercise: Pick<Exercise, 'names'> | undefined) => string
-  /** Observação de rotina/exercício para exibir (frases padrão do app são traduzidas). */
+  /** Routine/exercise note for display (the app's standard phrases are translated). */
   note: (text: string) => string
-  /** `false` enquanto as configurações ainda não carregaram do banco. */
+  /** `false` while the settings have not loaded from the database yet. */
   ready: boolean
 }
 
@@ -61,12 +61,12 @@ export function createI18n(language: Language, ready = true): I18n {
 }
 
 /**
- * Valor padrão (português) para componentes renderizados fora do provider,
- * como nos testes de tela.
+ * Default value (Portuguese) for components rendered outside the provider,
+ * as in screen tests.
  */
 export const I18nContext = createContext<I18n>(createI18n('pt'))
 
-/** Acesso aos textos e formatadores no idioma atual. */
+/** Access to texts and formatters in the current language. */
 export function useI18n(): I18n {
   return useContext(I18nContext)
 }

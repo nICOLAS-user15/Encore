@@ -12,17 +12,17 @@ import { TextField } from '../../ui/TextField'
 import type { NewExerciseInput } from './exerciseActions'
 
 type NewExerciseFormProps = {
-  /** O que o usuário já tinha digitado na busca. */
+  /** What the user had already typed in the search. */
   initialName: string
   onCreate: (input: NewExerciseInput) => void
   onCancel: () => void
 }
 
 /**
- * Formulário de um exercício que não está na biblioteca: nome, grupo muscular e
- * equipamento. Os dois últimos são obrigatórios e não têm valor padrão de
- * propósito: o equipamento muda o salto de carga e o filtro "livres x máquinas",
- * e um padrão errado passaria despercebido.
+ * Form for an exercise that is not in the library: name, muscle group and
+ * equipment. The last two are required and have no default value on
+ * purpose: equipment changes the load step and the "free x machines" filter,
+ * and a wrong default would go unnoticed.
  */
 export function NewExerciseForm({
   initialName,

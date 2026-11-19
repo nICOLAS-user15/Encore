@@ -17,12 +17,12 @@ import {
 } from './workoutActions'
 import { listWorkoutSets } from './workoutQueries'
 
-/** Espera maior para telas que dependem de várias consultas ao banco. */
+/** Longer wait for screens that depend on several database queries. */
 const SLOW = { timeout: 5000 }
 
 /**
- * Treino do Upper A em que o supino (3 × 6–10, 25 kg) bateu o topo: 25 × 10 em
- * todas as séries. Devolve o id do supino.
+ * Upper A workout in which the bench press (3 × 6–10, 25 kg) hit the top: 25 × 10 in
+ * all sets. Returns the bench press id.
  */
 async function finishBenchAtTopOfRange(db: EncoreDB) {
   const [upperA] = await listRoutinesWithExercises(db)
@@ -39,7 +39,7 @@ async function finishBenchAtTopOfRange(db: EncoreDB) {
   return { routineId: upperA.routine.id, bench }
 }
 
-describe('applyLoadSuggestion (no banco)', () => {
+describe('applyLoadSuggestion (in the database)', () => {
   let db: EncoreDB
 
   beforeEach(async () => {
@@ -51,14 +51,14 @@ describe('applyLoadSuggestion (no banco)', () => {
     await db.delete()
   })
 
-  it('muda só as séries planejadas que faltam deste exercício', async () => {
+  it('changes only the planned sets still pending for this exercise', async () => {
     const { routineId, bench } = await finishBenchAtTopOfRange(db)
     const workout = await startWorkout(db, routineId)
     const warmup = await addSet(db, workout.id, bench, 'warmup')
     const [first] = (await listWorkoutSets(db, workout.id)).filter(
       (set) => set.exerciseId === bench && set.type === 'normal',
     )
-    await toggleSetCompleted(db, first.id) // a 1ª já foi feita: não muda
+    await toggleSetCompleted(db, first.id) // the 1st was already done: does not change
 
     const changed = await applyLoadSuggestion(db, workout.id, bench, {
       weightKg: 27.5,
@@ -81,12 +81,12 @@ describe('applyLoadSuggestion (no banco)', () => {
       [27.5, 6],
       [27.5, 6],
     ])
-    // Os outros exercícios não mudam.
+    // The other exercises do not change.
     expect(after.filter((set) => set.weightKg === 27.5)).toHaveLength(2)
   })
 })
 
-describe('sugestão de carga na tela', () => {
+describe('load suggestion on screen', () => {
   beforeEach(async () => {
     await Promise.all(appDb.tables.map((table) => table.clear()))
     localStorage.clear()
@@ -94,7 +94,7 @@ describe('sugestão de carga na tela', () => {
     await importTestProgram(appDb)
   })
 
-  it('depois de bater o topo da faixa, sugere subir a carga e o "Aplicar" preenche', async () => {
+  it('after hitting the top of the range, suggests raising the load and "Aplicar" fills in', async () => {
     const { routineId } = await finishBenchAtTopOfRange(appDb)
     const workout = await startWorkout(appDb, routineId)
 
@@ -103,14 +103,14 @@ describe('sugestão de carga na tela', () => {
     })
     render(<RouterProvider router={router} />)
 
-    // Muita leitura no banco antes da 1ª tela: com a máquina ocupada (todos os
-    // testes em paralelo), o padrão de 1s às vezes não basta.
+    // Many database reads before the 1st screen: with the machine busy (all
+    // tests in parallel), the default 1s is sometimes not enough.
     const apply = await screen.findByRole(
       'button',
       { name: 'Aplicar sugestão em Supino reto com barra' },
       SLOW,
     )
-    // O bloco da sugestão: "Sugestão · Subir carga" + 27,5 kg × 6 (barra: salto de 2,5 kg).
+    // The suggestion block: "Sugestão · Subir carga" + 27,5 kg × 6 (barbell: 2.5 kg step).
     const suggestionBlock = apply.parentElement as HTMLElement
     expect(suggestionBlock).toHaveTextContent('Subir carga')
     expect(suggestionBlock).toHaveTextContent('27,5 kg × 6')
@@ -121,7 +121,7 @@ describe('sugestão de carga na tela', () => {
       () => expect(within(suggestionBlock).getByText('Aplicada')).toBeTruthy(),
       SLOW,
     )
-    // As 3 séries do supino (primeiro exercício) agora estão com a sugestão.
+    // The 3 bench press sets (first exercise) now have the suggestion.
     const benchRows = screen
       .getAllByRole('button', { name: /^Editar série/ })
       .slice(0, 3)
@@ -129,7 +129,7 @@ describe('sugestão de carga na tela', () => {
     expect(benchRows.every((text) => text?.includes('27,5 kg × 6'))).toBe(true)
   })
 
-  it('sem histórico do exercício, não aparece sugestão', async () => {
+  it('with no exercise history, no suggestion appears', async () => {
     const [upperA] = await listRoutinesWithExercises(appDb)
     const workout = await startWorkout(appDb, upperA.routine.id)
 
@@ -139,8 +139,8 @@ describe('sugestão de carga na tela', () => {
     render(<RouterProvider router={router} />)
 
     await screen.findByRole('heading', { level: 1, name: 'Upper A' })
-    // "Referência" só aparece depois que a consulta da última vez respondeu (vazia):
-    // assim o teste olha os cartões já carregados, e não uma tela ainda em branco.
+    // "Referência" only appears after the last-time query has answered (empty):
+    // this way the test looks at the already loaded cards, not a still blank screen.
     expect(await screen.findAllByText(/^Referência/, {}, SLOW)).not.toHaveLength(0)
     expect(screen.queryByText(/Sugestão/)).not.toBeInTheDocument()
   })

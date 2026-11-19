@@ -1,17 +1,17 @@
 import type { ID, Routine, RoutineExercise } from '../../db/types'
 
 /*
- * Rascunho de uma rotina: o que o usuário está editando na tela ANTES de tocar em
- * "Salvar". Nada disto vai para o banco até o Salvar (veja saveRoutine).
+ * Draft of a routine: what the user is editing on screen BEFORE tapping
+ * "Salvar". None of this goes to the database until Save (see saveRoutine).
  *
- * Funções puras (sem banco, sem React): fáceis de testar.
+ * Pure functions (no database, no React): easy to test.
  */
 
-/** Um exercício da rotina dentro do rascunho. */
+/** An exercise of the routine inside the draft. */
 export type DraftItem = {
-  /** Chave estável na tela (React key): não muda quando a lista é reordenada. */
+  /** Stable on-screen key (React key): does not change when the list is reordered. */
   key: string
-  /** Id do registro no banco. Ausente = exercício adicionado agora, ainda não salvo. */
+  /** Record id in the database. Absent = exercise just added, not saved yet. */
   id?: ID
   exerciseId: ID
   targetSets: number
@@ -27,20 +27,20 @@ export type RoutineDraft = {
   name: string
   notes: string
   splitId: ID
-  /** Posição desejada entre as rotinas da divisão (0 = a primeira). */
+  /** Desired position among the split's routines (0 = first). */
   position: number
   items: DraftItem[]
 }
 
-/** Meta padrão de um exercício recém-adicionado a uma rotina. */
+/** Default target for an exercise just added to a routine. */
 export const DEFAULT_TARGET = { targetSets: 3, targetRepsMin: 8, targetRepsMax: 12 }
 
-/** Rascunho de uma rotina nova: vazia, no fim da divisão. */
+/** Draft of a new routine: empty, at the end of the split. */
 export function blankDraft(splitId: ID, routinesInSplit: number): RoutineDraft {
   return { name: '', notes: '', splitId, position: routinesInSplit, items: [] }
 }
 
-/** Rascunho de uma rotina que já existe (o ponto de partida da edição). */
+/** Draft of an existing routine (the starting point of the edit). */
 export function draftFromRoutine(
   routine: Routine,
   items: RoutineExercise[],
@@ -60,14 +60,14 @@ export function draftFromRoutine(
       targetRepsMax: item.targetRepsMax,
       referenceWeightKg: item.referenceWeightKg,
       referenceReps: item.referenceReps,
-      // Itens salvos antes de o campo existir não o têm.
+      // Items saved before the field existed do not have it.
       notes: item.notes,
       restSeconds: item.restSeconds ?? null,
     })),
   }
 }
 
-/** Um exercício novo no rascunho, com a meta padrão (3 × 8–12). */
+/** A new exercise in the draft, with the default target (3 × 8–12). */
 export function newDraftItem(exerciseId: ID): DraftItem {
   return {
     key: crypto.randomUUID(),
@@ -80,12 +80,12 @@ export function newDraftItem(exerciseId: ID): DraftItem {
   }
 }
 
-/** Há alguma diferença entre o rascunho e o ponto de partida? */
+/** Is there any difference between the draft and the starting point? */
 export function isDraftDirty(draft: RoutineDraft, initial: RoutineDraft): boolean {
   return JSON.stringify(draft) !== JSON.stringify(initial)
 }
 
-/** Troca o exercício de lugar com o vizinho de cima (-1) ou de baixo (+1). */
+/** Swaps the exercise with its neighbor above (-1) or below (+1). */
 export function moveDraftItem(
   items: DraftItem[],
   index: number,
@@ -100,7 +100,7 @@ export function moveDraftItem(
   return next
 }
 
-/** Troca um campo de um exercício, mantendo a faixa de repetições coerente (mín ≤ máx). */
+/** Changes one field of an exercise, keeping the rep range consistent (min ≤ max). */
 export function updateDraftItem(
   items: DraftItem[],
   key: string,
@@ -111,7 +111,7 @@ export function updateDraftItem(
       return item
     }
     const next = { ...item, ...changes }
-    // A faixa nunca fica invertida: subir o mínimo empurra o máximo, e vice-versa.
+    // The range is never inverted: raising the min pushes the max, and vice versa.
     if (changes.targetRepsMin !== undefined && next.targetRepsMin > next.targetRepsMax) {
       next.targetRepsMax = next.targetRepsMin
     }

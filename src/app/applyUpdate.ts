@@ -1,15 +1,15 @@
-/** Tempo de espera pela troca do service worker antes de recarregar por conta própria. */
+/** Wait time for the service worker swap before reloading on its own. */
 export const UPDATE_RELOAD_FALLBACK_MS = 1500
 
 /**
- * Aplica a versão nova do app: manda o service worker em espera assumir e recarrega.
+ * Applies the new app version: tells the waiting service worker to take over and reloads.
  *
- * Só chamar `updateServiceWorker(true)` falha em silêncio em alguns casos (visto no
- * celular): a biblioteca só recarrega quando recebe o evento "controlling" de uma
- * ATUALIZAÇÃO, e isso não acontece se a página abriu sem controlador ou se o worker
- * novo já tinha assumido (não há mais ninguém "esperando" para receber a mensagem).
- * Por isso recarregamos também quando o navegador avisa que o controlador mudou
- * (`controllerchange`) e, no pior caso, depois de um tempo: o botão sempre faz algo.
+ * Just calling `updateServiceWorker(true)` fails silently in some cases (seen on the
+ * phone): the library only reloads when it receives the "controlling" event from an
+ * UPDATE, and that does not happen if the page opened without a controller or if the new
+ * worker had already taken over (there is no one "waiting" anymore to receive the message).
+ * That is why we also reload when the browser says the controller changed
+ * (`controllerchange`) and, in the worst case, after some time: the button always does something.
  */
 export async function applyUpdate(
   updateServiceWorker: (reloadPage?: boolean) => Promise<void>,
@@ -26,12 +26,12 @@ export async function applyUpdate(
   navigator.serviceWorker?.addEventListener('controllerchange', reloadOnce, {
     once: true,
   })
-  // Rede de segurança: começa a contar antes do await, para valer mesmo se ele travar.
+  // Safety net: starts counting before the await, so it applies even if it hangs.
   setTimeout(reloadOnce, UPDATE_RELOAD_FALLBACK_MS)
 
   try {
     await updateServiceWorker(true)
   } catch {
-    // Se falhou, o recarregamento de segurança acima resolve.
+    // If it failed, the safety reload above takes care of it.
   }
 }

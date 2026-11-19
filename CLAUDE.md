@@ -1,137 +1,138 @@
 # CLAUDE.md
 
-Guia para agentes trabalhando neste repositório.
+Guide for agents working in this repository.
 
-## Visão
+## Vision
 
-Encore é um PWA de log de treino de musculação, usado de verdade na academia (celular, mão suada, sinal ruim). Também é projeto de portfólio e de aprendizado. Por isso:
+Encore is a PWA for logging strength workouts, used for real at the gym (phone, sweaty hands, bad signal). It is also a portfolio and learning project. So:
 
-- Explique decisões importantes brevemente, em português.
-- Prefira código simples e legível a soluções "espertas".
-- Não adicione dependências sem justificar.
+- Briefly explain important decisions.
+- Prefer simple, readable code over "clever" solutions.
+- Do not add dependencies without justifying them.
+- **Everything in the repository is written in English**: code, comments, test names, docs and commit messages. The only exception is the app's Portuguese UI text (`src/i18n/pt.ts`) and the sample data that belongs to it (exercise names, notes).
 
-## Offline-first (regra central)
+## Offline-first (the core rule)
 
-- **Sem back-end por enquanto.** O IndexedDB (via Dexie) é a fonte da verdade. Nada pode depender de rede para funcionar.
-- Nunca carregue recursos de CDN (fontes, scripts, imagens): tudo precisa estar no precache do service worker.
-- A sincronização futura será construída por cima do banco local. Preserve as regras abaixo.
+- **No back end for now.** IndexedDB (via Dexie) is the source of truth. Nothing may depend on the network to work.
+- Never load CDN resources (fonts, scripts, images): everything must be in the service worker precache.
+- Future sync will be built on top of the local database. Preserve the rules below.
 
 ## Stack
 
 Vite 8 · React 19 · TypeScript 6.0 (`strict`) · Tailwind CSS v4 · React Router v8 · Dexie 4 + dexie-react-hooks · vite-plugin-pwa · Vitest + Testing Library + fake-indexeddb · ESLint + Prettier · pnpm.
 
-- O TS fica na 6.0 porque o `typescript-eslint` ainda não suporta o 7. Não atualize sem checar isso.
-- `pnpm-workspace.yaml` existe para isolar o projeto: a pasta pai do usuário tem um workspace pnpm próprio.
-- React Router: importe de `react-router` (não de `react-router-dom`); o `RouterProvider` vem de `react-router/dom`.
+- TS stays on 6.0 because `typescript-eslint` does not support 7 yet. Do not upgrade without checking that.
+- `pnpm-workspace.yaml` exists to isolate the project: a parent folder on the author's machine has its own pnpm workspace.
+- React Router: import from `react-router` (not `react-router-dom`); `RouterProvider` comes from `react-router/dom`.
 
-## Comandos
+## Commands
 
 ```bash
 pnpm dev             # dev server
-pnpm build           # tsc -b + vite build (gera o service worker)
-pnpm preview         # serve o build; use para testar offline
+pnpm build           # tsc -b + vite build (generates the service worker)
+pnpm preview         # serves the build; use it to test offline
 pnpm lint            # eslint + prettier --check
 pnpm format          # prettier --write
 pnpm test            # vitest run
-pnpm generate-icons  # ícones PWA a partir de public/logo.svg
+pnpm generate-icons  # PWA icons from public/logo.svg
 ```
 
-Antes de considerar uma tarefa pronta: `pnpm build`, `pnpm lint` e `pnpm test` precisam passar.
+Before calling a task done, `pnpm build`, `pnpm lint` and `pnpm test` must pass.
 
-## Estrutura
+## Structure
 
-- `src/app/`: router (`routes.tsx` exporta as rotas para os testes), `AppLayout` (TopBar + SideMenu + BottomNav), `Splash`, `UpdatePrompt`, `startPage.ts` (abrir o app do zero sempre leva a /treino, antes de criar o router; recarregar mantém a página).
-- Exercícios: "livres" x "máquinas" é derivado do equipamento por `exerciseKind()` (src/features/exercises/exerciseKind.ts: máquina e polia = máquinas), não é guardado no banco.
-- Telas internas declaram `handle: { backTo: "/pai" }` na rota: a TopBar mostra "Voltar" (volta no histórico; sem histórico, vai para `backTo`). As abas principais mostram menu + configurações.
-- `src/i18n/`: `pt.ts` (fonte da verdade e tipo `Messages`), `en.ts`, `context.ts` (`useI18n`: `t`, `format`, `exerciseName`, `language`) e `I18nProvider` (lê o idioma das configurações).
-- `src/features/settings/`: configurações (registro único com id fixo `SETTINGS_ID`, gravado por `updateSettings`, exceção à regra do repository) e tela Sobre.
-- `src/features/<area>/`: telas e lógica de cada aba (workout, routines, exercises, history). Padrão por área: `*Actions.ts` (escritas, recebem `db` por parâmetro), `*Queries.ts` (leituras), `*Stats.ts` (funções puras) e componentes `.tsx`. Telas leem com `useLiveQuery` e se atualizam sozinhas.
-- Treino ativo = workout com `endedAt === null` (só um por vez; `startWorkout` devolve o existente). Os exercícios de um treino são derivados das séries (`groupSetsByExercise`); não existe tabela WorkoutExercise.
-- Rotas do treino: `/treino` = lista (`StartWorkout`, com cartão "Continuar" se houver treino aberto); `/treino/:workoutId` = `ActiveWorkoutScreen` (handle `backTo: '/treino'`), que redireciona sozinha ao finalizar (histórico) ou descartar (lista); o `ActiveWorkout` não navega. Telas que iniciam treino usam `startOrSwitchWorkout` (troca livre se o treino aberto não tem série concluída; senão `blocked` → confirmação) e navegam para `/treino/<id>`. A aba Treino aponta para o treino aberto (`activePrefix` no BottomNav).
-- Divisões de treino (src/features/splits/): `Split` agrupa rotinas (Upper/Lower, PPL...). `Routine.splitId` aponta para ela; as abas de divisão (`SplitTabs`) aparecem em Treino, Rotinas e no editor da rotina, e a divisão escolhida fica em `Settings.activeSplitId` (um só valor para o app inteiro; `useSplits()` resolve e grava; se o id sumiu, vale a primeira). Regras: a sequência ("próximo") é POR divisão (`lastRoutineIdInSplit`; a posição da rotina é entre as da mesma divisão); `deleteSplit` exclui a divisão E as rotinas dela (exclusão lógica, devolve quantas; a tela confirma dizendo o número; o histórico fica); rotina órfã (divisão inexistente) aparece na primeira divisão (`routinesOfSplit`); `createRoutine` exige o `splitId`.
-- Rotinas: editor em /rotinas/:routineId (existente) e /rotinas/nova?divisao=<id> (nova). Trabalha com um RASCUNHO (`routineDraft.ts`, funções puras): nada vai para o banco até o botão **Salvar** (`saveRoutine`: transação única que cria/atualiza a rotina, exclui/cria/atualiza os exercícios na ordem do rascunho, troca a divisão e renumera a sequência da divisão de destino). Rotina nova só existe após Salvar. Sair com alterações abre "Descartar alterações?" (`useBlocker`; `allowLeave` libera o Salvar/Excluir). Reordenação de exercícios e da rotina é do rascunho (`moveDraftItem`, `position`).
-- **O app começa vazio:** nenhuma rotina, divisão ou treino pessoal vem no código (o programa de exemplo foi removido). Dados de exemplo só existem para testes, em `src/test/fixtures.ts` (`importTestProgram`, cargas inventadas), que nunca é importado pelo app. Não coloque dados pessoais em nada que vá para o navegador.
-- Exercícios fora da biblioteca: no `ExercisePicker`, digitar um nome que não existe oferece "+ Criar" (`NewExerciseForm`: grupo muscular e equipamento obrigatórios, sem padrão). `createCustomExercise` salva com `isCustom: true`, nome nos dois idiomas, e devolve o existente se o nome já existe em qualquer idioma (`nameKey` em `src/lib/text.ts`).
-- `src/db/`: `types.ts`, `db.ts` (schema e versões), `migrations/` (uma função de upgrade por versão, com teste; schema atual = v3, que criou `splits`), `repository.ts` (escritas), `queries.ts` (leituras), `seed.ts`.
-- `src/ui/`: componentes base e `theme.css` (tokens + CSS base).
-- `src/lib/`: funções puras e testáveis.
+- `src/app/`: router (`routes.tsx` exports the routes for tests), `AppLayout` (TopBar + SideMenu + BottomNav), `Splash`, `UpdatePrompt`, `startPage.ts` (opening the app from scratch always lands on `/treino`, before the router is created; a reload keeps the page).
+- Route paths are Portuguese (`/treino`, `/rotinas`, `/exercicios`, `/historico`, `/configuracoes`, `/sobre`): they are part of installed PWAs (`start_url`), so do not rename them casually.
+- Exercises: "free weights" vs "machines" is derived from the equipment by `exerciseKind()` (src/features/exercises/exerciseKind.ts: machine and cable = machines); it is not stored in the database.
+- Inner screens declare `handle: { backTo: "/parent" }` on the route: the TopBar shows "Back" (goes back in history; without history, goes to `backTo`). The main tabs show menu + settings.
+- `src/i18n/`: `pt.ts` (source of truth and the `Messages` type), `en.ts`, `context.ts` (`useI18n`: `t`, `format`, `exerciseName`, `language`) and `I18nProvider` (reads the language from settings).
+- `src/features/settings/`: settings (a single record with the fixed id `SETTINGS_ID`, written by `updateSettings`, an exception to the repository rule) and the About screen.
+- `src/features/<area>/`: screens and logic for each tab (workout, routines, exercises, history). Pattern per area: `*Actions.ts` (writes, receive `db` as a parameter), `*Queries.ts` (reads), `*Stats.ts` (pure functions) and `.tsx` components. Screens read with `useLiveQuery` and update on their own.
+- Active workout = a workout with `endedAt === null` (only one at a time; `startWorkout` returns the existing one). A workout's exercises are derived from its sets (`groupSetsByExercise`); there is no WorkoutExercise table.
+- Workout routes: `/treino` = list (`StartWorkout`, with a "Continue" card when a workout is open); `/treino/:workoutId` = `ActiveWorkoutScreen` (handle `backTo: '/treino'`), which redirects on its own when the workout finishes (history) or is discarded (list); `ActiveWorkout` does not navigate. Screens that start a workout use `startOrSwitchWorkout` (free switch if the open workout has no completed set; otherwise `blocked` → confirmation) and navigate to `/treino/<id>`. The Workout tab points to the open workout (`activePrefix` in BottomNav). Opening the app with a workout in progress goes straight to it (once, in `AppLayout`).
+- Workout splits (src/features/splits/): a `Split` groups routines (Upper/Lower, PPL...). `Routine.splitId` points to it; the split tabs (`SplitTabs`) appear in Workout, Routines and the routine editor, and the chosen split is kept in `Settings.activeSplitId` (a single value for the whole app; `useSplits()` resolves and saves it; if the id is gone, the first one applies). Rules: the sequence ("next") is PER split (`lastRoutineIdInSplit`; a routine's position is among the routines of the same split); `deleteSplit` deletes the split AND its routines (soft delete, returns how many; the screen confirms with the number; history stays); an orphaned routine (non-existent split) shows up in the first split (`routinesOfSplit`); `createRoutine` requires the `splitId`; `moveSplit` renumbers 0..n so ties in `order` do not block moving.
+- Routines: editor at /rotinas/:routineId (existing) and /rotinas/nova?divisao=<id> (new). It works on a DRAFT (`routineDraft.ts`, pure functions): nothing reaches the database until the **Save** button (`saveRoutine`: a single transaction that creates/updates the routine, deletes/creates/updates exercises in draft order, changes the split and renumbers the destination split's sequence). A new routine only exists after Save. Leaving with changes opens "Discard changes?" (`useBlocker`; `allowLeave` lets Save/Delete through). Reordering exercises and the routine belongs to the draft (`moveDraftItem`, `position`).
+- **The app starts empty:** no routine, split or personal workout ships in the code (the sample program was removed). Sample data exists only for tests, in `src/test/fixtures.ts` (`importTestProgram`, generic values), which the app never imports. Do not put personal data in anything that reaches the browser.
+- Exercises outside the library: in `ExercisePicker`, typing a name that does not exist offers "+ Create" (`NewExerciseForm`: muscle group and equipment required, no default). `createCustomExercise` saves with `isCustom: true`, the name in both languages, and returns the existing one if the name already exists in any language (`nameKey` in `src/lib/text.ts`).
+- `src/db/`: `types.ts`, `db.ts` (schema and versions; `SCHEMA_VERSION` must equal the highest `db.version(...)`), `migrations/` (one upgrade function per version, with a test; current schema = v3, which created `splits`), `repository.ts` (writes), `queries.ts` (reads), `seed.ts`.
+- `src/ui/`: base components and `theme.css` (tokens + base CSS).
+- `src/lib/`: pure, testable functions.
 
-## Regras do banco (Dexie)
+## Database rules (Dexie)
 
-- IDs: UUID gerado no cliente com `crypto.randomUUID()`. Exceção: o seed usa IDs fixos (não mude os existentes).
-- Seed (`src/db/seed.ts`): `SEED_EXERCISES_V1` (os 25 originais, **congelados**: a migração v2 depende deles) + `SEED_EXERCISES_LIBRARY` (biblioteca ampliada). `syncSeedExercises` roda a cada abertura e só adiciona o que falta: pula ids já existentes (inclusive excluídos, para não "ressuscitar") e nomes já existentes em qualquer idioma (para não duplicar exercícios do programa). Para adicionar exercícios, acrescente na `LIBRARY` com UUID novo fixo. Migrações nunca devem ler a lista atual do seed.
-- Todo registro estende `BaseRecord` (`id`, `createdAt`, `updatedAt`, `deletedAt`). Datas em epoch ms (`number`).
-- **Escritas passam por `src/db/repository.ts`** (`createRecord`, `updateRecord`, `softDelete`), nunca `table.add/put` direto nas telas.
-- **Exclusão sempre lógica** (`softDelete`). Leituras filtram com `isActive`.
-- Carga sempre em kg (`weightKg`); converter só na exibição (`src/lib/units.ts`).
-- Mudou índices ou tabelas? Crie `db.version(N + 1)` com `.upgrade(...)` em `src/db/migrations/vN.ts` e um teste que abre um banco da versão anterior; nunca edite uma versão já publicada. O autor TEM dados reais: migrações precisam preservá-los.
-- Exercícios têm `names: { pt, en }` (não `name`). Na tela, use `exerciseName(exercise)` do `useI18n`. Programa e seed compartilham o nome em inglês para se reconhecerem como o mesmo exercício.
-- Treino: `startedAt`/`endedAt` = abertura/finalização; `timerStartedAt`/`timerStoppedAt` = cronômetro controlado pelo usuário. Duração no histórico: `workoutDurationMs`.
-- IndexedDB não indexa booleanos nem `null`: não crie índice em `isCustom`; lembre que `completedAt = null` fica fora de `[exerciseId+completedAt]`.
-- Tabelas tipadas como `Table<T, ID>` (não `EntityTable`, que deixa o id opcional).
+- IDs: UUID generated on the client with `crypto.randomUUID()`. Exception: the seed uses fixed IDs (do not change the existing ones).
+- Seed (`src/db/seed.ts`): `SEED_EXERCISES_V1` (the 25 originals, **frozen**: migration v2 depends on them) + `SEED_EXERCISES_LIBRARY` (the extended library). `syncSeedExercises` runs on every launch and only adds what is missing: it skips ids that already exist (including deleted ones, so they do not "come back to life") and names that already exist in any language (so program exercises are not duplicated). Seed rows get `updatedAt: 0` so they never beat a version coming from a backup. To add exercises, append them to `LIBRARY` with a new fixed UUID. Migrations must never read the current seed list.
+- Every record extends `BaseRecord` (`id`, `createdAt`, `updatedAt`, `deletedAt`). Dates are epoch ms (`number`).
+- **Writes go through `src/db/repository.ts`** (`createRecord`, `updateRecord`, `updateRecordWith`, `softDelete`, `restoreRecord`), never `table.add/put` directly in screens. They read and write in one transaction, so double taps do not overwrite each other. Documented exceptions that must keep the original `id`/`updatedAt`: backup import, the seed and migrations.
+- **Deletion is always soft** (`softDelete`). Reads filter with `isActive`.
+- Load is always in kg (`weightKg`); convert only for display (`src/lib/units.ts`).
+- Changed indexes or tables? Create `db.version(N + 1)` with `.upgrade(...)` in `src/db/migrations/vN.ts` and a test that opens a database of the previous version; never edit a published version. The author HAS real data: migrations must preserve it.
+- Exercises have `names: { pt, en }` (not `name`). On screen, use `exerciseName(exercise)` from `useI18n`. Programs and the seed share the English name so they recognize each other as the same exercise.
+- Workout: `startedAt`/`endedAt` = opened/finished; `timerStartedAt`/`timerStoppedAt` = the user-controlled stopwatch. Duration in history: `workoutDurationMs`.
+- IndexedDB does not index booleans or `null`: do not create an index on `isCustom`; remember that `completedAt = null` stays out of `[exerciseId+completedAt]`.
+- Tables are typed as `Table<T, ID>` (not `EntityTable`, which makes the id optional).
 
 ## Design system
 
-Sujo, escuro e minimalista: a sujeira é textura, o minimalismo é estrutura.
+Dirty, dark and minimalist: grit is the texture, minimalism is the structure.
 
-- Tokens em `src/ui/theme.css` (`@theme`). As escalas padrão do Tailwind de cor, raio e sombra foram **removidas**; use só: `background`, `surface`, `text`, `muted`, `line`, `accent`, `accent-bright`, `accent-pressed`.
-- **Uma única cor de acento**, só para ação principal da tela e recordes (PRs). `accent` em fundos/botões, `accent-bright` em texto e ícones pequenos, `accent-pressed` no estado pressionado. Aba ativa e estados de navegação NÃO usam acento.
-- **Um botão vermelho por tela.** Se a ação principal muda (ex.: "Iniciar cronômetro" antes da 1ª série, "Finalizar treino" depois), o vermelho muda junto. Confirmações que apagam (descartar, remover, excluir) usam `ConfirmSheet destructive` (botão `destructive`, claro sobre escuro), nunca o vermelho.
-- Texto mínimo `text-xs` (12px): nada de `text-[11px]`.
-- Tipografia: `font-display` (Oswald) em títulos e números grandes, `font-sans` (Inter) no corpo, `tabular-nums` em cargas e repetições.
-- Bordas grossas (`border-2`/`border-4`) e retas; raio só `rounded-sm` (2px) ou `rounded-md` (4px).
-- **Proibido:** gradientes, sombras suaves, animação em loop ou "só enfeite".
-- **Movimento (aprovado pelo autor):** curto (≤ ~450ms), seco, e só quando ajuda a entender algo. Tokens em `theme.css` (`animate-splash-*`, `sheet-in`, `menu-in`, `fade-in` no `backdrop:`, `screen-in` na troca de tela via `key={pathname}` no AppLayout, `dock-in` nos filhos da doca, `stamp` no ✓ só após o toque, `nudge` no fim do descanso, `glitch`/`glitch-ghost` na `GlitchWordmark` do menu). Botões afundam com `active:scale-*`. Uma regra global em `@media (prefers-reduced-motion: reduce)` zera tudo: não precisa de `motion-reduce:` por componente. Duas animações no mesmo elemento brigam pela propriedade `animation`: use camadas (ex.: RestTimer).
-- Entrada (Splash) dura `SPLASH_DURATION_MS` = 1800ms; mudar um exige mudar os tokens `splash-*` também.
-- Mobile: alvos de toque ≥ 48px (`min-h-12`), inputs ≥ 16px, safe areas com `pt-safe`/`pb-safe`, sem overscroll, `user-select: none` em UI (já no CSS base).
-- Componentes base em `src/ui/`: Button, Card, ScreenHeader, BottomNav, NumberStepper, EmptyState, Sheet, ConfirmSheet, BottomDock, Logo (`stamp`/`wordmark`), icons (SVGs próprios, sem biblioteca de ícones).
-- Painéis (Sheet, SideMenu) são `<dialog>` nativos via `useModalDialog(open)`: o navegador cuida de foco, fundo inerte e Esc. Conteúdo só é renderizado com `open`. Sheet tem seta ← "Voltar" à esquerda do título.
-- Avisos fixos acima das abas (descanso, nova versão, "Treino em andamento") vão dentro de `<DockItem>`: eles se empilham na doca (`BottomDockProvider` no App.tsx). Não crie outro `fixed bottom-...`.
-- Logo: `public/logo.svg` é a fonte dos ícones PWA (`pnpm generate-icons`); o componente `Logo` usa o mesmo desenho.
+- Tokens in `src/ui/theme.css` (`@theme`). Tailwind's default color, radius and shadow scales were **removed**; use only: `background`, `surface`, `text`, `muted`, `line`, `line-strong`, `accent`, `accent-bright`, `accent-pressed`. Control borders (buttons, fields, chips) use `border-line-strong` (≥3:1 contrast); `line` is only for dividers and cards.
+- **A single accent color**, only for the screen's primary action and records (PRs). `accent` on backgrounds/buttons, `accent-bright` on text and small icons, `accent-pressed` for the pressed state. The active tab and navigation states do NOT use the accent.
+- **One red button per screen.** When the primary action changes (e.g. "Start timer" before the first set, "Finish workout" after), the red moves with it. Confirmations that delete (discard, remove, delete) use `ConfirmSheet destructive` (a `destructive` button, light on dark), never red.
+- Minimum text size is `text-xs` (12px): no `text-[11px]`.
+- Typography: `font-display` (Oswald) for headings and big numbers, `font-sans` (Inter) for body text, `tabular-nums` for loads and reps.
+- Thick (`border-2`/`border-4`), square borders; radius only `rounded-sm` (2px) or `rounded-md` (4px).
+- **Forbidden:** gradients, soft shadows, looping animation or "just decoration".
+- **Motion (approved by the author):** short (≤ ~450ms), dry, and only when it helps understanding. Tokens in `theme.css` (`animate-splash-*`, `sheet-in`, `menu-in`, `fade-in` on `backdrop:`, `screen-in` on screen change via `key={pathname}` in AppLayout, `dock-in` on dock children, `stamp` on the ✓ only after the tap, `nudge` when rest ends, `glitch`/`glitch-ghost` on the menu's `GlitchWordmark`). Buttons sink with `active:scale-*`. A global rule in `@media (prefers-reduced-motion: reduce)` zeroes everything: no per-component `motion-reduce:` needed. Two animations on the same element fight over the `animation` property: use layers (e.g. RestTimer).
+- The entrance (Splash) lasts `SPLASH_DURATION_MS` = 1800ms; changing one means changing the `splash-*` tokens too. A tap skips it.
+- Mobile: touch targets ≥ 48px (`min-h-12`), inputs ≥ 16px, safe areas with `pt-safe`/`pb-safe`, no overscroll, `user-select: none` on UI (already in the base CSS).
+- Base components in `src/ui/`: Button, Card, ScreenHeader, BottomNav, NumberStepper, EmptyState, Sheet, ConfirmSheet, BottomDock, Toast, Logo (`stamp`/`wordmark`), icons (own SVGs, no icon library).
+- Panels (Sheet, SideMenu) are native `<dialog>`s via `useModalDialog(open)`: the browser handles focus, the inert background and Esc. Content is only rendered while `open`. Sheet has a ← "Back" arrow to the left of the title; `dismissOnBackdrop={false}` stops a tap outside from discarding typed values (used by the set editor).
+- Fixed notices above the tabs (rest, new version, "Workout in progress", toasts) go inside `<DockItem>`: they stack in the dock (`BottomDockProvider` in App.tsx). Do not create another `fixed bottom-...`.
+- Logo: `public/logo.svg` is the source of the PWA icons (`pnpm generate-icons`); the `Logo` component uses the same drawing.
 
-## Convenções de código
+## Code conventions
 
-- Identificadores em inglês; comentários em português.
-- **Nenhum texto de interface fixo no componente**: adicione a chave em `src/i18n/pt.ts` E em `src/i18n/en.ts` e use `t.area.chave`. Números e datas via `format.*` do `useI18n`. Nomes de idiomas aparecem no próprio idioma ("Português", "English").
-- Componentes como funções nomeadas com export nomeado (sem `export default`).
-- Props tipadas com `type`; nada de `any`.
-- Testes ao lado do arquivo (`*.test.ts(x)`); testes de banco usam `createDatabase('<nome único>')`.
-- Commits em Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `test:`), pequenos, um por etapa lógica.
-- **O autor faz os commits.** Agentes não rodam `git commit`/`git push`: entregam os comandos (`git add <arquivos>` + `git commit -m ...`, um por etapa) para ele executar.
+- Identifiers, comments, test names and docs in English.
+- **No hard-coded UI text in components**: add the key to `src/i18n/pt.ts` AND `src/i18n/en.ts` and use `t.area.key`. Numbers and dates go through `format.*` from `useI18n`. Language names appear in their own language ("Português", "English").
+- Components are named functions with named exports (no `export default`).
+- Props typed with `type`; no `any`.
+- Tests live next to the file (`*.test.ts(x)`); database tests use `createDatabase('<unique name>')`.
+- **Commits:** Conventional Commits **in English**, formatted `type(scope): summary in the imperative`, up to ~70 characters, no trailing period. Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `style`. Scope = the feature area (`workout`, `routines`, `splits`, `exercises`, `history`, `settings`, `db`, `i18n`, `ui`, `app`, `pwa`, `deploy`), optional. Examples: `feat(workout): add pause and resume to the timer`, `fix(settings): validate the backup before importing`. One commit per feature or fix (code + test + docs together); no `docs:` commits that merely trail a `feat:`.
+- **No AI attribution:** commit and PR messages carry no `Co-Authored-By`, no "Generated with Claude Code" and no mention of AI.
+- **The author makes the commits.** Agents do not run `git commit`/`git push`: they hand over the commands (`git add <files>` + `git commit -m ...`, one per feature) for the author to run.
 
-## Exercícios do autor
+## The author's exercises
 
-São exercícios de aprendizado com TODO e testes em `describe.skip`. **Não implemente** essas funções, a menos que o autor peça:
+These are learning exercises with a TODO and tests in `describe.skip`. **Do not implement** these functions unless the author asks:
 
 1. `src/lib/units.ts`: `kgToLb`, `lbToKg`, `formatWeight`.
 2. `src/lib/oneRepMax.ts`: `estimateOneRepMax` (Epley).
-3. `src/lib/time.ts`: `formatDuration` (o placeholder atual só mostra minutos).
+3. `src/lib/time.ts`: `formatDuration` (the current placeholder only shows minutes).
 
-Enquanto `formatWeight` não existir, a UI mostra cargas só em kg via `formatDecimal`/`formatSet` (`src/lib/format.ts`).
+Until `formatWeight` exists, the UI shows loads in kg only via `formatDecimal`/`formatSet` (`src/lib/format.ts`).
 
-## Funcionalidades: regras que o código não mostra
+## Features: rules the code does not show
 
-Estado e roadmap: ver o README. Regras de cada funcionalidade (o que o código sozinho não conta):
+See the README for status and roadmap.
 
-- Descanso por exercício: `RoutineExercise.restSeconds` (`null` = padrão das Configurações); leia com `restSecondsOf`, que cobre itens antigos sem o campo. O "Descansar" manual usa o exercício da próxima série. Resumo comparado: `ComparisonCard` no detalhe do treino (volume, séries e duração vs. a vez anterior da mesma rotina, via `getPreviousSummary` + `compareWorkouts`). Menu ⋯ no cartão do exercício (aquecimento e remover; o rodapé fica só com + Série / + Encore). PRs e kg/lb esperam os exercícios do autor (units.ts, oneRepMax.ts).
+- Per-exercise rest: `RoutineExercise.restSeconds` (`null` = the Settings default); read it with `restSecondsOf`, which covers old items without the field. The manual "Rest" button uses the exercise of the next set. Comparison summary: `ComparisonCard` on the workout detail (volume, sets and duration vs. the previous time of the same routine, via `getPreviousSummary` + `compareWorkouts`). A ⋯ menu on the exercise card (warm-up and remove; the footer only has + Set / + Encore). PRs and kg/lb wait for the author's exercises (units.ts, oneRepMax.ts).
+- Progression (src/features/workout/progression.ts): double progression in `suggestNextLoad` (top of the range on every set at the highest load → + step and back to the minimum; otherwise +1 rep, capped at the top). Only `normal` sets count (encore and warm-up do not). Bodyweight (`stepKg = null`) progresses in reps only. "Apply" (`applyLoadSuggestion`) changes only the pending `normal` sets. `followWeightChange`: after saving a set with a new load, pending `normal` sets that still had the old load follow it.
+- Load steps per equipment: `Settings.weightStepsKg` (no index, no migration; `getSettings` merges with the default). Use `weightStepFor(settings, equipment)` for the suggestion and for the set editor's −/+.
+- Timer (`WorkoutTimer`): before starting it shows "Start" + "Rest"; once started it shows "Pause"/"Resume" + "Finish workout" (opens the confirmation; `finishWorkout` also stops the timer) and the footer button disappears. Pause: `Workout.timerPausedAt` (optional, no migration); on resume, `timerStartedAt` moves forward by the paused time. ALWAYS read time through `timerElapsedMs`/`workoutDurationMs` (workoutStats.ts), never `timerStoppedAt ?? now`. Rest starts on its own when a set is completed.
+- App update (`applyUpdate`): the `UpdatePrompt` "Update" button also reloads on `controllerchange` and, in the worst case, after 1.5s (`updateServiceWorker(true)` alone failed silently on phones).
+- Routine/exercise notes are free text: they are not translated. `useI18n().note()` only translates the standard phrases of the old sample program (`src/i18n/notes.ts`); the database does not change.
+- Warm-up (`type: "warmup"`): stays out of volume, counts and "last time"; use `isWorkingSet`, `completedWorkingSets` and `numberSets` (src/features/workout/workoutStats.ts).
+- Backup (src/features/settings/backup.ts): when creating a new schema version, `parseBackup` must convert old backups (today it accepts v2 and v3: `upgradeBackupFromV2` does to the file what migration v3 does to the database, using the SAME fixed id `LEGACY_SPLIT_ID`, so the split is not duplicated). When creating v4, extend that conversion and add old-backup tests. `saveBackupFile` returns `false` if the user dismissed the share sheet; only `true` writes `Settings.lastBackupAt`. Reminder (`backupReminder.ts`): shows on the workout list when there is a finished workout and no backup for 14+ days. Use `loaded` from `useSettings` before deciding anything from the default value (avoids flashing).
+- **Backup is untrusted input:** `parseBackup` validates and COPIES every row (`backupSchema.ts`); importing de-duplicates exercises by `nameKey` and closes any extra open workout (there is never a "ghost" workout).
+- Audio: `unlockAudio()` only works inside a user tap; call it before any `await`.
+- **Toasts and errors (`src/ui/Toast.tsx` + `toastContext.ts`):** `useAction()` wraps user-triggered writes (`run(() => ...)`) and shows an error instead of failing silently; `useToast().showUndo(msg, undo)` shows "Undo" in the dock (delete set, remove exercise, delete a workout from history). Undo = `restoreRecord`/`restoreSets`/`restoreWorkout` (deletion is always soft). Routes have an `errorElement` (`ErrorScreen`) and a failure to open the database shows `ErrorScreen database` (main.tsx).
+- **Rest lives above the screens:** `RestTimerProvider` (in `AppLayout`) + `useRest()`; it only beeps on the "counting" → "over" transition and drops an already-expired rest when reopening.
+- UI decisions already made: highlighted next set (`nextPendingSetId`), "workout in progress" strip, active routine with "Continue", dock, `<dialog>`. Backlog: paginated/grouped history, edit/delete custom exercise, lazy routes (React.lazy), compact workout header, progress charts.
 
-- Progressão (src/features/workout/progression.ts): progressão dupla em `suggestNextLoad` (topo da faixa em todas as séries na carga mais alta → +salto e volta ao mínimo; senão +1 rep, com teto no topo). Só séries `normal` contam (encore e aquecimento não). Peso corporal (`stepKg = null`) progride só em reps. "Aplicar" (`applyLoadSuggestion`) muda só as séries `normal` pendentes.
-- Saltos de carga por equipamento: `Settings.weightStepsKg` (sem índice, sem migração; `getSettings` junta com o padrão). Use `weightStepFor(settings, equipment)` para a sugestão e para o −/+ do editor de série.
+## Pitfalls already hit
 
-- Cronômetro (`WorkoutTimer`): antes de iniciar mostra "Iniciar" + "Descansar"; depois de iniciado mostra "Pausar"/"Retomar" + "Finalizar treino" (abre a confirmação; `finishWorkout` também para o cronômetro), e o botão do rodapé some. Pausa: `Workout.timerPausedAt` (opcional, sem migração); ao retomar, `timerStartedAt` avança o tempo da pausa. Leia o tempo SEMPRE por `timerElapsedMs`/`workoutDurationMs` (workoutStats.ts), não por `timerStoppedAt ?? now`. O descanso vem sozinho ao concluir a série.
-- Atualização do app (`applyUpdate`): o "Atualizar" do `UpdatePrompt` recarrega também por `controllerchange` e, no pior caso, após 1,5s (só `updateServiceWorker(true)` falhava em silêncio no celular).
-- Observações de rotina/exercício são texto livre: não se traduz. `useI18n().note()` só traduz as frases padrão do programa antigo (`src/i18n/notes.ts`); o banco não muda.
-- Aquecimento (`type: "warmup"`): fica fora de volume, contagem e "última vez"; use `isWorkingSet`, `completedWorkingSets` e `numberSets` (src/features/workout/workoutStats.ts).
-- Backup (src/features/settings/backup.ts): ao criar uma versão nova do schema, `parseBackup` precisa converter backups antigos (hoje aceita v2 e v3: `upgradeBackupFromV2` faz com o arquivo o que a migração v3 faz com o banco, usando o MESMO id fixo `LEGACY_SPLIT_ID`, para não duplicar a divisão). Ao criar a v4, estenda essa conversão e acrescente os testes de backup antigo. `saveBackupFile` devolve `false` se o usuário cancelou a tela de compartilhar; só com `true` grava `Settings.lastBackupAt`. Lembrete (`backupReminder.ts`): aparece na lista de treinos quando há treino finalizado e nenhum backup há 14+ dias. Use `loaded` do `useSettings` antes de decidir algo pelo valor padrão (evita "piscar").
-- Áudio: `unlockAudio()` só funciona dentro de um toque do usuário; chame antes de qualquer `await`.
-- Pontos de interface já decididos: próxima série em destaque (`nextPendingSetId`), faixa de treino em andamento, rotina ativa com "Continuar", doca, `<dialog>`. Backlog: histórico paginado/agrupado, editar/excluir exercício personalizado, rotas preguiçosas (React.lazy), cabeçalho compacto no treino, evolução (gráficos).
-- **Avisos e erros (`src/ui/Toast.tsx` + `toastContext.ts`):** `useAction()` envolve escritas disparadas pelo usuário (`run(() => ...)`) e mostra erro em vez de falhar em silêncio; `useToast().showUndo(msg, undo)` mostra "Desfazer" na doca (excluir série, remover exercício, excluir treino do histórico). Desfazer = `restoreRecord`/`restoreSets`/`restoreWorkout` (a exclusão é sempre lógica). Rotas têm `errorElement` (`ErrorScreen`) e a falha ao abrir o banco mostra `ErrorScreen database` (main.tsx).
-- **Descanso fica acima das telas:** `RestTimerProvider` (no `AppLayout`) + `useRest()`; só apita na passagem de "contando" para "acabou" e descarta descanso já vencido ao reabrir.
-- **Backup é entrada não confiável:** `parseBackup` valida e COPIA cada linha (`backupSchema.ts`); importar dedupa exercício por `nameKey` e finaliza treino aberto extra (nunca fica treino "fantasma"). Bordas de controles usam `border-line-strong` (≥3:1); `line` só em divisores e cartões.
-
-## Armadilhas já encontradas
-
-- iOS: tocar num botão NÃO tira o foco de um `<input>`; não dependa de `onBlur` para salvar valores (o NumberStepper repassa cada número válido no `onChange`).
-- Testes de tela usam o `db` global (fake-indexeddb): limpe as tabelas no `beforeEach` e use `findBy*`/`waitFor` para o que vem do banco. Sem `I18nProvider`, os componentes usam português (valor padrão do contexto).
-- Lint do React Compiler (`react-hooks/purity`): não chame `Date.now()` durante a renderização; use `useNow()`.
-- jsdom não tem `showModal()`/`close()` do `<dialog>`: `src/test/setup.ts` tem uma imitação mínima. Com um painel aberto, o "Voltar" dele também existe: em testes, prefira esperar pela URL a procurar "Voltar".
+- iOS: tapping a button does NOT take focus away from an `<input>`; do not rely on `onBlur` to save values (NumberStepper passes every valid number through `onChange`, and clears its draft when −/+ is used).
+- Screen tests use the global `db` (fake-indexeddb): clear the tables in `beforeEach` and use `findBy*`/`waitFor` for anything that comes from the database. Without an `I18nProvider`, components use Portuguese (the context default). `src/test/setup.ts` raises the `findBy*` timeout to 5s because tests run in parallel.
+- React Compiler lint (`react-hooks/purity`): do not call `Date.now()` during render; use `useNow()`.
+- jsdom has no `<dialog>` `showModal()`/`close()`: `src/test/setup.ts` has a minimal imitation. With a panel open, its "Back" also exists: in tests, prefer waiting for the URL over looking for "Back".

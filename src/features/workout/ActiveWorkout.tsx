@@ -36,7 +36,7 @@ import {
 import { listWorkoutSets } from './workoutQueries'
 import { groupSetsByExercise, nextPendingSetId, numberSets } from './workoutStats'
 
-/** Qual confirmação está aberta (união de tipos: só um caso por vez). */
+/** Which confirmation is open (union type: only one case at a time). */
 type Confirmation =
   { kind: 'finish' } | { kind: 'discard' } | { kind: 'remove'; exerciseId: ID } | null
 
@@ -47,7 +47,7 @@ export function ActiveWorkout({ workout }: { workout: Workout }) {
   const { showUndo } = useToast()
   const { settings } = useSettings()
   const exerciseMap = useExerciseMap()
-  // Tela ligada durante todo o treino (se a opção estiver ativa nas Configurações).
+  // Keep the screen on for the whole workout (if the Settings option is on).
   useWakeLock(settings.keepScreenOn)
 
   const sets = useLiveQuery(() => listWorkoutSets(db, workout.id), [workout.id])
@@ -65,9 +65,9 @@ export function ActiveWorkout({ workout }: { workout: Workout }) {
   const [pickerOpen, setPickerOpen] = useState(false)
   const [confirmation, setConfirmation] = useState<Confirmation>(null)
 
-  // Ainda carregando alguma das consultas.
+  // Some of the queries are still loading.
   if (!sets || !exerciseMap || routine === undefined || !targets) {
-    // Carregando: cabeçalho primeiro, para a tela não "pular" quando o conteúdo chegar.
+    // Loading: header first, so the screen does not "jump" when the content arrives.
     return <ScreenHeader title={routine?.name ?? t.workout.title} />
   }
 
@@ -77,16 +77,16 @@ export function ActiveWorkout({ workout }: { workout: Workout }) {
   const completedCount = sets.filter((set) => set.completedAt !== null).length
   const editingSet = sets.find((set) => set.id === editingSetId) ?? null
   const nameOf = (exerciseId: ID) => exerciseName(exerciseMap.get(exerciseId))
-  // Equipamento do exercício (barra se não achar): define os saltos de carga.
+  // Exercise equipment (barbell if not found): defines the load steps.
   const equipmentOf = (exerciseId: ID) =>
     exerciseMap.get(exerciseId)?.equipment ?? 'barbell'
-  /** Salto para a sugestão: `null` no peso corporal (progride em repetições). */
+  /** Step for the suggestion: `null` for bodyweight (progresses in reps). */
   const progressionStepOf = (exerciseId: ID) => {
     const equipment = equipmentOf(exerciseId)
     return equipment === 'bodyweight' ? null : weightStepFor(settings, equipment)
   }
 
-  // Título do editor: "Supino reto · Série 2" (posição dentro do exercício, a partir de 1).
+  // Editor title: "Supino reto · Série 2" (position within the exercise, starting at 1).
   let editorTitle = ''
   if (editingSet) {
     const name = nameOf(editingSet.exerciseId)
@@ -97,13 +97,13 @@ export function ActiveWorkout({ workout }: { workout: Workout }) {
       number == null ? t.workout.warmupTitle(name) : t.workout.setTitle(name, number)
   }
 
-  /** Descanso do exercício: o da rotina, se definido; senão, o padrão das Configurações. */
+  /** Rest for the exercise: the routine's, if set; otherwise the Settings default. */
   function restSecondsFor(exerciseId: ID): number {
     const target = targetByExercise.get(exerciseId)
     return (target ? restSecondsOf(target) : null) ?? settings.restSeconds
   }
 
-  /** Começa o descanso, se o usuário deixou isso ligado nas Configurações. */
+  /** Starts the rest, if the user left that on in Settings. */
   function maybeStartRest(exerciseId: ID) {
     if (settings.autoStartRest) {
       rest.start(restSecondsFor(exerciseId))
@@ -111,8 +111,8 @@ export function ActiveWorkout({ workout }: { workout: Workout }) {
   }
 
   /**
-   * Destrava o áudio enquanto ainda estamos dentro do toque do usuário
-   * (antes de qualquer await), para o bipe poder tocar no fim do descanso.
+   * Unlocks audio while we are still inside the user's tap
+   * (before any await), so the beep can play when the rest ends.
    */
   function prepareRestSound() {
     if (settings.restSound) {
@@ -136,7 +136,7 @@ export function ActiveWorkout({ workout }: { workout: Workout }) {
     const saved = editingSet
     const ok = await run(async () => {
       await updateSet(db, saved.id, values)
-      // As próximas séries pendentes com a carga antiga acompanham a nova.
+      // The next pending sets with the old load follow the new one.
       await followWeightChange(db, saved, saved.weightKg, values.weightKg)
       if (complete && saved.completedAt === null) {
         await toggleSetCompleted(db, saved.id)
@@ -166,8 +166,8 @@ export function ActiveWorkout({ workout }: { workout: Workout }) {
   }
 
   async function handleConfirm() {
-    // Finalizar ou descartar não navega daqui: a ActiveWorkoutScreen percebe que o
-    // treino deixou de estar ativo e leva ao histórico (ou de volta à lista).
+    // Finishing or discarding does not navigate from here: ActiveWorkoutScreen notices that the
+    // workout is no longer active and goes to the history (or back to the list).
     const current = confirmation
     setConfirmation(null)
     if (current?.kind === 'finish') {
@@ -192,19 +192,19 @@ export function ActiveWorkout({ workout }: { workout: Workout }) {
     <>
       <ScreenHeader title={routine?.name ?? t.workout.freeWorkout} />
 
-      {/* pb-32: espaço para a barra de descanso não cobrir o fim da lista. */}
+      {/* pb-32: room so the rest bar does not cover the end of the list. */}
       <div className="flex flex-col gap-4 px-4 pt-6 pb-32">
         <WorkoutTimer
           workout={workout}
-          // Um só botão vermelho por tela: antes da 1ª série, é o "Iniciar";
-          // depois, o vermelho passa para o "Finalizar treino".
+          // Only one red button per screen: before the 1st set, it is "Iniciar";
+          // after that, the red moves to "Finalizar treino".
           emphasizeStart={completedCount === 0}
           emphasizeFinish={completedCount > 0}
           onFinish={() => setConfirmation({ kind: 'finish' })}
           onRest={() => {
             prepareRestSound()
-            // "Descansar" à mão: o descanso do exercício em que o usuário está
-            // (o da próxima série); sem próxima série, o padrão.
+            // Manual "Descansar": the rest of the exercise the user is on
+            // (the next set's); with no next set, the default.
             const current = sets.find((set) => set.id === nextSetId)
             rest.start(
               current ? restSecondsFor(current.exerciseId) : settings.restSeconds,
@@ -249,7 +249,7 @@ export function ActiveWorkout({ workout }: { workout: Workout }) {
         </Button>
 
         <div className="mt-4 flex flex-col gap-3 border-t-2 border-line pt-6">
-          {/* Com o cronômetro iniciado, o "Finalizar treino" fica no card do cronômetro. */}
+          {/* With the timer started, "Finalizar treino" lives in the timer card. */}
           {workout.timerStartedAt === null && (
             <Button
               variant={completedCount > 0 ? 'primary' : 'secondary'}
@@ -296,7 +296,7 @@ export function ActiveWorkout({ workout }: { workout: Workout }) {
   )
 }
 
-/** Textos de cada confirmação. */
+/** Texts for each confirmation. */
 function confirmationTexts(
   t: Messages,
   confirmation: Confirmation,
@@ -313,7 +313,7 @@ function confirmationTexts(
             ? texts.finishDescription(completedCount)
             : texts.finishEmptyDescription,
         confirmLabel: completedCount > 0 ? texts.finishConfirm : texts.discardConfirm,
-        // Sem nenhuma série feita, "finalizar" na prática descarta o treino.
+        // With no set done, "finish" effectively discards the workout.
         destructive: completedCount === 0,
       }
     case 'discard':

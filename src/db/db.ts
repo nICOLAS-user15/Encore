@@ -13,8 +13,8 @@ import type {
 } from './types'
 
 /**
- * O banco com as tabelas tipadas. `Table<T, ID>` (e não `EntityTable`) porque o id
- * é sempre um UUID nosso, obrigatório já na inserção (não é auto-incremento).
+ * The database with typed tables. `Table<T, ID>` (not `EntityTable`) because the id
+ * is always our own UUID, required at insert time (it is not auto-increment).
  */
 export type EncoreDB = Dexie & {
   exercises: Table<Exercise, ID>
@@ -27,43 +27,43 @@ export type EncoreDB = Dexie & {
 }
 
 /**
- * Schema da versão 1. Fica exportado porque o teste da migração precisa
- * criar um banco "antigo" para migrar.
+ * Version 1 schema. Exported because the migration test needs
+ * to create an "old" database to migrate.
  *
- * Como ler: o primeiro item é a chave primária; os demais são índices.
- * `[a+b]` é um índice composto. Só campos usados em buscas/ordenação viram índice.
+ * How to read: the first item is the primary key; the others are indexes.
+ * `[a+b]` is a compound index. Only fields used in queries/sorting become indexes.
  */
 export const SCHEMA_V1 = {
   exercises: 'id, name, muscleGroup, updatedAt',
   routines: 'id, order, updatedAt',
-  // Exercícios de uma rotina, já na ordem certa.
+  // Exercises of a routine, already in the right order.
   routineExercises: 'id, [routineId+position], exerciseId, updatedAt',
-  // Histórico de treinos do mais recente para o mais antigo.
+  // Workout history from newest to oldest.
   workouts: 'id, startedAt, routineId, updatedAt',
-  // [workoutId+position]: séries de um treino, em ordem.
-  // [exerciseId+completedAt]: histórico de um exercício ao longo do tempo
-  // (séries com completedAt = null ficam fora deste índice).
+  // [workoutId+position]: the sets of a workout, in order.
+  // [exerciseId+completedAt]: history of an exercise over time
+  // (sets with completedAt = null are left out of this index).
   setEntries: 'id, [workoutId+position], [exerciseId+completedAt], updatedAt',
 }
 
-/** Versão atual do schema (a maior `db.version(...)` abaixo). O backup grava este número. */
+/** Current schema version (the highest `db.version(...)` below). The backup records this number. */
 export const SCHEMA_VERSION = 3
 
 /**
- * Cria (ou abre) o banco. Recebe o nome para que os testes possam usar
- * um banco separado e descartável.
+ * Creates (or opens) the database. Takes the name so tests can use
+ * a separate, disposable database.
  *
- * Versões: cada mudança de ÍNDICES ou de tabelas cria uma versão nova, e as
- * antigas nunca são editadas (o aparelho do usuário pode estar em qualquer
- * uma delas). Campos comuns, sem índice, não contam como schema para o Dexie.
+ * Versions: each change to INDEXES or tables creates a new version, and the
+ * old ones are never edited (the user's device may be on any one of
+ * them). Plain fields, without an index, do not count as schema for Dexie.
  */
 export function createDatabase(name: string): EncoreDB {
   const db = new Dexie(name) as EncoreDB
 
   db.version(1).stores(SCHEMA_V1)
 
-  // v2: nomes bilíngues (o índice `name` sai: a ordenação agora depende do
-  // idioma e é feita em memória), tabela de configurações e cronômetro.
+  // v2: bilingual names (the `name` index goes away: sorting now depends on the
+  // language and is done in memory), settings table and timer.
   db.version(2)
     .stores({
       exercises: 'id, muscleGroup, updatedAt',
@@ -71,19 +71,19 @@ export function createDatabase(name: string): EncoreDB {
     })
     .upgrade(upgradeToV2)
 
-  // v3: divisões de treino (Upper/Lower, PPL...). Tabela nova; as rotinas ganham
-  // `splitId` (campo comum, sem índice) e a migração organiza as que já existem.
+  // v3: workout splits (Upper/Lower, PPL...). New table; routines get
+  // `splitId` (plain field, no index) and the migration organizes the existing ones.
   db.version(3)
     .stores({
       splits: 'id, order, updatedAt',
     })
     .upgrade(upgradeToV3)
 
-  // `updatedAt` aparece em todas as tabelas para a sincronização futura
-  // conseguir perguntar "o que mudou desde a última vez?".
+  // `updatedAt` appears in every table so future sync
+  // can ask "what changed since last time?".
 
   return db
 }
 
-/** Instância única usada pelo app. */
+/** Single instance used by the app. */
 export const db = createDatabase('encore')

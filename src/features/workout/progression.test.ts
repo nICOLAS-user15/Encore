@@ -2,15 +2,15 @@ import { describe, expect, it } from 'vitest'
 import type { SetType } from '../../db/types'
 import { isSuggestionApplied, pendingPlannedSets, suggestNextLoad } from './progression'
 
-/** Série resumida: [carga, reps] (tipo "normal" se não for dito outro). */
+/** Short set: [load, reps] ("normal" type unless another is given). */
 function sets(...values: Array<[number, number, SetType?]>) {
   return values.map(([weightKg, reps, type = 'normal']) => ({ weightKg, reps, type }))
 }
 
 const RANGE_6_10 = { min: 6, max: 10 }
 
-describe('suggestNextLoad (progressão dupla)', () => {
-  // Tabela de casos: cada linha é um cenário real de academia.
+describe('suggestNextLoad (double progression)', () => {
+  // Case table: each row is a real gym scenario.
   it.each([
     {
       cenario: 'todas no topo da faixa: sobe a carga e volta ao mínimo',
@@ -70,13 +70,13 @@ describe('suggestNextLoad (progressão dupla)', () => {
     expect(suggestNextLoad(last, RANGE_6_10, step)).toEqual(expected)
   })
 
-  it('sem séries planejadas da última vez, não sugere nada', () => {
+  it('with no planned sets from last time, suggests nothing', () => {
     expect(suggestNextLoad([], RANGE_6_10, 2.5)).toBeNull()
     expect(suggestNextLoad(sets([25, 8, 'encore']), RANGE_6_10, 2.5)).toBeNull()
   })
 })
 
-describe('séries pendentes e "já aplicado"', () => {
+describe('pending sets and "already applied"', () => {
   const today = [
     { type: 'warmup' as const, weightKg: 12.5, reps: 8, completedAt: null },
     { type: 'normal' as const, weightKg: 25, reps: 8, completedAt: 1 },
@@ -84,11 +84,11 @@ describe('séries pendentes e "já aplicado"', () => {
     { type: 'normal' as const, weightKg: 27.5, reps: 6, completedAt: null },
   ]
 
-  it('o "Aplicar" só mexe nas séries planejadas que faltam', () => {
+  it('"Aplicar" only changes the planned sets still pending', () => {
     expect(pendingPlannedSets(today)).toHaveLength(2)
   })
 
-  it('reconhece quando as pendentes já estão com a sugestão', () => {
+  it('recognizes when the pending sets already have the suggestion', () => {
     expect(isSuggestionApplied(today, { weightKg: 27.5, reps: 6 })).toBe(true)
     expect(isSuggestionApplied(today, { weightKg: 25, reps: 9 })).toBe(false)
   })

@@ -4,10 +4,10 @@ import type { ID, Split } from '../../db/types'
 import { deleteRoutine } from '../routines/routineActions'
 
 /*
- * Tudo que ESCREVE nas divisões. Cada função grava na hora (sem botão "Salvar").
+ * Everything that WRITES to splits. Each function writes immediately (no "Salvar" button).
  */
 
-/** Cria uma divisão vazia no fim das abas e devolve o id dela. */
+/** Creates an empty split at the end of the tabs and returns its id. */
 export async function createSplit(db: EncoreDB, name: string): Promise<ID> {
   return db.transaction('rw', db.splits, async () => {
     const splits = await db.splits.filter(isActive).toArray()
@@ -26,12 +26,12 @@ export async function updateSplit(
 }
 
 /**
- * Exclui a divisão E as rotinas dela (exclusão lógica: nada some de verdade).
- * Os treinos já feitos com essas rotinas continuam no histórico. A tela pede
- * confirmação dizendo quantas rotinas vão junto.
+ * Deletes the split AND its routines (soft delete: nothing is really removed).
+ * Workouts already done with those routines stay in the history. The screen asks for
+ * confirmation saying how many routines go along.
  *
- * Tudo numa transação: se algo falhar no meio, nada fica pela metade.
- * Devolve quantas rotinas foram excluídas junto.
+ * All in one transaction: if something fails midway, nothing is left half done.
+ * Returns how many routines were deleted along with it.
  */
 export async function deleteSplit(db: EncoreDB, splitId: ID): Promise<number> {
   return db.transaction('rw', [db.splits, db.routines, db.routineExercises], async () => {
@@ -45,7 +45,7 @@ export async function deleteSplit(db: EncoreDB, splitId: ID): Promise<number> {
   })
 }
 
-/** Move a divisão uma posição para a esquerda (-1) ou direita (+1) nas abas. */
+/** Moves the split one position left (-1) or right (+1) in the tabs. */
 export async function moveSplit(
   db: EncoreDB,
   splitId: ID,
@@ -58,9 +58,9 @@ export async function moveSplit(
     if (index === -1 || target < 0 || target >= splits.length) {
       return
     }
-    // Troca de lugar e renumera 0..n: funciona mesmo se duas divisões tinham o mesmo
-    // `order` (ex.: vindas de backups de aparelhos diferentes), onde só trocar os valores
-    // não mudaria nada.
+    // Swaps places and renumbers 0..n: works even if two splits had the same
+    // `order` (e.g. coming from backups of different devices), where just swapping values
+    // would change nothing.
     const next = [...splits]
     ;[next[index], next[target]] = [next[target], next[index]]
     for (const [order, split] of next.entries()) {

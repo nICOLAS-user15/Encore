@@ -4,16 +4,16 @@ import { DockItem } from './BottomDock'
 import { ToastContext, type ToastApi } from './toastContext'
 
 /*
- * Aviso rápido na doca, com ação opcional ("Desfazer"). Serve a dois usos:
- * - desfazer uma exclusão (toda exclusão do app é lógica, então voltar é só limpar `deletedAt`);
- * - dizer que uma gravação falhou (ex.: disco cheio), em vez de falhar em silêncio.
- * Um aviso por vez: o mais novo substitui o anterior.
+ * Quick notice in the dock, with an optional action ("Desfazer"). It serves two uses:
+ * - undoing a delete (every delete in the app is soft, so undoing is just clearing `deletedAt`);
+ * - telling the user a write failed (e.g. disk full), instead of failing silently.
+ * One notice at a time: the newest replaces the previous one.
  */
 
 type ToastData = {
   id: number
   message: string
-  /** Texto e ação do botão (ex.: "Desfazer"). */
+  /** Button text and action (e.g. "Desfazer"). */
   action?: { label: string; run: () => void }
   tone: 'info' | 'error'
 }
@@ -43,7 +43,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     [],
   )
 
-  // Some sozinho. `id` no efeito: um aviso novo reinicia a contagem.
+  // Disappears on its own. `id` in the effect: a new notice restarts the countdown.
   useEffect(() => {
     if (!toast) {
       return
@@ -60,7 +60,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       {toast && (
         <DockItem>
-          {/* role="status": leitores de tela anunciam o aviso sem tirar o foco. */}
+          {/* role="status": screen readers announce the notice without moving focus. */}
           <div
             role="status"
             className="flex min-h-14 items-center justify-between gap-3 border-2 border-text bg-surface py-1 pr-1 pl-4"

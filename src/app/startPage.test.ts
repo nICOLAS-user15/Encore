@@ -6,22 +6,22 @@ afterEach(() => {
   window.history.replaceState(null, '', '/')
 })
 
-/** Finge o tipo de navegação que o navegador informaria. */
+/** Fakes the navigation type the browser would report. */
 function fakeNavigation(type: string) {
   vi.spyOn(performance, 'getEntriesByType').mockReturnValue([
     { type } as unknown as PerformanceEntry,
   ])
 }
 
-describe('página inicial', () => {
-  it('abrir o app (ou voltar de outro site) vai para o Treino; recarregar não', () => {
+describe('start page', () => {
+  it('opening the app (or coming back from another site) goes to Treino; reloading does not', () => {
     expect(shouldGoToStartPage('navigate')).toBe(true)
     expect(shouldGoToStartPage('back_forward')).toBe(true)
     expect(shouldGoToStartPage(undefined)).toBe(true)
     expect(shouldGoToStartPage('reload')).toBe(false)
   })
 
-  it('ao abrir numa página antiga, troca a URL para /treino', () => {
+  it('when opening on an old page, switches the URL to /treino', () => {
     window.history.replaceState(null, '', '/historico')
     fakeNavigation('navigate')
 
@@ -30,7 +30,7 @@ describe('página inicial', () => {
     expect(window.location.pathname).toBe('/treino')
   })
 
-  it('ao recarregar, fica onde estava', () => {
+  it('when reloading, stays where it was', () => {
     window.history.replaceState(null, '', '/historico')
     fakeNavigation('reload')
 

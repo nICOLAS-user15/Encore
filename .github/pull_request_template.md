@@ -1,11 +1,11 @@
-## O que muda
+## What changes
 
-<!-- Em uma ou duas frases. -->
+<!-- One or two sentences. -->
 
-## Como testar
+## How to test
 
-<!-- Passos ou testes automatizados. -->
+<!-- Steps or automated tests. -->
 
-- [ ] `pnpm lint`, `pnpm test` e `pnpm build` passam
-- [ ] Texto novo de interface está em `src/i18n/pt.ts` **e** `src/i18n/en.ts`
-- [ ] Mudou índices ou tabelas do banco? Há migração nova (`src/db/migrations`) com teste
+- [ ] `pnpm lint`, `pnpm test` and `pnpm build` pass
+- [ ] New UI text is in `src/i18n/pt.ts` **and** `src/i18n/en.ts`
+- [ ] Changed indexes or tables? There is a new migration (`src/db/migrations`) with a test

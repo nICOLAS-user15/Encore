@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+﻿import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { createDatabase, type EncoreDB } from '../../db/db'
 import { SEED_EXERCISES, syncSeedExercises } from '../../db/seed'
 import { createSplit } from '../splits/splitActions'
@@ -29,7 +29,7 @@ afterEach(async () => {
   await db.delete()
 })
 
-/** Cria uma rotina pelo mesmo caminho do botão Salvar. */
+/** Creates a routine through the same path as the Save button. */
 async function create(name: string, exercises: string[] = [], position = 99) {
   const draft: RoutineDraft = {
     ...blankDraft(splitId, position),
@@ -39,7 +39,7 @@ async function create(name: string, exercises: string[] = [], position = 99) {
   return saveRoutine(db, null, draft)
 }
 
-/** O rascunho de uma rotina que já existe, como a tela o monta ao abrir. */
+/** The draft of an existing routine, as the screen builds it on open. */
 async function draftOf(routineId: string): Promise<RoutineDraft> {
   const entry = await getRoutineWithExercises(db, routineId)
   const all = await listRoutinesWithExercises(db)
@@ -48,8 +48,8 @@ async function draftOf(routineId: string): Promise<RoutineDraft> {
   return draftFromRoutine(entry!.routine, entry!.items, position)
 }
 
-describe('saveRoutine: rotina nova', () => {
-  it('só existe depois de salvar, e já com os exercícios na ordem do rascunho', async () => {
+describe('saveRoutine: new routine', () => {
+  it('only exists after saving, already with the exercises in draft order', async () => {
     expect(await db.routines.count()).toBe(0)
 
     const id = await create('  Push  ', [bench, incline])
@@ -60,7 +60,7 @@ describe('saveRoutine: rotina nova', () => {
       [0, bench],
       [1, incline],
     ])
-    // Meta padrão dos itens novos: 3 × 8–12, descanso "padrão" (null).
+    // Default target for new items: 3 × 8–12, "default" rest (null).
     expect(entry?.items[0]).toMatchObject({
       targetSets: 3,
       targetRepsMin: 8,
@@ -69,7 +69,7 @@ describe('saveRoutine: rotina nova', () => {
     })
   })
 
-  it('guarda as observações e entra na posição pedida', async () => {
+  it('stores the notes and takes the requested position', async () => {
     await create('Push', [], 0)
     await create('Pull', [], 1)
 
@@ -87,8 +87,8 @@ describe('saveRoutine: rotina nova', () => {
   })
 })
 
-describe('saveRoutine: rotina existente', () => {
-  it('aplica nome, exercícios removidos, novos, editados e reordenados de uma vez', async () => {
+describe('saveRoutine: existing routine', () => {
+  it('applies name, removed, new, edited and reordered exercises at once', async () => {
     const id = await create('Push', [bench, incline])
     const draft = await draftOf(id)
     const [benchItem, inclineItem] = draft.items
@@ -97,9 +97,9 @@ describe('saveRoutine: rotina existente', () => {
       ...draft,
       name: 'Push A',
       items: [
-        newDraftItem(fly), // novo, na frente
-        updateDraftItem([inclineItem], inclineItem.key, { targetSets: 5 })[0], // editado, sobe
-        // `benchItem` saiu do rascunho: será excluído.
+        newDraftItem(fly), // new, at the front
+        updateDraftItem([inclineItem], inclineItem.key, { targetSets: 5 })[0], // edited, moves up
+        // `benchItem` left the draft: it will be deleted.
       ],
     }
     expect(benchItem.id).toBeDefined()
@@ -114,29 +114,29 @@ describe('saveRoutine: rotina existente', () => {
       [0, fly, 3],
       [1, incline, 5],
     ])
-    // O removido foi excluído de forma lógica (dá para sincronizar).
+    // The removed one was soft deleted (so it can be synced).
     expect((await db.routineExercises.get(benchItem.id!))?.deletedAt).toBeTypeOf('number')
-    // O editado é o MESMO registro (não foi recriado).
+    // The edited one is the SAME record (it was not recreated).
     expect(entry?.items[1].id).toBe(inclineItem.id)
   })
 
-  it('não mexe no que não mudou (o updatedAt continua igual)', async () => {
+  it('does not touch what did not change (updatedAt stays the same)', async () => {
     const id = await create('Push', [bench])
     const before = await getRoutineWithExercises(db, id)
 
-    await saveRoutine(db, id, await draftOf(id)) // salvar sem mudar nada
+    await saveRoutine(db, id, await draftOf(id)) // save without changing anything
 
     const after = await getRoutineWithExercises(db, id)
     expect(after?.routine.updatedAt).toBe(before?.routine.updatedAt)
     expect(after?.items[0].updatedAt).toBe(before?.items[0].updatedAt)
   })
 
-  it('muda a posição na sequência da divisão', async () => {
+  it('changes the position in the sequence of the split', async () => {
     const a = await create('A', [], 0)
     await create('B', [], 1)
     const c = await create('C', [], 2)
 
-    // C sobe para a primeira posição.
+    // C moves up to the first position.
     await saveRoutine(db, c, { ...(await draftOf(c)), position: 0 })
 
     expect(
@@ -145,14 +145,14 @@ describe('saveRoutine: rotina existente', () => {
     expect(a).toBeDefined()
   })
 
-  it('muda de divisão: vai para a posição pedida da nova, e a antiga continua em ordem', async () => {
+  it('changes split: goes to the requested position in the new one, and the old one stays in order', async () => {
     const ul = await createSplit(db, 'Upper / Lower')
     const push = await create('Push', [], 0)
     await create('Pull', [], 1)
     const upperDraft = { ...blankDraft(ul, 0), name: 'Upper' }
     await saveRoutine(db, null, upperDraft)
 
-    // Push vai para Upper / Lower, na frente do Upper.
+    // Push goes to Upper / Lower, in front of Upper.
     await saveRoutine(db, push, { ...(await draftOf(push)), splitId: ul, position: 0 })
 
     const all = await listRoutinesWithExercises(db)
@@ -162,26 +162,26 @@ describe('saveRoutine: rotina existente', () => {
         .map((entry) => entry.routine.name)
     expect(names(ul)).toEqual(['Push', 'Upper'])
     expect(names(splitId)).toEqual(['Pull'])
-    // A divisão de DESTINO é renumerada 0, 1, 2... A de origem só perde a rotina:
-    // um "buraco" na numeração não muda nada, porque só importa a ordem relativa.
+    // The DESTINATION split is renumbered 0, 1, 2... The source one just loses the routine:
+    // a "gap" in the numbering changes nothing, because only the relative order matters.
     expect(
       all.filter((entry) => entry.routine.splitId === ul).map((e) => e.routine.order),
     ).toEqual([0, 1])
   })
 
-  it('recusa salvar uma rotina que não existe mais (e não cria nada)', async () => {
+  it('refuses to save a routine that no longer exists (and creates nothing)', async () => {
     const before = await db.routines.count()
 
     await expect(
       saveRoutine(db, 'nao-existe', { ...blankDraft(splitId, 0), name: 'Fantasma' }),
-    ).rejects.toThrow('não encontrada')
+    ).rejects.toThrow('not found')
 
     expect(await db.routines.count()).toBe(before)
   })
 })
 
-describe('rascunho (regras puras)', () => {
-  it('isDraftDirty percebe qualquer mudança, e volta a "limpo" se o usuário desfaz', () => {
+describe('draft (pure rules)', () => {
+  it('isDraftDirty detects any change, and goes back to "clean" if the user undoes it', () => {
     const initial = blankDraft(splitId, 0)
     expect(isDraftDirty(initial, initial)).toBe(false)
     expect(isDraftDirty({ ...initial, name: 'Push' }, initial)).toBe(true)
@@ -189,7 +189,7 @@ describe('rascunho (regras puras)', () => {
     expect(isDraftDirty({ ...initial, items: [newDraftItem(bench)] }, initial)).toBe(true)
   })
 
-  it('moveDraftItem troca com o vizinho e ignora as pontas', () => {
+  it('moveDraftItem swaps with the neighbor and ignores the ends', () => {
     const items = [newDraftItem(bench), newDraftItem(incline), newDraftItem(fly)]
 
     expect(moveDraftItem(items, 1, -1).map((item) => item.exerciseId)).toEqual([
@@ -197,11 +197,11 @@ describe('rascunho (regras puras)', () => {
       bench,
       fly,
     ])
-    expect(moveDraftItem(items, 0, -1)).toBe(items) // já é o primeiro
-    expect(moveDraftItem(items, 2, 1)).toBe(items) // já é o último
+    expect(moveDraftItem(items, 0, -1)).toBe(items) // already the first
+    expect(moveDraftItem(items, 2, 1)).toBe(items) // already the last
   })
 
-  it('updateDraftItem mantém a faixa de repetições coerente (mín ≤ máx)', () => {
+  it('updateDraftItem keeps the rep range consistent (min ≤ max)', () => {
     const [item] = [newDraftItem(bench)] // 8–12
     const up = updateDraftItem([item], item.key, { targetRepsMin: 15 })[0]
     expect([up.targetRepsMin, up.targetRepsMax]).toEqual([15, 15])
@@ -209,9 +209,9 @@ describe('rascunho (regras puras)', () => {
     expect([down.targetRepsMin, down.targetRepsMax]).toEqual([5, 5])
   })
 
-  it('draftFromRoutine cobre itens antigos, sem o campo de descanso', async () => {
+  it('draftFromRoutine covers old items, without the rest field', async () => {
     const id = await create('Push', [bench])
-    // Registro como estava antes de o campo existir.
+    // Record as it was before the field existed.
     const [item] = (await getRoutineWithExercises(db, id))!.items
     await db.routineExercises.update(item.id, { restSeconds: undefined })
 

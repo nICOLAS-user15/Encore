@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { NumberStepper } from './NumberStepper'
 
-/** O NumberStepper é "controlado": o teste guarda o valor num state, como o app fará. */
+/** NumberStepper is "controlled": the test keeps the value in state, as the app will. */
 function Harness({ initial, max }: { initial: number; max?: number }) {
   const [value, setValue] = useState(initial)
   return (
@@ -21,7 +21,7 @@ function Harness({ initial, max }: { initial: number; max?: number }) {
 const input = () => screen.getByRole('textbox', { name: 'Carga' })
 
 describe('NumberStepper', () => {
-  it('soma e subtrai o step', () => {
+  it('adds and subtracts the step', () => {
     render(<Harness initial={20} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Aumentar Carga' }))
@@ -32,7 +32,7 @@ describe('NumberStepper', () => {
     expect(input()).toHaveValue('17,5')
   })
 
-  it('não passa do mínimo nem do máximo', () => {
+  it('does not go past the min or max', () => {
     render(<Harness initial={1} max={2} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Diminuir Carga' }))
@@ -44,7 +44,7 @@ describe('NumberStepper', () => {
     expect(screen.getByRole('button', { name: 'Aumentar Carga' })).toBeDisabled()
   })
 
-  it('aceita digitação com vírgula', () => {
+  it('accepts typing with a comma', () => {
     render(<Harness initial={0} />)
 
     fireEvent.focus(input())
@@ -54,7 +54,7 @@ describe('NumberStepper', () => {
     expect(input()).toHaveValue('132,5')
   })
 
-  it('ignora texto inválido e volta ao valor anterior', () => {
+  it('ignores invalid text and goes back to the previous value', () => {
     render(<Harness initial={40} />)
 
     fireEvent.focus(input())

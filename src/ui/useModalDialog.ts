@@ -1,16 +1,16 @@
 import { useEffect, useRef } from 'react'
 
 /**
- * Liga um `<dialog>` nativo ao estado `open` do React.
+ * Binds a native `<dialog>` to React's `open` state.
  *
- * Por que `<dialog>` + `showModal()` em vez de uma <div> por cima da tela?
- * O navegador já resolve, de graça, o que antes faltava:
- * - o foco vai para dentro do painel e volta para o botão de origem ao fechar;
- * - o resto da página fica inerte (leitor de tela e toques não chegam lá);
- * - Esc (e, no Chrome do Android, o gesto de voltar) fecha o painel;
- * - o painel fica na "camada do topo", acima de tudo, sem brigar com z-index.
+ * Why `<dialog>` + `showModal()` instead of a <div> over the screen?
+ * The browser already solves, for free, what used to be missing:
+ * - focus moves into the sheet and returns to the origin button on close;
+ * - the rest of the page becomes inert (screen readers and touches do not reach it);
+ * - Esc (and, on Chrome for Android, the back gesture) closes the sheet;
+ * - the sheet sits in the "top layer", above everything, without fighting z-index.
  *
- * Uso: `const ref = useModalDialog(open)` e `<dialog ref={ref} onClose={...}>`.
+ * Usage: `const ref = useModalDialog(open)` e `<dialog ref={ref} onClose={...}>`.
  */
 export function useModalDialog(open: boolean) {
   const ref = useRef<HTMLDialogElement>(null)

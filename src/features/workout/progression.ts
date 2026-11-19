@@ -1,18 +1,18 @@
 import type { SetEntry } from '../../db/types'
 
 /*
- * Progressão dupla: o método clássico para quem treina com faixa de repetições
- * (ex.: 6–10).
+ * Double progression: the classic method for training with a rep range
+ * (e.g. 6–10).
  *
- * 1. Com a mesma carga, tente fazer mais repetições a cada treino.
- * 2. Quando TODAS as séries chegarem ao topo da faixa (10, 10, 10), suba a carga
- *    pelo menor salto disponível e volte para o começo da faixa (6).
+ * 1. With the same load, try to do more reps each workout.
+ * 2. When ALL sets reach the top of the range (10, 10, 10), raise the load
+ *    by the smallest available step and go back to the start of the range (6).
  *
- * Funções puras: a tela decide o que mostrar, e os testes cobrem cada caso.
+ * Pure functions: the screen decides what to show, and the tests cover each case.
  */
 
 export type LoadSuggestion = {
-  /** `increase` = subir a carga; `reps` = mesma carga, buscar +1 repetição. */
+  /** `increase` = raise the load; `reps` = same load, aim for +1 rep. */
   kind: 'increase' | 'reps'
   weightKg: number
   reps: number
@@ -22,32 +22,32 @@ export type RepRange = { min: number; max: number }
 
 type SetLike = Pick<SetEntry, 'type' | 'weightKg' | 'reps'>
 
-/** Evita lixo de ponto flutuante (ex.: 0.1 + 0.2). */
+/** Avoids floating-point noise (e.g. 0.1 + 0.2). */
 function roundKg(value: number): number {
   return Math.round(value * 100) / 100
 }
 
 /**
- * Sugestão para hoje, a partir das séries concluídas da última vez.
+ * Suggestion for today, based on the sets completed last time.
  *
- * @param lastSets séries da última vez (o aquecimento já vem filtrado)
- * @param range faixa de repetições da rotina
- * @param stepKg menor salto de carga do equipamento; `null` = peso corporal,
- *   em que a progressão é só em repetições (sem teto de faixa)
- * @returns `null` se não há base (nenhuma série planejada da última vez)
+ * @param lastSets sets from last time (warm-up already filtered out)
+ * @param range rep range of the routine
+ * @param stepKg smallest load step of the equipment; `null` = bodyweight,
+ *   where progression is reps only (no range ceiling)
+ * @returns `null` if there is no basis (no planned set from last time)
  */
 export function suggestNextLoad(
   lastSets: SetLike[],
   range: RepRange,
   stepKg: number | null,
 ): LoadSuggestion | null {
-  // Só as séries planejadas: o "encore" é extra e não define a progressão.
+  // Only the planned sets: the "encore" is extra and does not drive progression.
   const planned = lastSets.filter((set) => set.type === 'normal')
   if (planned.length === 0) {
     return null
   }
 
-  // Olhamos as séries na carga mais alta (séries de recuo mais leves não contam).
+  // We look at the sets at the highest load (lighter back-off sets do not count).
   const topWeight = Math.max(...planned.map((set) => set.weightKg))
   const fewestReps = Math.min(
     ...planned.filter((set) => set.weightKg === topWeight).map((set) => set.reps),
@@ -62,14 +62,14 @@ export function suggestNextLoad(
   return { kind: 'reps', weightKg: topWeight, reps: Math.min(fewestReps + 1, range.max) }
 }
 
-/** Séries planejadas ainda não feitas: são elas que o "Aplicar" muda. */
+/** Planned sets not yet done: these are the ones "Aplicar" changes. */
 export function pendingPlannedSets<T extends SetLike & Pick<SetEntry, 'completedAt'>>(
   sets: T[],
 ): T[] {
   return sets.filter((set) => set.type === 'normal' && set.completedAt === null)
 }
 
-/** A sugestão já está nas séries pendentes? (aí o botão "Aplicar" some) */
+/** Is the suggestion already in the pending sets? (then the "Aplicar" button disappears) */
 export function isSuggestionApplied(
   sets: Array<SetLike & Pick<SetEntry, 'completedAt'>>,
   suggestion: Pick<LoadSuggestion, 'weightKg' | 'reps'>,

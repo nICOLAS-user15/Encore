@@ -21,32 +21,32 @@ import { getActiveWorkout } from '../workout/workoutQueries'
 import { listRoutinesWithExercises, type RoutineWithExercises } from './routineQueries'
 
 /**
- * Aba Rotinas: as rotinas organizadas por divisão de treino. As abas no topo
- * (as mesmas da tela Treino) escolhem a divisão; aqui também dá para criar,
- * renomear, reordenar e excluir divisões, e criar rotinas dentro da escolhida.
+ * Rotinas tab: routines organized by workout split. The tabs at the top
+ * (the same as on the Treino screen) choose the split; here you can also create,
+ * rename, reorder and delete splits, and create routines inside the chosen one.
  */
 export function RoutinesScreen() {
   const { t } = useI18n()
   const routines = useLiveQuery(() => listRoutinesWithExercises(db), [])
-  // `?? null`: o useLiveQuery usa `undefined` para "carregando"; `null` = nenhum treino ativo.
+  // `?? null`: useLiveQuery uses `undefined` for "loading"; `null` = no active workout.
   const active = useLiveQuery(async () => (await getActiveWorkout(db)) ?? null, [])
   const exerciseMap = useExerciseMap()
   const { splits, active: currentSplit, select: selectSplit } = useSplits()
   const [blockedOpen, setBlockedOpen] = useState(false)
-  // Guardamos o ID (e não um "aberto/fechado"): ao criar uma divisão nova, o painel
-  // abre nela mesmo antes de a escolha das abas terminar de atualizar.
+  // We keep the ID (not an "open/closed" flag): when creating a new split, the sheet
+  // opens on it even before the tabs' selection finishes updating.
   const [editingSplitId, setEditingSplitId] = useState<ID | null>(null)
   const navigate = useNavigate()
 
-  // Nome do treino em andamento, para o aviso ("Upper A ainda está em andamento").
+  // Name of the workout in progress, for the warning ("Upper A is still in progress").
   const activeName =
     routines?.find((entry) => entry.routine.id === active?.routineId)?.routine.name ??
     t.workout.freeWorkout
 
   /**
-   * Só existe um treino ativo por vez. A mesma rotina continua o treino; outra
-   * rotina troca na hora se o treino aberto ainda não tem séries feitas, senão
-   * avisamos antes (veja startOrSwitchWorkout).
+   * Only one workout is active at a time. The same routine continues the workout; another
+   * routine switches right away if the open workout has no sets done yet, otherwise
+   * we warn first (see startOrSwitchWorkout).
    */
   async function handleStart(routineId: ID) {
     const result = await startOrSwitchWorkout(db, routineId)
@@ -57,14 +57,14 @@ export function RoutinesScreen() {
     }
   }
 
-  /** Cria uma divisão, escolhe ela nas abas e abre o painel para dar o nome. */
+  /** Creates a split, selects it in the tabs and opens the sheet to name it. */
   async function handleCreateSplit() {
     const id = await createSplit(db, t.splits.defaultName)
     await selectSplit(id)
     setEditingSplitId(id)
   }
 
-  /** Abre o editor em branco para uma rotina nova na divisão escolhida (só existe após "Salvar"). */
+  /** Opens the blank editor for a new routine in the chosen split (only exists after "Salvar"). */
   function handleCreate() {
     if (currentSplit) {
       navigate(`/rotinas/nova?divisao=${currentSplit.id}`)
@@ -77,7 +77,7 @@ export function RoutinesScreen() {
       : (routines ?? [])
   const editingSplit = splits?.find((split) => split.id === editingSplitId) ?? null
 
-  let content = null // carregando
+  let content = null // loading
   if (routines && splits && splits.length === 0 && routines.length === 0) {
     content = (
       <EmptyState
@@ -171,7 +171,7 @@ export function RoutinesScreen() {
 type RoutineCardProps = {
   entry: RoutineWithExercises
   exerciseMap: Map<ID, Exercise>
-  /** Esta é a rotina do treino em andamento: o botão vira "Continuar". */
+  /** This is the routine of the workout in progress: the button becomes "Continuar". */
   inProgress: boolean
   onStart: () => void
 }
@@ -194,7 +194,7 @@ function RoutineCard({ entry, exerciseMap, inProgress, onStart }: RoutineCardPro
           >
             {t.routines.edit}
           </Link>
-          {/* Continuar o treino aberto é A ação principal desta tela: ganha o acento. */}
+          {/* Continuing the open workout is THE main action of this screen: it gets the accent. */}
           <Button variant={inProgress ? 'primary' : 'secondary'} onClick={onStart}>
             {inProgress ? t.routines.resume : t.routines.start}
           </Button>

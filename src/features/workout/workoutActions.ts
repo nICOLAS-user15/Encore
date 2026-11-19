@@ -20,8 +20,8 @@ import { pendingPlannedSets } from './progression'
 import { isWorkingSet, warmupValues } from './workoutStats'
 
 /*
- * Tudo que ESCREVE durante um treino. Cada função grava na hora: se o app
- * fechar no meio do treino, nada se perde (o treino sem `endedAt` continua ativo).
+ * Everything that WRITES during a workout. Each function saves right away: if the app
+ * closes mid-workout, nothing is lost (a workout without `endedAt` stays active).
  */
 
 type SetValues = Pick<SetEntry, 'weightKg' | 'reps'>
@@ -29,22 +29,22 @@ type SetValues = Pick<SetEntry, 'weightKg' | 'reps'>
 const EMPTY_VALUES: SetValues = { weightKg: 0, reps: 0 }
 
 /**
- * Valores para a série número `index`: o que foi feito na mesma série da
- * última vez; se a última vez teve menos séries, repete a última delas;
- * sem histórico, usa o `fallback`.
+ * Values for set number `index`: what was done in the same set
+ * last time; if last time had fewer sets, repeats the last one;
+ * with no history, uses the `fallback`.
  */
 function pickValues(
   last: LastPerformance | null,
   index: number,
   fallback: SetValues,
 ): SetValues {
-  // Séries extras (encore) da última vez não servem de molde para as planejadas.
+  // Extra (encore) sets from last time are not a template for the planned ones.
   const planned = last?.sets.filter((set) => set.type === 'normal') ?? []
   const source = planned[index] ?? planned.at(-1) ?? last?.sets.at(-1)
   return source ? { weightKg: source.weightKg, reps: source.reps } : fallback
 }
 
-/** Próxima posição livre no treino (inclui séries excluídas, para nunca repetir). */
+/** Next free position in the workout (includes deleted sets, so it never repeats). */
 async function nextPosition(db: EncoreDB, workoutId: ID): Promise<number> {
   const last = await db.setEntries
     .where('[workoutId+position]')
@@ -73,9 +73,9 @@ function createSet(
 }
 
 /**
- * Inicia um treino (livre com `routineId = null`, ou a partir de uma rotina).
- * Se já existe um treino em andamento, devolve ele em vez de criar outro.
- * A partir de rotina, já cria as séries planejadas, preenchidas.
+ * Starts a workout (free with `routineId = null`, or from a routine).
+ * If a workout is already in progress, returns it instead of creating another.
+ * From a routine, it also creates the planned sets, pre-filled.
  */
 export async function startWorkout(db: EncoreDB, routineId: ID | null): Promise<Workout> {
   return db.transaction(
@@ -86,11 +86,11 @@ export async function startWorkout(db: EncoreDB, routineId: ID | null): Promise<
       if (active) {
         return active
       }
-      // Tela desatualizada (rotina excluída em outra aba): não cria treino órfão.
+      // Stale screen (routine deleted in another tab): does not create an orphan workout.
       if (routineId !== null) {
         const routine = await db.routines.get(routineId)
         if (!routine || !isActive(routine)) {
-          throw new Error(`Rotina ${routineId} não encontrada`)
+          throw new Error(`Routine ${routineId} not found`)
         }
       }
 
@@ -98,7 +98,7 @@ export async function startWorkout(db: EncoreDB, routineId: ID | null): Promise<
         routineId,
         startedAt: Date.now(),
         endedAt: null,
-        // O cronômetro só começa quando o usuário tocar em "Iniciar cronômetro".
+        // The timer only starts when the user taps "Iniciar cronômetro".
         timerStartedAt: null,
         timerStoppedAt: null,
         timerPausedAt: null,
@@ -129,21 +129,21 @@ export async function startWorkout(db: EncoreDB, routineId: ID | null): Promise<
 
 export type StartResult =
   | { status: 'started'; workout: Workout }
-  /** Já existe outro treino em andamento COM séries feitas: a tela pergunta o que fazer. */
+  /** Another workout is in progress WITH completed sets: the screen asks what to do. */
   | { status: 'blocked'; active: Workout }
 
 /**
- * Iniciar pela lista (aba Treino ou Rotinas), permitindo trocar de ideia:
- * - mesmo treino já aberto: continua nele;
- * - outro treino aberto, mas sem nenhuma série concluída (ex.: tocou no treino
- *   errado): ele é descartado, porque não há nada a perder, e o novo começa;
- * - outro treino com séries feitas: não mexe em nada e devolve `blocked`.
+ * Start from the list (Workout or Routines tab), allowing a change of mind:
+ * - same workout already open: continues it;
+ * - another workout open, but with no completed set (e.g. tapped the wrong
+ *   workout): it is discarded, since there is nothing to lose, and the new one starts;
+ * - another workout with completed sets: touches nothing and returns `blocked`.
  */
 export async function startOrSwitchWorkout(
   db: EncoreDB,
   routineId: ID | null,
 ): Promise<StartResult> {
-  // Uma transação só: a checagem "sem série concluída" e o descarte não se separam.
+  // A single transaction: the "no completed set" check and the discard cannot be separated.
   return db.transaction(
     'rw',
     [db.workouts, db.setEntries, db.routineExercises, db.routines],
@@ -161,7 +161,7 @@ export async function startOrSwitchWorkout(
   )
 }
 
-/** Adiciona um exercício ao treino (com uma série, preenchida pela última vez). */
+/** Adds an exercise to the workout (with one set, pre-filled from last time). */
 export async function addExerciseToWorkout(
   db: EncoreDB,
   workoutId: ID,
@@ -182,8 +182,8 @@ export async function addExerciseToWorkout(
 }
 
 /**
- * Adiciona mais uma série a um exercício, copiando a carga e as reps da
- * série anterior. `type: 'encore'` marca a série extra, além do planejado.
+ * Adds one more set to an exercise, copying the load and reps of the
+ * previous set. `type: 'encore'` marks the extra set, beyond the plan.
  */
 export async function addSet(
   db: EncoreDB,
@@ -197,10 +197,10 @@ export async function addSet(
     )
     let values: SetValues
     if (type === 'warmup') {
-      // Aquecimento: metade da carga da primeira série de trabalho.
+      // Warm-up: half the load of the first working set.
       values = warmupValues(sets)
     } else {
-      // Série normal/encore: copia a última série de TRABALHO (não o aquecimento).
+      // Normal/encore set: copies the last WORKING set (not the warm-up).
       const previous = sets.filter(isWorkingSet).at(-1)
       values = previous
         ? { weightKg: previous.weightKg, reps: previous.reps }
@@ -220,9 +220,9 @@ export async function updateSet(
 }
 
 /**
- * Botão "Aplicar" da sugestão de carga: grava carga e repetições em todas as
- * séries planejadas que ainda faltam deste exercício. Aquecimento, encore e
- * séries já feitas ficam como estão. Devolve quantas séries mudaram.
+ * "Aplicar" button of the load suggestion: writes load and reps to all the
+ * planned sets still pending for this exercise. Warm-up, encore and
+ * already completed sets stay as they are. Returns how many sets changed.
  */
 export async function applyLoadSuggestion(
   db: EncoreDB,
@@ -243,10 +243,10 @@ export async function applyLoadSuggestion(
 }
 
 /**
- * Depois de mudar a carga de uma série, as séries planejadas que ainda faltam e estavam
- * com a MESMA carga antiga acompanham a nova (60 → 65 kg na 1ª leva as outras para 65).
- * Séries que o usuário já ajustou à mão (carga diferente) não são tocadas.
- * Devolve quantas séries mudaram.
+ * After changing the load of a set, the planned sets still pending that had
+ * the SAME old load follow the new one (60 → 65 kg on the 1st moves the others to 65).
+ * Sets the user already adjusted by hand (different load) are not touched.
+ * Returns how many sets changed.
  */
 export async function followWeightChange(
   db: EncoreDB,
@@ -269,9 +269,9 @@ export async function followWeightChange(
   })
 }
 
-/** Marca/desmarca a série como concluída. Devolve `true` se ficou concluída. */
+/** Marks/unmarks the set as completed. Returns `true` if it ended up completed. */
 export async function toggleSetCompleted(db: EncoreDB, setId: ID): Promise<boolean> {
-  // Ler e gravar na mesma transação: um toque duplo não conclui duas vezes.
+  // Read and write in the same transaction: a double tap does not complete twice.
   let completed = false
   await updateRecordWith(db.setEntries, setId, (set) => {
     completed = set.completedAt === null
@@ -285,8 +285,8 @@ export async function deleteSet(db: EncoreDB, setId: ID): Promise<void> {
 }
 
 /**
- * Tira um exercício do treino (exclui todas as séries dele neste treino).
- * Devolve os ids excluídos, para o "Desfazer" (`restoreSets`).
+ * Removes an exercise from the workout (soft-deletes all its sets in this workout).
+ * Returns the deleted ids, for "Desfazer" (`restoreSets`).
  */
 export async function removeExerciseFromWorkout(
   db: EncoreDB,
@@ -304,7 +304,7 @@ export async function removeExerciseFromWorkout(
   })
 }
 
-/** Desfaz a exclusão de séries (botão "Desfazer"). */
+/** Undoes the deletion of sets ("Desfazer" button). */
 export async function restoreSets(db: EncoreDB, setIds: ID[]): Promise<void> {
   await db.transaction('rw', db.setEntries, async () => {
     for (const id of setIds) {
@@ -313,7 +313,7 @@ export async function restoreSets(db: EncoreDB, setIds: ID[]): Promise<void> {
   })
 }
 
-/** Liga o cronômetro do treino (só funciona uma vez: depois de iniciado, não reinicia). */
+/** Turns on the workout timer (works only once: after starting, it does not restart). */
 export async function startWorkoutTimer(db: EncoreDB, workoutId: ID): Promise<void> {
   const workout = await db.workouts.get(workoutId)
   if (workout && workout.timerStartedAt === null) {
@@ -321,7 +321,7 @@ export async function startWorkoutTimer(db: EncoreDB, workoutId: ID): Promise<vo
   }
 }
 
-/** Pausa o cronômetro (se estiver rodando): o relógio congela até retomar. */
+/** Pauses the timer (if running): the clock freezes until resumed. */
 export async function pauseWorkoutTimer(db: EncoreDB, workoutId: ID): Promise<void> {
   const workout = await db.workouts.get(workoutId)
   if (
@@ -335,8 +335,8 @@ export async function pauseWorkoutTimer(db: EncoreDB, workoutId: ID): Promise<vo
 }
 
 /**
- * Retoma o cronômetro pausado. Avança `timerStartedAt` pelo tempo da pausa, para
- * ele não contar na duração (e o relógio continuar de onde parou).
+ * Resumes the paused timer. Advances `timerStartedAt` by the pause length, so
+ * it does not count toward the duration (and the clock continues from where it stopped).
  */
 export async function resumeWorkoutTimer(db: EncoreDB, workoutId: ID): Promise<void> {
   const workout = await db.workouts.get(workoutId)
@@ -349,8 +349,8 @@ export async function resumeWorkoutTimer(db: EncoreDB, workoutId: ID): Promise<v
 }
 
 /**
- * Exclui o treino e todas as suas séries (descartar ou apagar do histórico).
- * Devolve os ids das séries excluídas, para o "Desfazer" (`restoreWorkout`).
+ * Soft-deletes the workout and all its sets (discard or delete from the history).
+ * Returns the ids of the deleted sets, for "Desfazer" (`restoreWorkout`).
  */
 export async function deleteWorkout(db: EncoreDB, workoutId: ID): Promise<ID[]> {
   return db.transaction('rw', [db.workouts, db.setEntries], async () => {
@@ -363,7 +363,7 @@ export async function deleteWorkout(db: EncoreDB, workoutId: ID): Promise<ID[]> 
   })
 }
 
-/** Desfaz `deleteWorkout`: o treino e as séries que ele excluiu voltam. */
+/** Undoes `deleteWorkout`: the workout and the sets it deleted come back. */
 export async function restoreWorkout(
   db: EncoreDB,
   workoutId: ID,
@@ -378,15 +378,15 @@ export async function restoreWorkout(
 }
 
 /**
- * Finaliza o treino: descarta as séries não concluídas e grava `endedAt`.
- * Sem nenhuma série concluída não há o que salvar: o treino é descartado.
+ * Finishes the workout: discards the uncompleted sets and writes `endedAt`.
+ * With no completed set there is nothing to save: the workout is discarded.
  */
 export async function finishWorkout(
   db: EncoreDB,
   workoutId: ID,
 ): Promise<'finished' | 'discarded'> {
   return db.transaction('rw', [db.workouts, db.setEntries], async () => {
-    // Segundo toque em "Finalizar" (ou outra aba): já finalizado, não mexe em `endedAt`.
+    // Second tap on "Finalizar" (or another tab): already finished, does not touch `endedAt`.
     const existing = await db.workouts.get(workoutId)
     if (existing?.endedAt != null) {
       return 'finished'
@@ -403,8 +403,8 @@ export async function finishWorkout(
         await softDelete(db.setEntries, set.id)
       }
     }
-    // Finalizar também para o cronômetro, se ele ainda estiver rodando ou pausado
-    // (pausado: o tempo para no instante da pausa, não no da finalização).
+    // Finishing also stops the timer, if it is still running or paused
+    // (paused: the time stops at the moment of the pause, not at the finish).
     const workout = await db.workouts.get(workoutId)
     const timerRunning =
       workout !== undefined &&

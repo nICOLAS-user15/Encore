@@ -8,7 +8,7 @@ export type RoutineWithExercises = {
   items: RoutineExercise[]
 }
 
-/** Exercícios de uma rotina, na ordem (usa o índice [routineId+position]). */
+/** Exercises of a routine, in order (uses the [routineId+position] index). */
 export async function listRoutineExercises(
   db: EncoreDB,
   routineId: ID,
@@ -20,7 +20,7 @@ export async function listRoutineExercises(
     .toArray()
 }
 
-/** Uma rotina com seus exercícios, ou `null` se não existe / foi excluída. */
+/** A routine with its exercises, or `null` if it does not exist / was deleted. */
 export async function getRoutineWithExercises(
   db: EncoreDB,
   routineId: ID,
@@ -32,7 +32,7 @@ export async function getRoutineWithExercises(
   return { routine, items: await listRoutineExercises(db, routineId) }
 }
 
-/** Rotinas ativas, na ordem definida, cada uma com seus exercícios. */
+/** Active routines, in the defined order, each with its exercises. */
 export async function listRoutinesWithExercises(
   db: EncoreDB,
 ): Promise<RoutineWithExercises[]> {

@@ -1,10 +1,10 @@
-# Segurança
+# Security
 
-O Encore não tem servidor: todos os dados ficam no IndexedDB do aparelho, e o app não envia nada pela rede.
-Mesmo assim, se você achar uma vulnerabilidade (por exemplo, no import de backup ou no service worker),
-**não abra uma issue pública**: use "Report a vulnerability" na aba _Security_ do repositório no GitHub.
+Encore has no server: all data lives in the device's IndexedDB, and the app sends nothing over the network.
+Even so, if you find a vulnerability (for example in backup import or in the service worker),
+**do not open a public issue**: use "Report a vulnerability" in the repository's _Security_ tab on GitHub.
 
-## Privacidade dos dados
+## Data privacy
 
-- O backup (`encore-backup-*.json`) é texto puro, sem criptografia. Guarde-o como guardaria qualquer dado pessoal.
-- Importar um backup só **adiciona/atualiza** dados e valida cada registro; arquivos malformados são recusados.
+- The backup (`encore-backup-*.json`) is plain text, with no encryption. Keep it the way you would keep any personal data.
+- Importing a backup only **adds or updates** data and validates every record; malformed files are rejected.

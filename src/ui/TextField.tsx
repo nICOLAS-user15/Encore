@@ -5,11 +5,11 @@ type TextFieldProps = {
   value: string
   onChange: (value: string) => void
   placeholder?: string
-  /** `true` = campo de várias linhas (textarea). */
+  /** `true` = multi-line field (textarea). */
   multiline?: boolean
 }
 
-/** Campo de texto com rótulo, no estilo do app (borda grossa, fonte ≥ 16px). */
+/** Text field with a label, in the app's style (thick border, font ≥ 16px). */
 export function TextField({
   label,
   value,
@@ -17,7 +17,7 @@ export function TextField({
   placeholder,
   multiline,
 }: TextFieldProps) {
-  // useId gera um id único para ligar o <label> ao campo (acessibilidade).
+  // useId generates a unique id to link the <label> to the field (accessibility).
   const id = useId()
   const classes =
     'w-full rounded-sm border-2 border-line-strong bg-background px-3 py-2 text-text placeholder:text-muted focus:border-text'

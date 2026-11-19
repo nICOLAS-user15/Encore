@@ -3,7 +3,7 @@ import type { EncoreDB } from '../../db/db'
 import { isActive } from '../../db/repository'
 import type { ID, SetEntry, Timestamp, Workout } from '../../db/types'
 
-/** O treino em andamento (sem `endedAt`), se existir. Só pode haver um. */
+/** The workout in progress (no `endedAt`), if any. There can be only one. */
 export async function getActiveWorkout(db: EncoreDB): Promise<Workout | undefined> {
   return db.workouts
     .orderBy('startedAt')
@@ -14,11 +14,11 @@ export async function getActiveWorkout(db: EncoreDB): Promise<Workout | undefine
 
 export type ActiveWorkoutInfo = {
   workout: Workout
-  /** Nome da rotina; `null` = treino livre. */
+  /** Routine name; `null` = free workout. */
   routineName: string | null
 }
 
-/** O treino em andamento com o nome da rotina (para a faixa "Treino em andamento"). */
+/** The workout in progress with the routine name (for the "Treino em andamento" strip). */
 export async function getActiveWorkoutInfo(
   db: EncoreDB,
 ): Promise<ActiveWorkoutInfo | null> {
@@ -30,7 +30,7 @@ export async function getActiveWorkoutInfo(
   return { workout, routineName: routine?.name ?? null }
 }
 
-/** Treinos finalizados, do mais recente para o mais antigo. */
+/** Finished workouts, newest to oldest. */
 export async function listFinishedWorkouts(db: EncoreDB): Promise<Workout[]> {
   return db.workouts
     .orderBy('startedAt')
@@ -39,7 +39,7 @@ export async function listFinishedWorkouts(db: EncoreDB): Promise<Workout[]> {
     .toArray()
 }
 
-/** Séries de um treino, na ordem (usa o índice [workoutId+position]). */
+/** Sets of a workout, in order (uses the [workoutId+position] index). */
 export async function listWorkoutSets(db: EncoreDB, workoutId: ID): Promise<SetEntry[]> {
   return db.setEntries
     .where('[workoutId+position]')
@@ -51,26 +51,26 @@ export async function listWorkoutSets(db: EncoreDB, workoutId: ID): Promise<SetE
 export type LastPerformance = {
   workoutId: ID
   date: Timestamp
-  /** Séries concluídas deste exercício naquele treino, em ordem. */
+  /** Completed sets of this exercise in that workout, in order. */
   sets: SetEntry[]
 }
 
 /**
- * O que foi feito neste exercício da última vez (séries concluídas do treino
- * mais recente que o contém). `excludeWorkoutId` ignora o treino atual.
+ * What was done in this exercise last time (completed sets of the most
+ * recent workout that contains it). `excludeWorkoutId` ignores the current workout.
  */
 export async function getLastPerformance(
   db: EncoreDB,
   exerciseId: ID,
   excludeWorkoutId?: ID,
 ): Promise<LastPerformance | null> {
-  // Índice [exerciseId+completedAt] de trás para frente = mais recente primeiro.
-  // Séries não concluídas (completedAt null) nem estão no índice.
+  // [exerciseId+completedAt] index in reverse = most recent first.
+  // Uncompleted sets (completedAt null) are not even in the index.
   const mostRecent = await db.setEntries
     .where('[exerciseId+completedAt]')
     .between([exerciseId, Dexie.minKey], [exerciseId, Dexie.maxKey])
     .reverse()
-    // Aquecimento não conta como "última vez".
+    // Warm-up does not count as "last time".
     .filter(
       (set) =>
         isActive(set) && set.workoutId !== excludeWorkoutId && set.type !== 'warmup',

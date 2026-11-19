@@ -4,11 +4,11 @@ type EmptyStateProps = {
   icon: ReactNode
   title: string
   description: string
-  /** Botão opcional (ex.: "Criar rotina"). */
+  /** Optional button (e.g. "Criar rotina"). */
   action?: ReactNode
 }
 
-/** Estado vazio padrão das telas: ícone em caixa, título condensado e texto curto. */
+/** Default empty state for screens: boxed icon, condensed title and short text. */
 export function EmptyState({ icon, title, description, action }: EmptyStateProps) {
   return (
     <section className="flex flex-col items-start gap-4 border-2 border-dashed border-line p-6">

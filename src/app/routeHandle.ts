@@ -1,12 +1,12 @@
 /**
- * Informação extra que cada rota pode declarar (campo `handle` do React Router).
- * O AppLayout lê isto para montar a barra do topo.
+ * Extra information each route can declare (the React Router `handle` field).
+ * AppLayout reads this to build the top bar.
  */
 export type RouteHandle = {
   /**
-   * Tela interna: mostra "← Voltar" em vez do menu.
-   * O valor é para onde ir se não houver página anterior (ex.: app aberto
-   * direto nesta tela).
+   * Inner screen: shows "← Voltar" instead of the menu.
+   * The value is where to go if there is no previous page (e.g. app opened
+   * straight on this screen).
    */
   backTo?: string
 }

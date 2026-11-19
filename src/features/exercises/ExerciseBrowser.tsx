@@ -6,31 +6,31 @@ import { nameKey } from '../../lib/text'
 import { Button } from '../../ui/Button'
 import { EXERCISE_KINDS, exerciseKind, type ExerciseKind } from './exerciseKind'
 
-/** A busca procura nos dois idiomas: "supino" e "bench" encontram o mesmo exercício. */
+/** Search looks in both languages: "supino" and "bench" find the same exercise. */
 function matchesSearch(exercise: Exercise, search: string): boolean {
   return LANGUAGES.some((language) => nameKey(exercise.names[language]).includes(search))
 }
 
 type ExerciseBrowserProps = {
   exercises: Exercise[]
-  /** Se passado, cada exercício vira um botão (modo "escolher exercício"). */
+  /** If passed, each exercise becomes a button ("pick exercise" mode). */
   onSelect?: (exercise: Exercise) => void
   /**
-   * Se passado, a busca oferece "+ Criar" quando o nome digitado não existe na
-   * biblioteca. Recebe o nome digitado.
+   * If passed, search offers "+ Criar" when the typed name does not exist in the
+   * library. Receives the typed name.
    */
   onCreate?: (name: string) => void
 }
 
 /**
- * Lista de exercícios com três filtros que se somam: tipo (livres/máquinas),
- * busca por nome e grupo muscular.
+ * Exercise list with three filters that add up: type (free/machines),
+ * search by name and muscle group.
  */
 export function ExerciseBrowser({ exercises, onSelect, onCreate }: ExerciseBrowserProps) {
   const { t } = useI18n()
   const [query, setQuery] = useState('')
   const [group, setGroup] = useState<MuscleGroup | null>(null)
-  // `null` = todos os tipos.
+  // `null` = all types.
   const [kind, setKind] = useState<ExerciseKind | null>(null)
 
   const search = nameKey(query)
@@ -41,8 +41,8 @@ export function ExerciseBrowser({ exercises, onSelect, onCreate }: ExerciseBrows
       matchesSearch(exercise, search),
   )
 
-  // Só oferece criar se o nome ainda não existe (em nenhum idioma): sobre a lista
-  // INTEIRA, e não a filtrada, para um filtro de grupo não esconder o duplicado.
+  // Only offers to create if the name does not exist yet (in any language): over the
+  // WHOLE list, not the filtered one, so a group filter does not hide the duplicate.
   const typedName = query.trim().replace(/\s+/g, ' ')
   const canCreate =
     onCreate !== undefined &&
@@ -55,7 +55,7 @@ export function ExerciseBrowser({ exercises, onSelect, onCreate }: ExerciseBrows
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Seletor de tipo: três partes coladas, a escolhida em cores invertidas. */}
+      {/* Type selector: three joined parts, the selected one in inverted colors. */}
       <div
         role="group"
         aria-label={t.exercises.kindLabel}
@@ -86,7 +86,7 @@ export function ExerciseBrowser({ exercises, onSelect, onCreate }: ExerciseBrows
         </Button>
       )}
 
-      {/* Filtros: rolam para o lado no celular. */}
+      {/* Filters: scroll sideways on mobile. */}
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
         <FilterChip active={group === null} onClick={() => setGroup(null)}>
           {t.exercises.all}
@@ -137,7 +137,7 @@ function FilterChip({ active, onClick, children }: FilterChipProps) {
       onClick={onClick}
       className={cn(
         'min-h-12 shrink-0 rounded-sm border-2 px-4 text-sm font-semibold tracking-wide uppercase',
-        // Ativo = cores invertidas (claro sobre escuro), sem usar o acento.
+        // Active = inverted colors (light on dark), without using the accent.
         active ? 'border-text bg-text text-background' : 'border-line-strong text-muted',
       )}
     >

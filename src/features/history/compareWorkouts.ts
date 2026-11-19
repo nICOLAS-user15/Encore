@@ -6,8 +6,8 @@ import {
 } from '../workout/workoutStats'
 
 /*
- * Comparação de um treino com a vez anterior da mesma rotina: o "como fui hoje?"
- * do pós-treino. Função pura: a tela só formata os números.
+ * Comparison of a workout with the previous time of the same routine: the "how did I do today?"
+ * of the post-workout. Pure function: the screen only formats the numbers.
  */
 
 type Comparable = {
@@ -19,11 +19,11 @@ type Comparable = {
 }
 
 export type WorkoutComparison = {
-  /** Volume de hoje menos o da vez anterior (kg). Positivo = mais volume. */
+  /** Today's volume minus the previous time's (kg). Positive = more volume. */
   volumeKg: number
-  /** Séries de trabalho concluídas: hoje menos a vez anterior. */
+  /** Completed working sets: today minus the previous time. */
   sets: number
-  /** Duração: hoje menos a vez anterior, em minutos inteiros. Negativo = mais rápido. */
+  /** Duration: today minus the previous time, in whole minutes. Negative = faster. */
   durationMin: number
 }
 

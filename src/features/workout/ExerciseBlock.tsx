@@ -19,18 +19,18 @@ type ExerciseBlockProps = {
   exerciseId: ID
   name: string
   sets: SetEntry[]
-  /** Meta da rotina para este exercício (ausente em treino livre). */
+  /** Routine target for this exercise (absent in a free workout). */
   target?: RoutineExercise
-  /** Id da próxima série do treino inteiro (pode ser de outro exercício). */
+  /** Id of the next set in the whole workout (may belong to another exercise). */
   nextSetId: ID | null
-  /** Salto de carga do equipamento para a sugestão; `null` = peso corporal (só reps). */
+  /** Equipment load step for the suggestion; `null` = bodyweight (reps only). */
   progressionStepKg: number | null
   onEditSet: (set: SetEntry) => void
   onToggleSet: (set: SetEntry) => void
   onRemove: () => void
 }
 
-/** Um exercício no treino ativo: meta, "última vez", sugestão de carga e as séries. */
+/** An exercise in the active workout: target, "last time", load suggestion and the sets. */
 export function ExerciseBlock({
   workoutId,
   exerciseId,
@@ -46,13 +46,13 @@ export function ExerciseBlock({
   const { t, format, note } = useI18n()
   const [menuOpen, setMenuOpen] = useState(false)
   const run = useAction()
-  // `undefined` = carregando; `null` = nunca feito antes.
+  // `undefined` = loading; `null` = never done before.
   const last = useLiveQuery(
     () => getLastPerformance(db, exerciseId, workoutId),
     [exerciseId, workoutId],
   )
 
-  // Números das séries de trabalho (1, 2, 3); aquecimento fica null e vira "AQ".
+  // Working set numbers (1, 2, 3); warm-up stays null and becomes "AQ".
   const numbers = numberSets(sets)
 
   let previous: string | null = null
@@ -64,7 +64,7 @@ export function ExerciseBlock({
     )
   }
 
-  // Sugestão de progressão: precisa de histórico (última vez) e da faixa da rotina.
+  // Progression suggestion: needs history (last time) and the routine's range.
   const suggestion =
     last && target
       ? suggestNextLoad(
@@ -119,7 +119,7 @@ export function ExerciseBlock({
               {format.set(suggestion.weightKg, suggestion.reps)}
             </span>
           </p>
-          {/* Sem séries pendentes, não há o que aplicar: não mostra nada à direita. */}
+          {/* With no pending sets there is nothing to apply: shows nothing on the right. */}
           {pending.length > 0 &&
             (isSuggestionApplied(sets, suggestion) ? (
               <span className="shrink-0 text-xs font-semibold tracking-widest text-muted uppercase">
@@ -170,8 +170,8 @@ export function ExerciseBlock({
         </Button>
       </div>
 
-      {/* Ações menos usadas ficam no menu ⋯: o cartão fica limpo e o "Remover"
-          (que apaga) não mora mais ao lado dos botões do dia a dia. */}
+      {/* Less-used actions live in the ⋯ menu: the card stays clean and "Remover"
+          (which deletes) no longer sits next to the everyday buttons. */}
       <Sheet open={menuOpen} title={name} onClose={() => setMenuOpen(false)}>
         <div className="flex flex-col gap-3">
           <Button
@@ -188,7 +188,7 @@ export function ExerciseBlock({
             fullWidth
             onClick={() => {
               setMenuOpen(false)
-              onRemove() // abre a confirmação
+              onRemove() // opens the confirmation
             }}
           >
             {t.workout.removeExercise}

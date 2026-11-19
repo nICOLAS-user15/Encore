@@ -16,18 +16,18 @@ type ExercisePickerProps = {
 }
 
 /**
- * Painel para escolher um exercício (treino ativo e editor de rotina).
- * Se o exercício não está na biblioteca, dá para criá-lo ali mesmo: ele é salvo
- * na biblioteca e já vem escolhido.
+ * Sheet to pick an exercise (active workout and routine editor).
+ * If the exercise is not in the library, it can be created right there: it is saved
+ * to the library and comes already selected.
  */
 export function ExercisePicker({ open, onClose, onPick }: ExercisePickerProps) {
   const { t, language } = useI18n()
   const exercises = useLiveQuery(() => listActiveExercises(db, language), [language])
-  // `null` = vendo a lista; texto = criando um exercício novo com este nome inicial.
+  // `null` = viewing the list; text = creating a new exercise with this initial name.
   const [creatingName, setCreatingName] = useState<string | null>(null)
 
   function close() {
-    setCreatingName(null) // a próxima abertura começa pela lista
+    setCreatingName(null) // the next opening starts on the list
     onClose()
   }
 
