@@ -105,6 +105,16 @@ Dirty, dark and minimalist: grit is the texture, minimalism is the structure. Si
 - **Commits:** Conventional Commits **in English**, formatted `type(scope): summary in the imperative`, up to ~70 characters, no trailing period. Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `style`. Scope = the feature area (`workout`, `routines`, `splits`, `exercises`, `history`, `settings`, `db`, `i18n`, `ui`, `app`, `pwa`, `deploy`), optional. Examples: `feat(workout): add pause and resume to the timer`, `fix(settings): validate the backup before importing`. One commit per feature or fix (code + test + docs together); no `docs:` commits that merely trail a `feat:`.
 - **No AI attribution:** commit and PR messages carry no `Co-Authored-By`, no "Generated with Claude Code" and no mention of AI.
 - **The author makes the commits.** Agents do not run `git commit`/`git push`: they hand over the commands (`git add <files>` + `git commit -m ...`, one per feature) for the author to run.
+- **Changelog:** a user-visible change also adds a line under `## [Unreleased]` in `CHANGELOG.md`, in the same commit (written for users, not as a commit list).
+
+## Releases
+
+Versions follow Semantic Versioning (bug fixes = patch, new features = minor, breaking changes, such as dropping old backups, = major). The About screen shows the `package.json` version.
+
+1. In `CHANGELOG.md`, rename `## [Unreleased]` to `## [X.Y.Z] - YYYY-MM-DD`, add a new empty `## [Unreleased]` above it and update the compare links at the bottom.
+2. Set `"version": "X.Y.Z"` in `package.json`.
+3. Commit `chore: release vX.Y.Z`, push, then `git tag vX.Y.Z` and `git push origin vX.Y.Z` (the author runs these).
+4. `.github/workflows/release.yml` checks that the tag matches `package.json` and publishes a GitHub release with that CHANGELOG section as its notes.
 
 ## The author's exercises
 

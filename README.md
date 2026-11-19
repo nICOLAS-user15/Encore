@@ -45,6 +45,7 @@ To publish and install on a phone, see [docs/INSTALLATION.md](docs/INSTALLATION.
 
 - [Install and use on your phone](docs/INSTALLATION.md): deploying to Vercel, installing, backup and common problems.
 - [Technical decisions and design](docs/DECISIONS.md): offline-first, a schema ready for sync, migrations, i18n, the design system.
+- [CHANGELOG.md](CHANGELOG.md): what changed in each version.
 - [CLAUDE.md](CLAUDE.md): project rules for anyone (or anything) changing the code.
 
 ## Structure
