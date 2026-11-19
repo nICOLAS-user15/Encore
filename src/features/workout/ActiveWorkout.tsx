@@ -244,6 +244,7 @@ export function ActiveWorkout({ workout }: { workout: Workout }) {
           <ExerciseBlock
             key={group.exerciseId}
             workoutId={workout.id}
+            workoutStartedAt={workout.startedAt}
             exerciseId={group.exerciseId}
             name={nameOf(group.exerciseId)}
             sets={group.sets}

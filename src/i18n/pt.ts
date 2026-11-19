@@ -280,6 +280,13 @@ export const pt = {
     customHint:
       'O exercício fica salvo na sua biblioteca e passa a aparecer na aba Exercícios.',
   },
+  records: {
+    /** Short badge on a record set. */
+    badge: 'PR',
+    personalRecord: 'recorde pessoal',
+    newRecord: (exercise: string) => `Novo recorde: ${exercise}`,
+    inWorkout: (n: number) => plural(n, 'recorde pessoal', 'recordes pessoais'),
+  },
   history: {
     title: 'Histórico',
     count: (n: number) => plural(n, 'treino', 'treinos'),

@@ -3,6 +3,7 @@ import type { SetEntry } from '../../db/types'
 import { useI18n } from '../../i18n/context'
 import { cn } from '../../lib/cn'
 import { CheckIcon } from '../../ui/icons'
+import { RecordBadge } from '../records/RecordBadge'
 
 type SetRowProps = {
   set: SetEntry
@@ -12,6 +13,8 @@ type SetRowProps = {
   exerciseName: string
   /** It is the next set to do ("where I am"): gets a light border. */
   isNext: boolean
+  /** The set is a personal record (beats everything done before it). */
+  isRecord?: boolean
   onEdit: () => void
   onToggle: () => void
 }
@@ -28,6 +31,7 @@ export function SetRow({
   label,
   exerciseName,
   isNext,
+  isRecord = false,
   onEdit,
   onToggle,
 }: SetRowProps) {
@@ -51,7 +55,7 @@ export function SetRow({
         onClick={onEdit}
         aria-label={t.workout.editSet(
           label,
-          `${exerciseName}, ${format.set(set.weightKg, set.reps)}`,
+          `${exerciseName}, ${format.set(set.weightKg, set.reps)}${isRecord ? `, ${t.records.personalRecord}` : ''}`,
         )}
         className={cn(
           // transition-colors: the "next" highlight moves from one set to the other smoothly.
@@ -76,9 +80,14 @@ export function SetRow({
           <span className="text-muted"> × </span>
           {set.reps}
         </span>
-        {set.type === 'encore' && (
-          <span className="ml-auto shrink-0 border-2 border-line px-1.5 text-xs font-bold tracking-wider text-muted uppercase">
-            {t.workout.encore}
+        {(isRecord || set.type === 'encore') && (
+          <span className="ml-auto flex shrink-0 items-center gap-1.5">
+            {isRecord && <RecordBadge />}
+            {set.type === 'encore' && (
+              <span className="border-2 border-line px-1.5 text-xs font-bold tracking-wider text-muted uppercase">
+                {t.workout.encore}
+              </span>
+            )}
           </span>
         )}
       </button>

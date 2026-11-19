@@ -38,6 +38,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       }),
     [t],
   )
+  const showInfo = useCallback<ToastApi['showInfo']>(
+    (message) => setToast({ id: Date.now(), message, tone: 'info' }),
+    [],
+  )
   const showError = useCallback<ToastApi['showError']>(
     (message) => setToast({ id: Date.now(), message, tone: 'error' }),
     [],
@@ -56,7 +60,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   }, [toast])
 
   return (
-    <ToastContext value={{ showUndo, showError }}>
+    <ToastContext value={{ showUndo, showInfo, showError }}>
       {children}
       {toast && (
         <DockItem>

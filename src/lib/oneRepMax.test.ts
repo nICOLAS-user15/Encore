@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { estimateOneRepMax } from './oneRepMax'
 
-// TODO (exercise 2): after implementing oneRepMax.ts, change `describe.skip` to `describe`.
-describe.skip('estimateOneRepMax (Epley)', () => {
+describe('estimateOneRepMax (Epley)', () => {
   it('one repetition is the 1RM itself', () => {
     expect(estimateOneRepMax(100, 1)).toBe(100)
   })

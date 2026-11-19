@@ -263,6 +263,12 @@ export const en: Messages = {
     customHint:
       'The exercise is saved in your library and shows up in the Exercises tab.',
   },
+  records: {
+    badge: 'PR',
+    personalRecord: 'personal record',
+    newRecord: (exercise) => `New record: ${exercise}`,
+    inWorkout: (n) => plural(n, 'personal record', 'personal records'),
+  },
   history: {
     title: 'History',
     count: (n) => plural(n, 'workout', 'workouts'),

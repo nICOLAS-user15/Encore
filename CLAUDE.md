@@ -111,8 +111,9 @@ Dirty, dark and minimalist: grit is the texture, minimalism is the structure. Si
 These are learning exercises with a TODO and tests in `describe.skip`. **Do not implement** these functions unless the author asks:
 
 1. `src/lib/units.ts`: `kgToLb`, `lbToKg`, `formatWeight`.
-2. `src/lib/oneRepMax.ts`: `estimateOneRepMax` (Epley).
-3. `src/lib/time.ts`: `formatDuration` (the current placeholder only shows minutes).
+2. `src/lib/time.ts`: `formatDuration` (the current placeholder only shows minutes).
+
+(`estimateOneRepMax` in `src/lib/oneRepMax.ts` was an exercise too; the author released it and it is now implemented and tested.)
 
 Until `formatWeight` exists, the UI shows loads in kg only via `formatDecimal`/`formatSet` (`src/lib/format.ts`).
 
@@ -120,7 +121,8 @@ Until `formatWeight` exists, the UI shows loads in kg only via `formatDecimal`/`
 
 See the README for status and roadmap.
 
-- Per-exercise rest: `RoutineExercise.restSeconds` (`null` = the Settings default); read it with `restSecondsOf`, which covers old items without the field. The manual "Rest" button uses the exercise of the next set. Comparison summary: `ComparisonCard` on the workout detail (volume, sets and duration vs. the previous time of the same routine, via `getPreviousSummary` + `compareWorkouts`). A ⋯ menu on the exercise card (warm-up and remove; the footer only has + Set / + Encore). PRs and kg/lb wait for the author's exercises (units.ts, oneRepMax.ts).
+- Per-exercise rest: `RoutineExercise.restSeconds` (`null` = the Settings default); read it with `restSecondsOf`, which covers old items without the field. The manual "Rest" button uses the exercise of the next set. Comparison summary: `ComparisonCard` on the workout detail (volume, sets and duration vs. the previous time of the same routine, via `getPreviousSummary` + `compareWorkouts`). A ⋯ menu on the exercise card (warm-up and remove; the footer only has + Set / + Encore).
+- **Personal records** (`src/features/records/`): a completed WORKING set (warm-up never) is a record when it beats everything done before it in heaviest load or in estimated 1RM (`estimateOneRepMax`, Epley). The first time an exercise is ever done has no records; ties are not records; bodyweight (0 kg) never is. Inside a workout each set is compared with everything before it, including earlier sets of the same workout. `recordsStats.ts` holds the pure rules; `getExerciseBest` reads the `[exerciseId+completedAt]` index only up to the workout's start, so an old workout in the history is judged against what came before it. UI: `RecordBadge` ("PR", accent: records are one of the two allowed uses), the set's accessible name ends with "recorde pessoal", a `showInfo` toast "New record" when a set BECOMES a record on screen, and a count on the workout detail. kg/lb still waits for `units.ts`.
 - Progression (src/features/workout/progression.ts): double progression in `suggestNextLoad` (top of the range on every set at the highest load → + step and back to the minimum; otherwise +1 rep, capped at the top). Only `normal` sets count (encore and warm-up do not). Bodyweight (`stepKg = null`) progresses in reps only. "Apply" (`applyLoadSuggestion`) changes only the pending `normal` sets. `followWeightChange`: after saving a set with a new load, pending `normal` sets that still had the old load follow it.
 - Load steps per equipment: `Settings.weightStepsKg` (no index, no migration; `getSettings` merges with the default). Use `weightStepFor(settings, equipment)` for the suggestion and for the set editor's −/+.
 - Timer (`WorkoutTimer`): before starting it shows "Start" + "Rest"; once started it shows "Pause"/"Resume" + "Finish workout" (opens the confirmation; `finishWorkout` also stops the timer) and the footer button disappears. Pause: `Workout.timerPausedAt` (optional, no migration); on resume, `timerStartedAt` moves forward by the paused time. ALWAYS read time through `timerElapsedMs`/`workoutDurationMs` (workoutStats.ts), never `timerStoppedAt ?? now`. Rest starts on its own when a set is completed.

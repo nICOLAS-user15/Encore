@@ -11,6 +11,8 @@ import { CalendarIcon } from '../../ui/icons'
 import { ScreenHeader } from '../../ui/ScreenHeader'
 import { useAction, useToast } from '../../ui/toastContext'
 import { useExerciseMap } from '../exercises/useExerciseMap'
+import { RecordBadge } from '../records/RecordBadge'
+import { getWorkoutRecordIds } from '../records/recordsQueries'
 import { deleteWorkout, restoreWorkout } from '../workout/workoutActions'
 import { groupSetsByExercise, numberSets } from '../workout/workoutStats'
 import { getWorkoutSummary } from './historyQueries'
@@ -25,6 +27,17 @@ export function WorkoutDetailScreen() {
   const navigate = useNavigate()
   const summary = useLiveQuery(() => getWorkoutSummary(db, workoutId), [workoutId])
   const exerciseMap = useExerciseMap()
+  const recordIds = useLiveQuery(
+    async () =>
+      summary
+        ? getWorkoutRecordIds(
+            db,
+            { workoutId: summary.workout.id, startedAt: summary.workout.startedAt },
+            summary.sets,
+          )
+        : new Set<string>(),
+    [summary],
+  )
   const [confirmOpen, setConfirmOpen] = useState(false)
   const run = useAction()
   const { showUndo } = useToast()
@@ -72,6 +85,12 @@ export function WorkoutDetailScreen() {
         <Card>
           <SummaryStats summary={summary} />
         </Card>
+        {recordIds && recordIds.size > 0 && (
+          <p className="flex items-center gap-2 font-display text-lg font-semibold tracking-wide text-accent-bright uppercase">
+            <RecordBadge />
+            {t.records.inWorkout(recordIds.size)}
+          </p>
+        )}
         <ComparisonCard summary={summary} />
 
         {groups.map((group) => (
@@ -91,9 +110,14 @@ export function WorkoutDetailScreen() {
                   <span className="font-display text-xl font-bold tabular-nums">
                     {format.set(set.weightKg, set.reps)}
                   </span>
-                  {set.type === 'encore' && (
-                    <span className="ml-auto border-2 border-line px-1.5 text-xs font-bold tracking-wider text-muted uppercase">
-                      {t.workout.encore}
+                  {(recordIds?.has(set.id) || set.type === 'encore') && (
+                    <span className="ml-auto flex items-center gap-1.5">
+                      {recordIds?.has(set.id) && <RecordBadge />}
+                      {set.type === 'encore' && (
+                        <span className="border-2 border-line px-1.5 text-xs font-bold tracking-wider text-muted uppercase">
+                          {t.workout.encore}
+                        </span>
+                      )}
                     </span>
                   )}
                 </li>

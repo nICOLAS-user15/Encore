@@ -1,13 +1,15 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { db } from '../../db/db'
-import type { ID, RoutineExercise, SetEntry } from '../../db/types'
+import type { ID, RoutineExercise, SetEntry, Timestamp } from '../../db/types'
 import { useI18n } from '../../i18n/context'
 import { Button } from '../../ui/Button'
 import { Card } from '../../ui/Card'
 import { MoreIcon } from '../../ui/icons'
 import { Sheet } from '../../ui/Sheet'
-import { useAction } from '../../ui/toastContext'
+import { useAction, useToast } from '../../ui/toastContext'
+import { getExerciseBest } from '../records/recordsQueries'
+import { recordSetIds } from '../records/recordsStats'
 import { isSuggestionApplied, pendingPlannedSets, suggestNextLoad } from './progression'
 import { SetRow } from './SetRow'
 import { addSet, applyLoadSuggestion } from './workoutActions'
@@ -16,6 +18,8 @@ import { numberSets } from './workoutStats'
 
 type ExerciseBlockProps = {
   workoutId: ID
+  /** When the workout started: only sets done before it count for records. */
+  workoutStartedAt: Timestamp
   exerciseId: ID
   name: string
   sets: SetEntry[]
@@ -33,6 +37,7 @@ type ExerciseBlockProps = {
 /** An exercise in the active workout: target, "last time", load suggestion and the sets. */
 export function ExerciseBlock({
   workoutId,
+  workoutStartedAt,
   exerciseId,
   name,
   sets,
@@ -51,6 +56,14 @@ export function ExerciseBlock({
     () => getLastPerformance(db, exerciseId, workoutId),
     [exerciseId, workoutId],
   )
+
+  // Personal records: the best done before this workout (`null` = never done before).
+  const best = useLiveQuery(
+    () => getExerciseBest(db, exerciseId, { workoutId, startedAt: workoutStartedAt }),
+    [exerciseId, workoutId, workoutStartedAt],
+  )
+  const recordIds = best === undefined ? new Set<ID>() : recordSetIds(sets, best)
+  useNewRecordNotice(best === undefined ? null : recordIds, name)
 
   // Working set numbers (1, 2, 3); warm-up stays null and becomes "AQ".
   const numbers = numberSets(sets)
@@ -151,6 +164,7 @@ export function ExerciseBlock({
             label={numbers[index] ?? t.workout.warmupShort}
             exerciseName={name}
             isNext={set.id === nextSetId}
+            isRecord={recordIds.has(set.id)}
             onEdit={() => onEditSet(set)}
             onToggle={() => onToggleSet(set)}
           />
@@ -197,4 +211,28 @@ export function ExerciseBlock({
       </Sheet>
     </Card>
   )
+}
+
+/**
+ * Shows "New record: <exercise>" when a set BECOMES a record while the screen is open
+ * (completing a heavier set, or editing one). Records that already existed when the
+ * workout was opened do not trigger it. `recordIds` is `null` while still loading.
+ */
+function useNewRecordNotice(recordIds: Set<ID> | null, exerciseName: string) {
+  const { t } = useI18n()
+  const { showInfo } = useToast()
+  const seen = useRef<Set<ID> | null>(null)
+  const key = recordIds === null ? null : [...recordIds].sort().join(',')
+
+  useEffect(() => {
+    if (key === null) {
+      return
+    }
+    const current = new Set(key === '' ? [] : key.split(','))
+    const previous = seen.current
+    seen.current = current
+    if (previous !== null && [...current].some((id) => !previous.has(id))) {
+      showInfo(t.records.newRecord(exerciseName))
+    }
+  }, [key, exerciseName, showInfo, t])
 }

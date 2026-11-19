@@ -4,11 +4,13 @@ import { useI18n } from '../i18n/context'
 export type ToastApi = {
   /** Shows a notice with a "Desfazer" button. */
   showUndo: (message: string, undo: () => void | Promise<unknown>) => void
+  /** Shows a plain notice (no action), e.g. "New record". */
+  showInfo: (message: string) => void
   showError: (message: string) => void
 }
 
 /** Without a provider (single-component tests): shows nothing, but does not break. */
-const noop: ToastApi = { showUndo: () => {}, showError: () => {} }
+const noop: ToastApi = { showUndo: () => {}, showInfo: () => {}, showError: () => {} }
 export const ToastContext = createContext<ToastApi>(noop)
 
 export function useToast(): ToastApi {
