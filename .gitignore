@@ -29,6 +29,8 @@ dist-ssr
 !.env.example
 coverage
 *.tsbuildinfo
+playwright-report
+test-results
 
 # AI tooling (local settings)
 .claude/

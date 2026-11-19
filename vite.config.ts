@@ -1,8 +1,7 @@
-/// <reference types="vitest/config" />
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { readFileSync } from 'node:fs'
-import { defineConfig } from 'vite'
+import { configDefaults, defineConfig } from 'vitest/config'
 import { VitePWA } from 'vite-plugin-pwa'
 
 const DARK = '#0e0d0c'
@@ -65,5 +64,7 @@ export default defineConfig({
     // Simulates the browser (DOM) in Node to test components.
     environment: 'jsdom',
     setupFiles: ['src/test/setup.ts'],
+    // End-to-end specs (Playwright) run with `pnpm e2e`, not with Vitest.
+    exclude: [...configDefaults.exclude, 'e2e/**'],
   },
 })

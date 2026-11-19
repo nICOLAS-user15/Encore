@@ -21,7 +21,7 @@ Encore is a PWA: it installs on the home screen (Android and iOS), opens full sc
 
 ## Stack
 
-React 19 · TypeScript (`strict`) · Vite · Tailwind CSS v4 · React Router · Dexie (IndexedDB) · `vite-plugin-pwa` · Vitest + Testing Library.
+React 19 · TypeScript (`strict`) · Vite · Tailwind CSS v4 · React Router · Dexie (IndexedDB) · `vite-plugin-pwa` · Vitest + Testing Library · Playwright.
 
 ## Getting started
 
@@ -30,7 +30,8 @@ Requirements: Node 22 and [pnpm](https://pnpm.io).
 ```bash
 pnpm install
 pnpm dev       # development server
-pnpm test      # tests
+pnpm test      # unit and screen tests
+pnpm e2e       # end-to-end tests (Playwright), including offline mode
 pnpm lint      # ESLint + Prettier
 pnpm build     # production build (generates the service worker)
 pnpm preview   # serves the build: offline mode only works here

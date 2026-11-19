@@ -19,7 +19,7 @@ Encore is a PWA for logging strength workouts, used for real at the gym (phone, 
 
 ## Stack
 
-Vite 8 · React 19 · TypeScript 6.0 (`strict`) · Tailwind CSS v4 · React Router v8 · Dexie 4 + dexie-react-hooks · vite-plugin-pwa · Vitest + Testing Library + fake-indexeddb · ESLint + Prettier · pnpm.
+Vite 8 · React 19 · TypeScript 6.0 (`strict`) · Tailwind CSS v4 · React Router v8 · Dexie 4 + dexie-react-hooks · vite-plugin-pwa · Vitest + Testing Library + fake-indexeddb · Playwright (E2E) · ESLint + Prettier · pnpm.
 
 - TS stays on 6.0 because `typescript-eslint` does not support 7 yet. Do not upgrade without checking that.
 - `pnpm-workspace.yaml` exists to isolate the project: a parent folder on the author's machine has its own pnpm workspace.
@@ -34,6 +34,7 @@ pnpm preview         # serves the build; use it to test offline
 pnpm lint            # eslint + prettier --check
 pnpm format          # prettier --write
 pnpm test            # vitest run
+pnpm e2e             # Playwright against the production build (E2E_CHANNEL=chrome reuses the local Chrome)
 pnpm generate-icons  # PWA icons from public/logo.svg
 ```
 
@@ -100,7 +101,7 @@ Dirty, dark and minimalist: grit is the texture, minimalism is the structure. Si
 - **No hard-coded UI text in components**: add the key to `src/i18n/pt.ts` AND `src/i18n/en.ts` and use `t.area.key`. Numbers and dates go through `format.*` from `useI18n`. Language names appear in their own language ("Português", "English").
 - Components are named functions with named exports (no `export default`).
 - Props typed with `type`; no `any`.
-- Tests live next to the file (`*.test.ts(x)`); database tests use `createDatabase('<unique name>')`.
+- Tests live next to the file (`*.test.ts(x)`); database tests use `createDatabase('<unique name>')`. End-to-end specs live in `e2e/` (Playwright, run by `pnpm e2e` and in CI, excluded from Vitest); they use the Portuguese UI labels and navigate through the UI (opening a URL from scratch always lands on `/treino`). `e2e/offline.spec.ts` is the proof of the offline promise: keep it green.
 - **Commits:** Conventional Commits **in English**, formatted `type(scope): summary in the imperative`, up to ~70 characters, no trailing period. Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `style`. Scope = the feature area (`workout`, `routines`, `splits`, `exercises`, `history`, `settings`, `db`, `i18n`, `ui`, `app`, `pwa`, `deploy`), optional. Examples: `feat(workout): add pause and resume to the timer`, `fix(settings): validate the backup before importing`. One commit per feature or fix (code + test + docs together); no `docs:` commits that merely trail a `feat:`.
 - **No AI attribution:** commit and PR messages carry no `Co-Authored-By`, no "Generated with Claude Code" and no mention of AI.
 - **The author makes the commits.** Agents do not run `git commit`/`git push`: they hand over the commands (`git add <files>` + `git commit -m ...`, one per feature) for the author to run.
