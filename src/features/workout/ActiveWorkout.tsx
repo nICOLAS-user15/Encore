@@ -32,7 +32,7 @@ import {
   followWeightChange,
   removeExerciseFromWorkout,
   restoreSets,
-  toggleSetCompleted,
+  setSetCompleted,
   updateSet,
 } from './workoutActions'
 import { listWorkoutSets } from './workoutQueries'
@@ -43,6 +43,14 @@ import {
   nextPendingSetId,
   numberSets,
 } from './workoutStats'
+
+/** Un-completing a set within this time of completing it is an accidental double tap. */
+const DOUBLE_TAP_MS = 800
+
+/** Called on a tap (not during render): a tap right after completing is a double tap, not "undo". */
+function isDoubleTap(set: SetEntry): boolean {
+  return set.completedAt !== null && Date.now() - set.completedAt < DOUBLE_TAP_MS
+}
 
 /** Which confirmation is open (union type: only one case at a time). */
 type Confirmation =
@@ -129,9 +137,14 @@ export function ActiveWorkout({ workout }: { workout: Workout }) {
   }
 
   async function handleToggle(set: SetEntry) {
+    const complete = set.completedAt === null
+    // A second tap right after completing is a double tap, not "undo": ignore it.
+    if (isDoubleTap(set)) {
+      return
+    }
     prepareRestSound()
-    const nowCompleted = await run(() => toggleSetCompleted(db, set.id))
-    if (nowCompleted) {
+    const changed = await run(() => setSetCompleted(db, set.id, complete))
+    if (changed && complete) {
       tapFeedback()
       maybeStartRest(set.exerciseId)
     }
@@ -143,16 +156,14 @@ export function ActiveWorkout({ workout }: { workout: Workout }) {
       return
     }
     const saved = editingSet
-    const ok = await run(async () => {
+    const justCompleted = await run(async () => {
       await updateSet(db, saved.id, values)
       // The next pending sets with the old load follow the new one.
       await followWeightChange(db, saved, saved.weightKg, values.weightKg)
-      if (complete && saved.completedAt === null) {
-        await toggleSetCompleted(db, saved.id)
-      }
-      return true
+      // A double tap on "Concluir série" asks twice: only the first one changes the set.
+      return complete && (await setSetCompleted(db, saved.id, true))
     })
-    if (ok && complete && saved.completedAt === null) {
+    if (justCompleted) {
       tapFeedback()
       maybeStartRest(saved.exerciseId)
     }
@@ -163,9 +174,9 @@ export function ActiveWorkout({ workout }: { workout: Workout }) {
     const deleted = editingSet
     setEditingSetId(null)
     if (deleted) {
-      const done = await run(() => deleteSet(db, deleted.id))
-      if (done !== undefined) {
-        showUndo(t.workout.setDeleted, () => restoreSets(db, [deleted.id]))
+      const deletedId = await run(() => deleteSet(db, deleted.id))
+      if (deletedId !== undefined) {
+        showUndo(t.workout.setDeleted, () => restoreSets(db, [deletedId]))
       }
     }
   }

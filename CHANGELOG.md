@@ -8,6 +8,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 ### Fixed
 
 - Opening a routine just to look at it no longer shows "Workout in progress": a workout only counts as in progress once the timer is started or a set is completed.
+- Deleting a set offers "Undo" again.
+- A quick double tap on a set's ✓ or on "Complete set" no longer un-completes the set.
+- A routine opened just to look at it and started hours later becomes a fresh workout, with the right date and duration in the history.
+- Switching routine while the timer is running now asks first, instead of discarding the workout.
 
 ## [1.0.0] - 2026-11-19
 

@@ -13,7 +13,9 @@ import {
   removeExerciseFromWorkout,
   restoreSets,
   restoreWorkout,
+  REOPEN_WINDOW_MS,
   resumeWorkoutTimer,
+  setSetCompleted,
   startOrSwitchWorkout,
   startWorkout,
   startWorkoutTimer,
@@ -329,6 +331,45 @@ describe('switching workouts and atomicity', () => {
     await toggleSetCompleted(db, set.id)
     const blocked = await startOrSwitchWorkout(db, upperA)
     expect(blocked.status).toBe('blocked')
+  })
+
+  it('setSetCompleted: a double tap asks for the same state twice, so the set stays completed', async () => {
+    const workout = await startWorkout(db, upperA)
+    const [first] = await listWorkoutSets(db, workout.id)
+
+    const results = await Promise.all([
+      setSetCompleted(db, first.id, true),
+      setSetCompleted(db, first.id, true),
+    ])
+
+    expect(results).toEqual([true, false])
+    expect((await db.setEntries.get(first.id))?.completedAt).not.toBeNull()
+  })
+
+  it('startOrSwitchWorkout: a running timer also counts as begun, so switching is blocked', async () => {
+    const [, second] = await listRoutinesWithExercises(db)
+    const workout = await startWorkout(db, upperA)
+    await startWorkoutTimer(db, workout.id)
+
+    const result = await startOrSwitchWorkout(db, second.routine.id)
+
+    expect(result.status).toBe('blocked')
+    expect((await getActiveWorkout(db))?.id).toBe(workout.id)
+  })
+
+  it('startOrSwitchWorkout: a workout only opened long ago is replaced by a fresh one', async () => {
+    const opened = await startWorkout(db, upperA)
+    // Opened just to look, three hours ago (e.g. on another day).
+    await db.workouts.update(opened.id, {
+      startedAt: Date.now() - REOPEN_WINDOW_MS - 60_000,
+    })
+
+    const result = await startOrSwitchWorkout(db, upperA)
+
+    if (result.status !== 'started') throw new Error('expected started')
+    expect(result.workout.id).not.toBe(opened.id)
+    expect(Date.now() - result.workout.startedAt).toBeLessThan(5_000)
+    expect((await db.workouts.get(opened.id))?.deletedAt).not.toBeNull()
   })
 
   it('does not start a workout from a routine that no longer exists', async () => {

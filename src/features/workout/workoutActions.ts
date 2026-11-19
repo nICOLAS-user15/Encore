@@ -17,7 +17,7 @@ import {
   type LastPerformance,
 } from './workoutQueries'
 import { pendingPlannedSets } from './progression'
-import { isWorkingSet, warmupValues } from './workoutStats'
+import { hasWorkoutBegun, isWorkingSet, warmupValues } from './workoutStats'
 
 /*
  * Everything that WRITES during a workout. Each function saves right away: if the app
@@ -133,28 +133,40 @@ export type StartResult =
   | { status: 'blocked'; active: Workout }
 
 /**
+ * A workout that was only opened (not begun) is reopened as it is only within this
+ * window: afterwards it is a leftover from another day, and reusing it would date the
+ * new workout (history, duration, weekly volume) by the old opening.
+ */
+export const REOPEN_WINDOW_MS = 2 * 60 * 60 * 1000
+
+/**
  * Start from the list (Workout or Routines tab), allowing a change of mind:
  * - same workout already open: continues it;
- * - another workout open, but with no completed set (e.g. tapped the wrong
- *   workout): it is discarded, since there is nothing to lose, and the new one starts;
- * - another workout with completed sets: touches nothing and returns `blocked`.
+ * - open workout that has not begun (`hasWorkoutBegun`: no timer, no completed set),
+ *   for another routine or opened more than `REOPEN_WINDOW_MS` ago: it is discarded,
+ *   since there is nothing to lose, and a fresh one starts;
+ * - another workout that has begun: touches nothing and returns `blocked`.
  */
 export async function startOrSwitchWorkout(
   db: EncoreDB,
   routineId: ID | null,
 ): Promise<StartResult> {
-  // A single transaction: the "no completed set" check and the discard cannot be separated.
+  // A single transaction: the "has it begun?" check and the discard cannot be separated.
   return db.transaction(
     'rw',
     [db.workouts, db.setEntries, db.routineExercises, db.routines],
     async (): Promise<StartResult> => {
       const active = await getActiveWorkout(db)
-      if (active && active.routineId !== routineId) {
-        const sets = await listWorkoutSets(db, active.id)
-        if (sets.some((set) => set.completedAt !== null)) {
+      if (active) {
+        const sameRoutine = active.routineId === routineId
+        const begun = hasWorkoutBegun(active, await listWorkoutSets(db, active.id))
+        if (begun && !sameRoutine) {
           return { status: 'blocked', active }
         }
-        await deleteWorkout(db, active.id)
+        const stale = Date.now() - active.startedAt > REOPEN_WINDOW_MS
+        if (!begun && (!sameRoutine || stale)) {
+          await deleteWorkout(db, active.id)
+        }
       }
       return { status: 'started', workout: await startWorkout(db, routineId) }
     },
@@ -280,8 +292,32 @@ export async function toggleSetCompleted(db: EncoreDB, setId: ID): Promise<boole
   return completed
 }
 
-export async function deleteSet(db: EncoreDB, setId: ID): Promise<void> {
+/**
+ * Puts the set in the state the user MEANT (`completed`), instead of flipping it. A double
+ * tap on ✓ or on "Concluir série" sends the same intention twice: the second one changes
+ * nothing. Returns `true` only if the set really changed.
+ */
+export async function setSetCompleted(
+  db: EncoreDB,
+  setId: ID,
+  completed: boolean,
+): Promise<boolean> {
+  return db.transaction('rw', db.setEntries, async () => {
+    const set = await db.setEntries.get(setId)
+    if (!set || !isActive(set) || (set.completedAt !== null) === completed) {
+      return false
+    }
+    await updateRecord(db.setEntries, setId, {
+      completedAt: completed ? Date.now() : null,
+    })
+    return true
+  })
+}
+
+/** Deletes a set (soft). Returns its id, for "Desfazer" (`restoreSets`). */
+export async function deleteSet(db: EncoreDB, setId: ID): Promise<ID> {
   await softDelete(db.setEntries, setId)
+  return setId
 }
 
 /**

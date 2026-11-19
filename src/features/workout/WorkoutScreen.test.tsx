@@ -10,6 +10,8 @@ import { updateRoutineExercise } from '../routines/routineActions'
 import { importTestProgram } from '../../test/fixtures'
 import { listRoutinesWithExercises } from '../routines/routineQueries'
 import { updateSettings } from '../settings/settingsRepository'
+import { BottomDockProvider } from '../../ui/BottomDock'
+import { ToastProvider } from '../../ui/Toast'
 
 function renderAt(path: string) {
   const router = createMemoryRouter(routes, { initialEntries: [path] })
@@ -209,6 +211,64 @@ describe('exercise ⋯ menu', () => {
     expect(
       screen.getByRole('heading', { level: 2, name: 'Puxada frontal' }),
     ).toBeInTheDocument()
+  })
+})
+
+describe('sets: undo and double taps', () => {
+  async function openUpperA() {
+    await importTestProgram(db)
+    // With the dock and the toasts (App.tsx provides them in the real app): "Desfazer" lives there.
+    const router = createMemoryRouter(routes, { initialEntries: ['/treino'] })
+    render(
+      <BottomDockProvider>
+        <ToastProvider>
+          <RouterProvider router={router} />
+        </ToastProvider>
+      </BottomDockProvider>,
+    )
+    fireEvent.click(await screen.findByRole('button', { name: /Upper A/ }))
+    return screen.findAllByRole('button', { name: /^Concluir série/ })
+  }
+
+  it('deleting a set offers "Desfazer", which brings it back', async () => {
+    const before = (await openUpperA()).length
+
+    fireEvent.click(
+      (await screen.findAllByRole('button', { name: /^Editar série 1/ }))[0],
+    )
+    const editor = await screen.findByRole('dialog', { name: /Série 1/ })
+    fireEvent.click(within(editor).getByRole('button', { name: 'Excluir série' }))
+
+    await waitFor(() =>
+      expect(screen.getAllByRole('button', { name: /^Concluir série/ })).toHaveLength(
+        before - 1,
+      ),
+    )
+    fireEvent.click(await screen.findByRole('button', { name: 'Desfazer' }))
+    await waitFor(() =>
+      expect(screen.getAllByRole('button', { name: /^Concluir série/ })).toHaveLength(
+        before,
+      ),
+    )
+  })
+
+  it('a double tap on ✓ leaves the set completed', async () => {
+    const [firstCheck] = await openUpperA()
+
+    fireEvent.click(firstCheck)
+    fireEvent.click(firstCheck)
+    const undo = (await screen.findAllByRole('button', { name: 'Desfazer série 1' }))[0]
+    // A tap right after completing is still the same double tap: ignored.
+    fireEvent.click(undo)
+
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    expect(
+      (await screen.findAllByRole('button', { name: 'Desfazer série 1' }))[0],
+    ).toBeInTheDocument()
+    const completed = await db.setEntries
+      .filter((set) => set.completedAt !== null)
+      .count()
+    expect(completed).toBe(1)
   })
 })
 
