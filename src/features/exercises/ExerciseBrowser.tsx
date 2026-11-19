@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router'
 import { LANGUAGES, MUSCLE_GROUPS, type Exercise, type MuscleGroup } from '../../db/types'
 import { useI18n } from '../../i18n/context'
 import { cn } from '../../lib/cn'
@@ -205,5 +206,13 @@ function ExerciseRow({ exercise, onSelect }: ExerciseRowProps) {
       </button>
     )
   }
-  return <div className={classes}>{content}</div>
+  // Browsing (Exercises tab): the row opens the exercise's progress.
+  return (
+    <Link
+      to={`/exercicios/${exercise.id}`}
+      className={cn(classes, 'active:bg-background')}
+    >
+      {content}
+    </Link>
+  )
 }

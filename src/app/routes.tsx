@@ -1,4 +1,5 @@
 import { Navigate, type RouteObject } from 'react-router'
+import { ExerciseDetailScreen } from '../features/exercises/ExerciseDetailScreen'
 import { ExercisesScreen } from '../features/exercises/ExercisesScreen'
 import { HistoryScreen } from '../features/history/HistoryScreen'
 import { WorkoutDetailScreen } from '../features/history/WorkoutDetailScreen'
@@ -46,6 +47,11 @@ export const routes: RouteObject[] = [
         handle: { backTo: '/rotinas' } satisfies RouteHandle,
       },
       { path: 'exercicios', element: <ExercisesScreen /> },
+      {
+        path: 'exercicios/:exerciseId',
+        element: <ExerciseDetailScreen />,
+        handle: { backTo: '/exercicios' } satisfies RouteHandle,
+      },
       { path: 'historico', element: <HistoryScreen /> },
       // `:workoutId` is a parameter: /historico/abc-123 -> workoutId = "abc-123".
       {

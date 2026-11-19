@@ -14,6 +14,7 @@ test('log a set, finish the workout and find it in the history', async ({ page }
   // And it shows up in the History tab.
   await page.getByRole('link', { name: 'Histórico' }).click()
   await expect(page.getByRole('heading', { level: 1, name: 'Histórico' })).toBeVisible()
-  await expect(page.getByText('Treino livre')).toBeVisible()
-  await expect(page.getByText('640 kg')).toBeVisible()
+  // The volume also shows in the "This week" card: check the workout's own card.
+  const workoutCard = page.getByRole('link', { name: /Treino livre/ })
+  await expect(workoutCard).toContainText('640 kg')
 })

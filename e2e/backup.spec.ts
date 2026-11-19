@@ -39,7 +39,7 @@ test('export a backup and import it into a clean browser profile', async ({
   ).toBeVisible()
 
   await other.getByRole('link', { name: 'Histórico' }).click()
-  await expect(other.getByText('Treino livre')).toBeVisible()
-  await expect(other.getByText('600 kg')).toBeVisible()
+  // The volume also shows in the "This week" card: check the workout's own card.
+  await expect(other.getByRole('link', { name: /Treino livre/ })).toContainText('600 kg')
   await clean.close()
 })
