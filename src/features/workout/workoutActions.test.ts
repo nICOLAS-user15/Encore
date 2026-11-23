@@ -5,6 +5,7 @@ import { importTestProgram } from '../../test/fixtures'
 import { listRoutinesWithExercises } from '../routines/routineQueries'
 import {
   addExerciseToWorkout,
+  addSetToFinishedWorkout,
   addSet,
   deleteWorkout,
   finishWorkout,
@@ -22,7 +23,12 @@ import {
   toggleSetCompleted,
   updateSet,
 } from './workoutActions'
-import { getActiveWorkout, listFinishedWorkouts, listWorkoutSets } from './workoutQueries'
+import {
+  getActiveWorkout,
+  getLastPerformance,
+  listFinishedWorkouts,
+  listWorkoutSets,
+} from './workoutQueries'
 import { groupSetsByExercise, timerElapsedMs, workoutDurationMs } from './workoutStats'
 
 let db: EncoreDB
@@ -279,6 +285,54 @@ describe('workout timer', () => {
 
     const finished = await db.workouts.get(workout.id)
     expect(finished?.timerStoppedAt).toBe(finished?.endedAt)
+  })
+})
+
+describe('editing a finished workout', () => {
+  /** Upper A with the first bench press set completed (load changed to `weightKg`), finished. */
+  async function finishedWorkout(weightKg: number) {
+    const workout = await startWorkout(db, upperA)
+    const [first] = await listWorkoutSets(db, workout.id)
+    await updateSet(db, first.id, { weightKg })
+    await toggleSetCompleted(db, first.id)
+    await finishWorkout(db, workout.id)
+    return (await db.workouts.get(workout.id))!
+  }
+
+  it('a set added later copies the last working set and is completed at the end of the workout', async () => {
+    const workout = await finishedWorkout(30)
+
+    const added = await addSetToFinishedWorkout(db, workout.id, benchPress)
+
+    expect(added).toMatchObject({
+      exerciseId: benchPress,
+      weightKg: 30,
+      type: 'normal',
+      completedAt: workout.endedAt,
+    })
+  })
+
+  it('a set added to an old workout does not make it the "last time"', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    try {
+      vi.setSystemTime(1_000_000)
+      const old = await finishedWorkout(30)
+      vi.setSystemTime(9_000_000)
+      const recent = await finishedWorkout(40)
+
+      vi.setSystemTime(20_000_000) // editing the old one today
+      await addSetToFinishedWorkout(db, old.id, benchPress)
+
+      expect((await getLastPerformance(db, benchPress))?.workoutId).toBe(recent.id)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('refuses a workout that is still in progress', async () => {
+    const workout = await startWorkout(db, upperA)
+
+    await expect(addSetToFinishedWorkout(db, workout.id, benchPress)).rejects.toThrow()
   })
 })
 

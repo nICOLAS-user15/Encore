@@ -17,6 +17,8 @@ type SetEditorProps = {
   /** `complete: true` = save and mark as completed. */
   onSave: (values: SetValues, complete: boolean) => void
   onDelete: () => void
+  /** `false` hides "Excluir série" (the only set of a finished workout: delete the workout instead). */
+  canDelete?: boolean
 }
 
 export function SetEditor({
@@ -26,6 +28,7 @@ export function SetEditor({
   onClose,
   onSave,
   onDelete,
+  canDelete = true,
 }: SetEditorProps) {
   return (
     <Sheet open={set !== null} title={title} onClose={onClose} dismissOnBackdrop={false}>
@@ -37,6 +40,7 @@ export function SetEditor({
           weightStepKg={weightStepKg}
           onSave={onSave}
           onDelete={onDelete}
+          canDelete={canDelete}
         />
       )}
     </Sheet>
@@ -48,9 +52,16 @@ type SetEditorFormProps = {
   weightStepKg: number
   onSave: SetEditorProps['onSave']
   onDelete: () => void
+  canDelete: boolean
 }
 
-function SetEditorForm({ set, weightStepKg, onSave, onDelete }: SetEditorFormProps) {
+function SetEditorForm({
+  set,
+  weightStepKg,
+  onSave,
+  onDelete,
+  canDelete,
+}: SetEditorFormProps) {
   const { t } = useI18n()
   // Local copy: nothing is saved until one of the buttons is tapped.
   const [weightKg, setWeightKg] = useState(set.weightKg)
@@ -86,9 +97,11 @@ function SetEditorForm({ set, weightStepKg, onSave, onDelete }: SetEditorFormPro
         <Button fullWidth onClick={() => onSave(values, false)}>
           {t.common.save}
         </Button>
-        <Button variant="ghost" fullWidth onClick={onDelete}>
-          {t.workout.deleteSet}
-        </Button>
+        {canDelete && (
+          <Button variant="ghost" fullWidth onClick={onDelete}>
+            {t.workout.deleteSet}
+          </Button>
+        )}
       </div>
     </div>
   )

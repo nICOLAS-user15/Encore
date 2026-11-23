@@ -336,6 +336,8 @@ export const pt = {
     weeklyLabel: 'Volume da semana por grupo muscular',
     weeklyEmpty: 'Nenhum treino nesta semana ainda.',
     setCount: (n: number) => plural(n, 'série', 'séries'),
+    editHint: 'Toque numa série para corrigir a carga ou as repetições.',
+    addSetTo: (name: string) => `Adicionar série em ${name}`,
   },
   settings: {
     title: 'Configurações',

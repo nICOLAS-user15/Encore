@@ -5,6 +5,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+### Added
+
+- Finished workouts can be corrected: tap a set in the history to fix its load or reps, delete it (with undo), or add a set you did but forgot to log. Records, comparisons and charts follow the correction.
+
 ### Changed
 
 - "Finish workout?" now says how many unmarked sets will be discarded, so a forgotten ✓ does not go unnoticed.

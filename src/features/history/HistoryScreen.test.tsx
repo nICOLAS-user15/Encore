@@ -5,6 +5,8 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { routes } from '../../app/routes'
 import { db } from '../../db/db'
 import { importTestProgram } from '../../test/fixtures'
+import { BottomDockProvider } from '../../ui/BottomDock'
+import { ToastProvider } from '../../ui/Toast'
 import { listRoutinesWithExercises } from '../routines/routineQueries'
 import {
   finishWorkout,
@@ -118,5 +120,80 @@ describe('comparison with the previous time', () => {
 
     await screen.findByRole('heading', { level: 1, name: 'Upper A' })
     expect(screen.queryByText(/^Comparado ao/)).not.toBeInTheDocument()
+  })
+})
+
+describe('correcting a finished workout', () => {
+  /** Upper A with the first `count` bench press sets completed (25 kg × 8), finished. */
+  async function finishBench(count: number) {
+    const [upperA] = await listRoutinesWithExercises(db)
+    const workout = await startWorkout(db, upperA.routine.id)
+    const sets = await listWorkoutSets(db, workout.id)
+    for (const set of sets.slice(0, count)) {
+      await toggleSetCompleted(db, set.id)
+    }
+    await finishWorkout(db, workout.id)
+    return workout
+  }
+
+  /** Detail screen with the dock and the toasts ("Desfazer" lives there). */
+  function renderDetail(workoutId: string) {
+    const router = createMemoryRouter(routes, {
+      initialEntries: [`/historico/${workoutId}`],
+    })
+    render(
+      <BottomDockProvider>
+        <ToastProvider>
+          <RouterProvider router={router} />
+        </ToastProvider>
+      </BottomDockProvider>,
+    )
+  }
+
+  it('tapping a set opens the editor and saving changes the value', async () => {
+    renderDetail((await finishBench(2)).id)
+
+    fireEvent.click(await screen.findByRole('button', { name: /^Editar série 1:/ }))
+    const editor = await screen.findByRole('dialog', { name: /Série 1/ })
+    // A finished set has nothing to complete: only save and delete.
+    expect(
+      within(editor).queryByRole('button', { name: 'Concluir série' }),
+    ).not.toBeInTheDocument()
+    fireEvent.change(within(editor).getByRole('textbox', { name: 'Carga' }), {
+      target: { value: '30' },
+    })
+    fireEvent.click(within(editor).getByRole('button', { name: 'Salvar' }))
+
+    expect(await screen.findByText('30 kg × 8')).toBeInTheDocument()
+    expect(screen.getByText('440 kg')).toBeInTheDocument() // 30 × 8 + 25 × 8
+  })
+
+  it('deleting a set offers "Desfazer", and "+ Série" logs a forgotten one', async () => {
+    renderDetail((await finishBench(2)).id)
+
+    fireEvent.click(await screen.findByRole('button', { name: /^Editar série 2:/ }))
+    const editor = await screen.findByRole('dialog', { name: /Série 2/ })
+    fireEvent.click(within(editor).getByRole('button', { name: 'Excluir série' }))
+    await waitFor(() => expect(screen.getAllByText('25 kg × 8')).toHaveLength(1))
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Desfazer' }))
+    await waitFor(() => expect(screen.getAllByText('25 kg × 8')).toHaveLength(2))
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Adicionar série em Supino reto com barra' }),
+    )
+    await waitFor(() => expect(screen.getAllByText('25 kg × 8')).toHaveLength(3))
+  })
+
+  it('the only set of the workout cannot be deleted (the workout can)', async () => {
+    renderDetail((await finishBench(1)).id)
+
+    fireEvent.click(await screen.findByRole('button', { name: /^Editar série 1:/ }))
+    const editor = await screen.findByRole('dialog', { name: /Série 1/ })
+
+    expect(within(editor).getByRole('button', { name: 'Salvar' })).toBeInTheDocument()
+    expect(
+      within(editor).queryByRole('button', { name: 'Excluir série' }),
+    ).not.toBeInTheDocument()
   })
 })

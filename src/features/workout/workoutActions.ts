@@ -207,19 +207,50 @@ export async function addSet(
     const sets = (await listWorkoutSets(db, workoutId)).filter(
       (set) => set.exerciseId === exerciseId,
     )
-    let values: SetValues
-    if (type === 'warmup') {
-      // Warm-up: half the load of the first working set.
-      values = warmupValues(sets)
-    } else {
-      // Normal/encore set: copies the last WORKING set (not the warm-up).
-      const previous = sets.filter(isWorkingSet).at(-1)
-      values = previous
-        ? { weightKg: previous.weightKg, reps: previous.reps }
-        : EMPTY_VALUES
-    }
+    // Warm-up: half the load of the first working set; normal/encore: a copy of the last one.
+    const values = type === 'warmup' ? warmupValues(sets) : lastWorkingValues(sets)
     const position = await nextPosition(db, workoutId)
     return createSet(db, workoutId, exerciseId, position, values, type)
+  })
+}
+
+/** Load and reps of the last WORKING set (not the warm-up), or zeros if there is none. */
+function lastWorkingValues(sets: SetEntry[]): SetValues {
+  const previous = sets.filter(isWorkingSet).at(-1)
+  return previous ? { weightKg: previous.weightKg, reps: previous.reps } : EMPTY_VALUES
+}
+
+/**
+ * "+ Série" on a FINISHED workout (history): a set the user did but forgot to log.
+ * It copies the last working set of the exercise and is born completed.
+ *
+ * `completedAt` is the workout's `endedAt`, not "now": "last time" and records order sets
+ * by `completedAt`, so a set stamped "now" would make an old workout look like the most
+ * recent one and change what the next workout is pre-filled with.
+ */
+export async function addSetToFinishedWorkout(
+  db: EncoreDB,
+  workoutId: ID,
+  exerciseId: ID,
+): Promise<SetEntry> {
+  return db.transaction('rw', [db.workouts, db.setEntries], async () => {
+    const workout = await db.workouts.get(workoutId)
+    if (!workout || !isActive(workout) || workout.endedAt === null) {
+      throw new Error(`Workout ${workoutId} is not a finished workout`)
+    }
+    const sets = (await listWorkoutSets(db, workoutId)).filter(
+      (set) => set.exerciseId === exerciseId,
+    )
+    const values = lastWorkingValues(sets)
+    return createRecord(db.setEntries, {
+      workoutId,
+      exerciseId,
+      position: await nextPosition(db, workoutId),
+      weightKg: values.weightKg,
+      reps: values.reps,
+      type: 'normal',
+      completedAt: workout.endedAt,
+    })
   })
 }
 

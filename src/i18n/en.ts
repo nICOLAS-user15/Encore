@@ -316,6 +316,8 @@ export const en: Messages = {
     weeklyLabel: 'Weekly volume by muscle group',
     weeklyEmpty: 'No workouts this week yet.',
     setCount: (n) => plural(n, 'set', 'sets'),
+    editHint: 'Tap a set to fix its load or reps.',
+    addSetTo: (name) => `Add a set to ${name}`,
   },
   settings: {
     title: 'Settings',
