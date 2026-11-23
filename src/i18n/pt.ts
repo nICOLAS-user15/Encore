@@ -155,8 +155,15 @@ export const pt = {
     },
     confirm: {
       finishTitle: 'Finalizar treino?',
-      finishDescription: (n: number) =>
-        `${plural(n, 'série concluída', 'séries concluídas')}. As séries não concluídas serão descartadas.`,
+      /** `pending` = sets without ✓, which finishing deletes (said out loud, with the count). */
+      finishDescription: (n: number, pending: number) =>
+        pending === 0
+          ? `${plural(n, 'série concluída', 'séries concluídas')}.`
+          : `${plural(n, 'série concluída', 'séries concluídas')}. ${
+              pending === 1
+                ? '1 série não marcada será descartada.'
+                : `${pending} séries não marcadas serão descartadas.`
+            }`,
       finishEmptyDescription:
         'Nenhuma série foi concluída, então o treino será descartado.',
       finishConfirm: 'Finalizar',

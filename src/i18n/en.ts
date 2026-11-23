@@ -141,8 +141,14 @@ export const en: Messages = {
     },
     confirm: {
       finishTitle: 'Finish workout?',
-      finishDescription: (n) =>
-        `${plural(n, 'set completed', 'sets completed')}. Sets not completed will be discarded.`,
+      finishDescription: (n, pending) =>
+        pending === 0
+          ? `${plural(n, 'set completed', 'sets completed')}.`
+          : `${plural(n, 'set completed', 'sets completed')}. ${
+              pending === 1
+                ? '1 unmarked set will be discarded.'
+                : `${pending} unmarked sets will be discarded.`
+            }`,
       finishEmptyDescription: 'No set was completed, so the workout will be discarded.',
       finishConfirm: 'Finish',
       discardTitle: 'Discard workout?',

@@ -314,7 +314,13 @@ export function ActiveWorkout({ workout }: { workout: Workout }) {
 
       <ConfirmSheet
         open={confirmation !== null}
-        {...confirmationTexts(t, confirmation, completedCount, nameOf)}
+        {...confirmationTexts(
+          t,
+          confirmation,
+          completedCount,
+          sets.length - completedCount,
+          nameOf,
+        )}
         onConfirm={() => void handleConfirm()}
         onCancel={() => setConfirmation(null)}
       />
@@ -327,6 +333,8 @@ function confirmationTexts(
   t: Messages,
   confirmation: Confirmation,
   completedCount: number,
+  /** Sets without ✓ (warm-up included): finishing deletes them, so the dialog says how many. */
+  pendingCount: number,
   nameOf: (exerciseId: ID) => string,
 ) {
   const texts = t.workout.confirm
@@ -336,7 +344,7 @@ function confirmationTexts(
         title: texts.finishTitle,
         description:
           completedCount > 0
-            ? texts.finishDescription(completedCount)
+            ? texts.finishDescription(completedCount, pendingCount)
             : texts.finishEmptyDescription,
         confirmLabel: completedCount > 0 ? texts.finishConfirm : texts.discardConfirm,
         // With no set done, "finish" effectively discards the workout.

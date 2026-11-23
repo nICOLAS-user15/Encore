@@ -152,6 +152,51 @@ describe('timer on screen', () => {
   })
 })
 
+describe('finish confirmation', () => {
+  /** Opens "Finalizar treino?" and returns the dialog. */
+  async function openFinishDialog() {
+    fireEvent.click(await screen.findByRole('button', { name: 'Finalizar treino' }))
+    return screen.findByRole('dialog', { name: 'Finalizar treino?' })
+  }
+
+  it('says how many unmarked sets finishing discards', async () => {
+    await importTestProgram(db)
+    renderAt('/treino')
+    fireEvent.click(await screen.findByRole('button', { name: /Upper A/ }))
+    const [firstCheck] = await screen.findAllByRole('button', { name: /^Concluir série/ })
+    fireEvent.click(firstCheck)
+    await screen.findByRole('button', { name: 'Desfazer série 1' })
+
+    const dialog = await openFinishDialog()
+
+    // Upper A has 16 planned sets: 1 completed, 15 left without ✓.
+    expect(
+      within(dialog).getByText(
+        '1 série concluída. 15 séries não marcadas serão descartadas.',
+      ),
+    ).toBeInTheDocument()
+  })
+
+  it('with every set completed, does not mention discarding', async () => {
+    renderAt('/treino')
+    fireEvent.click(await screen.findByRole('button', { name: 'Treino livre' }))
+    fireEvent.click(await screen.findByRole('button', { name: '+ Adicionar exercício' }))
+    const picker = await screen.findByRole('dialog', { name: 'Adicionar exercício' })
+    fireEvent.change(await within(picker).findByRole('searchbox'), {
+      target: { value: 'supino reto' },
+    })
+    fireEvent.click(
+      await within(picker).findByRole('button', { name: /Supino reto com barra/ }),
+    )
+    fireEvent.click(await screen.findByRole('button', { name: 'Concluir série 1' }))
+    await screen.findByRole('button', { name: 'Desfazer série 1' })
+
+    const dialog = await openFinishDialog()
+
+    expect(within(dialog).getByText('1 série concluída.')).toBeInTheDocument()
+  })
+})
+
 describe('backup reminder on the Workout tab', () => {
   /** An already finished workout: now there is something to lose. */
   async function addFinishedWorkout() {
