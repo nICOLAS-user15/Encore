@@ -12,6 +12,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - A monthly calendar at the top of History: the days you trained are filled in, with the month total, and you can go back through past months.
 - A post-workout summary: finishing a workout opens it with "Workout complete", how your volume compares with last time (or that it is your first time) and a "Done" button back to the workout list.
 - Each set of the workout shows what you did in the same set last time ("Last: 25 kg × 8"), so the number to beat is right there.
+- Notes per exercise: write a short note during the workout ("close grip", "shoulder felt off") from the exercise's ⋯ menu, and it shows up the next time you do that exercise. Notes can also be added or fixed in the history and travel with the backup.
 - Finished workouts can be corrected: tap a set in the history to fix its load or reps, delete it (with undo), or add a set you did but forgot to log. Records, comparisons and charts follow the correction.
 
 ### Changed

@@ -38,6 +38,7 @@ import {
 import { listWorkoutSets } from './workoutQueries'
 import {
   completedWorkingSets,
+  exerciseNoteOf,
   groupSetsByExercise,
   isWorkingSet,
   nextPendingSetId,
@@ -260,6 +261,7 @@ export function ActiveWorkout({ workout }: { workout: Workout }) {
             name={nameOf(group.exerciseId)}
             sets={group.sets}
             target={targetByExercise.get(group.exerciseId)}
+            note={exerciseNoteOf(workout, group.exerciseId)}
             nextSetId={nextSetId}
             progressionStepKg={progressionStepOf(group.exerciseId)}
             onEditSet={(set) => setEditingSetId(set.id)}

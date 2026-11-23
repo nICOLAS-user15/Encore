@@ -199,3 +199,28 @@ export function previousSetsById<T extends Pick<SetEntry, 'id' | 'type'>>(
   }
   return result
 }
+
+/** Longest exercise note kept (a line or two on a phone, not a diary page). */
+export const MAX_EXERCISE_NOTE_LENGTH = 300
+
+/** The day's note of an exercise in a workout (`''` = none; older workouts lack the map). */
+export function exerciseNoteOf(
+  workout: Pick<Workout, 'exerciseNotes'>,
+  exerciseId: ID,
+): string {
+  return workout.exerciseNotes?.[exerciseId] ?? ''
+}
+
+/**
+ * The notes map with this exercise's note replaced: trimmed, cut at the limit, and an
+ * empty text removes the entry (no `''` left behind).
+ */
+export function withExerciseNote(
+  notes: Record<ID, string> | undefined,
+  exerciseId: ID,
+  text: string,
+): Record<ID, string> {
+  const note = text.trim().slice(0, MAX_EXERCISE_NOTE_LENGTH).trim()
+  const others = Object.entries(notes ?? {}).filter(([id]) => id !== exerciseId)
+  return Object.fromEntries(note ? [...others, [exerciseId, note]] : others)
+}

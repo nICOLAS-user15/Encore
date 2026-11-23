@@ -126,6 +126,19 @@ export const pt = {
     warmupShort: 'AQ',
     removeExercise: 'Remover exercício',
     moreOptions: (name: string) => `Mais opções: ${name}`,
+    /** The day's note of an exercise (shown again the next time). */
+    note: {
+      add: 'Anotar',
+      edit: 'Editar nota',
+      title: (name: string) => `Nota · ${name}`,
+      label: 'Nota do dia',
+      placeholder: 'Ex.: pegada fechada, ombro incomodou',
+      hint: 'Aparece na próxima vez que você fizer este exercício. Deixe vazio para apagar.',
+      save: 'Salvar nota',
+      /** Tapping today's note on the card opens the editor. */
+      editLabel: (name: string, note: string) => `Editar nota de ${name}: ${note}`,
+      previous: (note: string) => `Nota anterior: ${note}`,
+    },
     // `label` is the set number (1, 2...) or "AQ" for warm-up.
     // The name includes exercise and values: there are several "set 1" on screen and the screen reader
     // needs to know which one it is.

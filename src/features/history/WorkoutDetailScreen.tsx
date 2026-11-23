@@ -17,6 +17,7 @@ import { RecordBadge } from '../records/RecordBadge'
 import { getWorkoutRecordIds } from '../records/recordsQueries'
 import { weightStepFor } from '../settings/settingsRepository'
 import { useSettings } from '../settings/useSettings'
+import { ExerciseNoteEditor } from '../workout/ExerciseNoteEditor'
 import { SetEditor, type SetValues } from '../workout/SetEditor'
 import {
   addSetToFinishedWorkout,
@@ -24,9 +25,10 @@ import {
   deleteWorkout,
   restoreSets,
   restoreWorkout,
+  setExerciseNote,
   updateSet,
 } from '../workout/workoutActions'
-import { groupSetsByExercise, numberSets } from '../workout/workoutStats'
+import { exerciseNoteOf, groupSetsByExercise, numberSets } from '../workout/workoutStats'
 import { getWorkoutSummary } from './historyQueries'
 import { ComparisonCard } from './ComparisonCard'
 import { FinishedBanner } from './FinishedBanner'
@@ -60,6 +62,8 @@ export function WorkoutDetailScreen() {
   )
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [editingSetId, setEditingSetId] = useState<ID | null>(null)
+  // Exercise whose note is open in the editor.
+  const [noteExerciseId, setNoteExerciseId] = useState<ID | null>(null)
   const run = useAction()
   const { showUndo } = useToast()
 
@@ -158,11 +162,22 @@ export function WorkoutDetailScreen() {
         {groups.map((group) => {
           const name = nameOf(group.exerciseId)
           const numbers = numberSets(group.sets)
+          const note = exerciseNoteOf(workout, group.exerciseId)
           return (
             <Card key={group.exerciseId} className="flex flex-col gap-2">
               <h2 className="font-display text-2xl leading-tight font-bold uppercase">
                 {name}
               </h2>
+              {note && (
+                <button
+                  type="button"
+                  onClick={() => setNoteExerciseId(group.exerciseId)}
+                  aria-label={t.workout.note.editLabel(name, note)}
+                  className="min-h-12 border-l-2 border-line-strong pl-3 text-left text-sm break-words whitespace-pre-line text-text active:bg-surface-high"
+                >
+                  {note}
+                </button>
+              )}
               <ol className="flex flex-col">
                 {group.sets.map((set, index) => {
                   const label = numbers[index] ?? t.workout.warmupShort
@@ -199,16 +214,21 @@ export function WorkoutDetailScreen() {
                   )
                 })}
               </ol>
-              <Button
-                aria-label={t.history.addSetTo(name)}
-                onClick={() =>
-                  void run(() =>
-                    addSetToFinishedWorkout(db, workout.id, group.exerciseId),
-                  )
-                }
-              >
-                {t.workout.addSet}
-              </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  aria-label={t.history.addSetTo(name)}
+                  onClick={() =>
+                    void run(() =>
+                      addSetToFinishedWorkout(db, workout.id, group.exerciseId),
+                    )
+                  }
+                >
+                  {t.workout.addSet}
+                </Button>
+                <Button onClick={() => setNoteExerciseId(group.exerciseId)}>
+                  {note ? t.workout.note.edit : t.workout.note.add}
+                </Button>
+              </div>
             </Card>
           )
         })}
@@ -227,6 +247,20 @@ export function WorkoutDetailScreen() {
         onClose={() => setEditingSetId(null)}
         onSave={(values) => void handleSaveSet(values)}
         onDelete={() => void handleDeleteSet()}
+      />
+
+      <ExerciseNoteEditor
+        open={noteExerciseId !== null}
+        name={noteExerciseId ? nameOf(noteExerciseId) : ''}
+        note={noteExerciseId ? exerciseNoteOf(workout, noteExerciseId) : ''}
+        onClose={() => setNoteExerciseId(null)}
+        onSave={(text) => {
+          const exerciseId = noteExerciseId
+          setNoteExerciseId(null)
+          if (exerciseId) {
+            void run(() => setExerciseNote(db, workout.id, exerciseId, text))
+          }
+        }}
       />
 
       <ConfirmSheet

@@ -146,6 +146,13 @@ export type Workout = BaseRecord & {
    */
   timerPausedAt?: Timestamp | null
   notes: string
+  /**
+   * The day's note for each exercise of this workout ("ombro incomodou"), keyed by
+   * exercise id; shown the next time the exercise is done. Unlike the routine's fixed
+   * note (`RoutineExercise.notes`), it belongs to this session. Optional: older workouts
+   * lack it (no index, no migration). Write it with `setExerciseNote`.
+   */
+  exerciseNotes?: Record<ID, string>
 }
 
 /** Fixed id of the single settings record. */

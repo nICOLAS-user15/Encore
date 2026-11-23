@@ -9,6 +9,7 @@ import { syncSeedExercises } from '../../db/seed'
 import { updateRoutineExercise } from '../routines/routineActions'
 import {
   finishWorkout,
+  setExerciseNote,
   startWorkout,
   toggleSetCompleted,
   updateSet,
@@ -405,6 +406,52 @@ describe('last time, set by set', () => {
       name: /^Editar série 2: Supino reto com barra/,
     })
     expect(benchSet2).not.toHaveTextContent('Última')
+  })
+})
+
+describe('exercise notes', () => {
+  it('shows the note left last time on the exercise', async () => {
+    await importTestProgram(db)
+    const [upperA] = await listRoutinesWithExercises(db)
+    const previous = await startWorkout(db, upperA.routine.id)
+    const [first] = await listWorkoutSets(db, previous.id)
+    await toggleSetCompleted(db, first.id)
+    await setExerciseNote(db, previous.id, first.exerciseId, 'ombro incomodou')
+    await finishWorkout(db, previous.id)
+
+    renderAt('/treino')
+    fireEvent.click(await screen.findByRole('button', { name: /Upper A/ }))
+
+    expect(await screen.findByText('Nota anterior: ombro incomodou')).toBeInTheDocument()
+  })
+
+  it('writes the day note from the ⋯ menu and edits it by tapping it', async () => {
+    await importTestProgram(db)
+    renderAt('/treino')
+    fireEvent.click(await screen.findByRole('button', { name: /Upper A/ }))
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Mais opções: Supino reto com barra' }),
+    )
+    const menu = await screen.findByRole('dialog', { name: 'Supino reto com barra' })
+    fireEvent.click(within(menu).getByRole('button', { name: 'Anotar' }))
+
+    const editor = await screen.findByRole('dialog', {
+      name: 'Nota · Supino reto com barra',
+    })
+    fireEvent.change(within(editor).getByLabelText('Nota do dia'), {
+      target: { value: 'pegada fechada' },
+    })
+    fireEvent.click(within(editor).getByRole('button', { name: 'Salvar nota' }))
+
+    const note = await screen.findByRole('button', {
+      name: 'Editar nota de Supino reto com barra: pegada fechada',
+    })
+    fireEvent.click(note)
+    const reopened = await screen.findByRole('dialog', {
+      name: 'Nota · Supino reto com barra',
+    })
+    expect(within(reopened).getByLabelText('Nota do dia')).toHaveValue('pegada fechada')
   })
 })
 

@@ -7,6 +7,8 @@ type TextFieldProps = {
   placeholder?: string
   /** `true` = multi-line field (textarea). */
   multiline?: boolean
+  /** Longest text the field accepts. */
+  maxLength?: number
 }
 
 /** Text field with a label, in the app's style (thick border, font ≥ 16px). */
@@ -16,6 +18,7 @@ export function TextField({
   onChange,
   placeholder,
   multiline,
+  maxLength,
 }: TextFieldProps) {
   // useId generates a unique id to link the <label> to the field (accessibility).
   const id = useId()
@@ -36,6 +39,7 @@ export function TextField({
           rows={2}
           value={value}
           placeholder={placeholder}
+          maxLength={maxLength}
           onChange={(event) => onChange(event.target.value)}
           className={classes}
         />
@@ -45,6 +49,7 @@ export function TextField({
           type="text"
           value={value}
           placeholder={placeholder}
+          maxLength={maxLength}
           onChange={(event) => onChange(event.target.value)}
           className={`min-h-12 ${classes}`}
         />

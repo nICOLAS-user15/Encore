@@ -8,6 +8,7 @@ import {
   type LoadedEquipment,
 } from '../../db/types'
 import { LEGACY_SPLIT_ID } from '../../db/migrations/v3'
+import { withExerciseNote } from '../workout/workoutStats'
 
 /*
  * Validation of the rows of a backup file. The file comes from outside (it may be
@@ -75,6 +76,25 @@ function oneOf<T extends string>(value: unknown, options: readonly T[]): T {
   return typeof value === 'string' && (options as readonly string[]).includes(value)
     ? (value as T)
     : fail()
+}
+
+/**
+ * A workout's optional map of exercise id → day note. Each note is cleaned like the app
+ * saves it (trimmed, cut at the limit, empty ones dropped); a map that is not text rejects
+ * the file. Missing (backup from before notes) stays missing.
+ */
+function exerciseNotes(value: unknown): { exerciseNotes?: Record<string, string> } {
+  if (value === undefined) {
+    return {}
+  }
+  if (!isRow(value)) {
+    return fail()
+  }
+  let notes: Record<string, string> = {}
+  for (const [exerciseId, note] of Object.entries(value)) {
+    notes = withExerciseNote(notes, id(exerciseId), text(note, { required: true }))
+  }
+  return { exerciseNotes: notes }
 }
 
 function base(row: Row): BaseRecord {
@@ -148,6 +168,7 @@ function sanitizers(row: Row): Record<BackupTableName, () => BaseRecord> {
         timerStoppedAt: numOrNull(row.timerStoppedAt),
         timerPausedAt: numOrNull(row.timerPausedAt),
         notes: text(row.notes),
+        ...exerciseNotes(row.exerciseNotes),
       }) as BaseRecord,
     setEntries: () =>
       ({

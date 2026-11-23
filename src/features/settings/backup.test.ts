@@ -5,6 +5,7 @@ import { syncSeedExercises } from '../../db/seed'
 import { importTestProgram } from '../../test/fixtures'
 import {
   startWorkout,
+  setExerciseNote,
   toggleSetCompleted,
   finishWorkout,
 } from '../workout/workoutActions'
@@ -375,6 +376,43 @@ describe('backup: malformed files', () => {
 
     for (const invalid of [0, 8, 2.5, 'três']) {
       backup.tables.settings = settingsWith(invalid)
+      expect(() => parseBackup(JSON.stringify(backup))).toThrow(BackupError)
+    }
+  })
+})
+
+describe('backup: exercise notes', () => {
+  it('go to the other device with their workout', async () => {
+    const workoutId = await trainOnce(phone)
+    await setExerciseNote(phone, workoutId, 'exercise-1', 'pegada fechada')
+
+    const newPhone = newDatabase()
+    await importBackup(newPhone, parseBackup(JSON.stringify(await exportBackup(phone))))
+
+    expect((await newPhone.workouts.get(workoutId))?.exerciseNotes).toEqual({
+      'exercise-1': 'pegada fechada',
+    })
+  })
+
+  it('a workout from before notes stays without them; empty notes are dropped', async () => {
+    await trainOnce(phone)
+    const backup = JSON.parse(JSON.stringify(await exportBackup(phone)))
+    expect(parseBackup(JSON.stringify(backup)).tables.workouts[0]).not.toHaveProperty(
+      'exerciseNotes',
+    )
+
+    backup.tables.workouts[0].exerciseNotes = { a: '  banco 4 ', b: '  ' }
+    expect(parseBackup(JSON.stringify(backup)).tables.workouts[0]).toMatchObject({
+      exerciseNotes: { a: 'banco 4' },
+    })
+  })
+
+  it('rejects notes that are not text', async () => {
+    await trainOnce(phone)
+    const backup = JSON.parse(JSON.stringify(await exportBackup(phone)))
+
+    for (const invalid of ['nota', ['nota'], { a: 3 }, { a: null }]) {
+      backup.tables.workouts[0].exerciseNotes = invalid
       expect(() => parseBackup(JSON.stringify(backup))).toThrow(BackupError)
     }
   })

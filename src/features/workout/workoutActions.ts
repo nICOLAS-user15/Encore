@@ -17,7 +17,12 @@ import {
   type LastPerformance,
 } from './workoutQueries'
 import { pendingPlannedSets } from './progression'
-import { hasWorkoutBegun, isWorkingSet, warmupValues } from './workoutStats'
+import {
+  hasWorkoutBegun,
+  isWorkingSet,
+  warmupValues,
+  withExerciseNote,
+} from './workoutStats'
 
 /*
  * Everything that WRITES during a workout. Each function saves right away: if the app
@@ -387,6 +392,21 @@ export async function restoreSets(db: EncoreDB, setIds: ID[]): Promise<void> {
       await restoreRecord(db.setEntries, id)
     }
   })
+}
+
+/**
+ * Saves the day's note of an exercise in this workout (empty text removes it). Read and
+ * write happen in one transaction, so saving one exercise's note never drops another's.
+ */
+export async function setExerciseNote(
+  db: EncoreDB,
+  workoutId: ID,
+  exerciseId: ID,
+  text: string,
+): Promise<void> {
+  await updateRecordWith(db.workouts, workoutId, (workout) => ({
+    exerciseNotes: withExerciseNote(workout.exerciseNotes, exerciseId, text),
+  }))
 }
 
 /** Turns on the workout timer (works only once: after starting, it does not restart). */

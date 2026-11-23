@@ -11,9 +11,10 @@ import { useAction, useToast } from '../../ui/toastContext'
 import { getExerciseBest } from '../records/recordsQueries'
 import { recordSetIds } from '../records/recordsStats'
 import { isSuggestionApplied, pendingPlannedSets, suggestNextLoad } from './progression'
+import { ExerciseNoteEditor } from './ExerciseNoteEditor'
 import { SetRow } from './SetRow'
-import { addSet, applyLoadSuggestion } from './workoutActions'
-import { getLastPerformance } from './workoutQueries'
+import { addSet, applyLoadSuggestion, setExerciseNote } from './workoutActions'
+import { getExerciseNote, getLastPerformance } from './workoutQueries'
 import { numberSets, previousSetsById } from './workoutStats'
 
 type ExerciseBlockProps = {
@@ -25,6 +26,8 @@ type ExerciseBlockProps = {
   sets: SetEntry[]
   /** Routine target for this exercise (absent in a free workout). */
   target?: RoutineExercise
+  /** The day's note of this exercise in this workout ('' = none). */
+  note: string
   /** Id of the next set in the whole workout (may belong to another exercise). */
   nextSetId: ID | null
   /** Equipment load step for the suggestion; `null` = bodyweight (reps only). */
@@ -42,6 +45,7 @@ export function ExerciseBlock({
   name,
   sets,
   target,
+  note: todayNote,
   nextSetId,
   progressionStepKg,
   onEditSet,
@@ -50,11 +54,19 @@ export function ExerciseBlock({
 }: ExerciseBlockProps) {
   const { t, format, note } = useI18n()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [noteOpen, setNoteOpen] = useState(false)
   const run = useAction()
   // `undefined` = loading; `null` = never done before.
   const last = useLiveQuery(
     () => getLastPerformance(db, exerciseId, workoutId),
     [exerciseId, workoutId],
+  )
+
+  // The note left last time ('' = none): the reminder that matters before the first set.
+  const lastWorkoutId = last?.workoutId ?? null
+  const previousNote = useLiveQuery(
+    async () => (lastWorkoutId ? getExerciseNote(db, lastWorkoutId, exerciseId) : ''),
+    [lastWorkoutId, exerciseId],
   )
 
   // Personal records: the best done before this workout (`null` = never done before).
@@ -118,8 +130,24 @@ export function ExerciseBlock({
           </div>
         </div>
         {previous && <p className="text-sm text-muted tabular-nums">{previous}</p>}
+        {previousNote && (
+          <p className="text-sm break-words whitespace-pre-line text-muted">
+            {t.workout.note.previous(previousNote)}
+          </p>
+        )}
         {target?.notes && <p className="text-sm text-muted">{note(target.notes)}</p>}
       </div>
+
+      {todayNote && (
+        <button
+          type="button"
+          onClick={() => setNoteOpen(true)}
+          aria-label={t.workout.note.editLabel(name, todayNote)}
+          className="min-h-12 border-l-2 border-line-strong pl-3 text-left text-sm break-words whitespace-pre-line text-text active:bg-surface-high"
+        >
+          {todayNote}
+        </button>
+      )}
 
       {suggestion && (
         <div className="flex min-h-12 items-center justify-between gap-3 border-l-4 border-text pl-3">
@@ -195,6 +223,15 @@ export function ExerciseBlock({
             fullWidth
             onClick={() => {
               setMenuOpen(false)
+              setNoteOpen(true)
+            }}
+          >
+            {todayNote ? t.workout.note.edit : t.workout.note.add}
+          </Button>
+          <Button
+            fullWidth
+            onClick={() => {
+              setMenuOpen(false)
               void run(() => addSet(db, workoutId, exerciseId, 'warmup'))
             }}
           >
@@ -212,6 +249,17 @@ export function ExerciseBlock({
           </Button>
         </div>
       </Sheet>
+
+      <ExerciseNoteEditor
+        open={noteOpen}
+        name={name}
+        note={todayNote}
+        onClose={() => setNoteOpen(false)}
+        onSave={(text) => {
+          setNoteOpen(false)
+          void run(() => setExerciseNote(db, workoutId, exerciseId, text))
+        }}
+      />
     </Card>
   )
 }

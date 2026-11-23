@@ -196,6 +196,25 @@ describe('correcting a finished workout', () => {
       within(editor).queryByRole('button', { name: 'Excluir série' }),
     ).not.toBeInTheDocument()
   })
+  it('a note can be added to an exercise and then edited by tapping it', async () => {
+    renderDetail((await finishBench(1)).id)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Anotar' }))
+    const editor = await screen.findByRole('dialog', {
+      name: 'Nota · Supino reto com barra',
+    })
+    fireEvent.change(within(editor).getByLabelText('Nota do dia'), {
+      target: { value: 'banco na posição 4' },
+    })
+    fireEvent.click(within(editor).getByRole('button', { name: 'Salvar nota' }))
+
+    expect(
+      await screen.findByRole('button', {
+        name: 'Editar nota de Supino reto com barra: banco na posição 4',
+      }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Editar nota' })).toBeInTheDocument()
+  })
 })
 
 describe('post-workout summary', () => {

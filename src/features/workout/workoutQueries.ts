@@ -2,7 +2,7 @@ import Dexie from 'dexie'
 import type { EncoreDB } from '../../db/db'
 import { isActive } from '../../db/repository'
 import type { ID, SetEntry, Timestamp, Workout } from '../../db/types'
-import { hasWorkoutBegun } from './workoutStats'
+import { exerciseNoteOf, hasWorkoutBegun } from './workoutStats'
 
 /** The workout in progress (no `endedAt`), if any. There can be only one. */
 export async function getActiveWorkout(db: EncoreDB): Promise<Workout | undefined> {
@@ -98,4 +98,17 @@ export async function getLastPerformance(
         set.type !== 'warmup',
     ),
   }
+}
+
+/**
+ * The note left on this exercise in a workout (`''` = none). Kept apart from
+ * `getLastPerformance`, which also runs inside transactions that only open `setEntries`.
+ */
+export async function getExerciseNote(
+  db: EncoreDB,
+  workoutId: ID,
+  exerciseId: ID,
+): Promise<string> {
+  const workout = await db.workouts.get(workoutId)
+  return workout && isActive(workout) ? exerciseNoteOf(workout, exerciseId) : ''
 }

@@ -16,6 +16,7 @@ import {
   restoreWorkout,
   REOPEN_WINDOW_MS,
   resumeWorkoutTimer,
+  setExerciseNote,
   setSetCompleted,
   startOrSwitchWorkout,
   startWorkout,
@@ -25,11 +26,17 @@ import {
 } from './workoutActions'
 import {
   getActiveWorkout,
+  getExerciseNote,
   getLastPerformance,
   listFinishedWorkouts,
   listWorkoutSets,
 } from './workoutQueries'
-import { groupSetsByExercise, timerElapsedMs, workoutDurationMs } from './workoutStats'
+import {
+  groupSetsByExercise,
+  MAX_EXERCISE_NOTE_LENGTH,
+  timerElapsedMs,
+  workoutDurationMs,
+} from './workoutStats'
 
 let db: EncoreDB
 let upperA: ID
@@ -333,6 +340,61 @@ describe('editing a finished workout', () => {
     const workout = await startWorkout(db, upperA)
 
     await expect(addSetToFinishedWorkout(db, workout.id, benchPress)).rejects.toThrow()
+  })
+})
+
+describe('exercise notes', () => {
+  it('saves, replaces and deletes the note of one exercise without touching the others', async () => {
+    const workout = await startWorkout(db, upperA)
+
+    await setExerciseNote(db, workout.id, benchPress, '  pegada fechada  ')
+    await setExerciseNote(db, workout.id, 'other-exercise', 'banco 4')
+    expect((await db.workouts.get(workout.id))?.exerciseNotes).toEqual({
+      [benchPress]: 'pegada fechada',
+      'other-exercise': 'banco 4',
+    })
+
+    await setExerciseNote(db, workout.id, benchPress, 'ombro incomodou')
+    expect(await getExerciseNote(db, workout.id, benchPress)).toBe('ombro incomodou')
+
+    await setExerciseNote(db, workout.id, benchPress, '   ')
+    expect((await db.workouts.get(workout.id))?.exerciseNotes).toEqual({
+      'other-exercise': 'banco 4',
+    })
+  })
+
+  it('cuts a note at the limit', async () => {
+    const workout = await startWorkout(db, upperA)
+
+    await setExerciseNote(db, workout.id, benchPress, 'x'.repeat(500))
+
+    expect(await getExerciseNote(db, workout.id, benchPress)).toHaveLength(
+      MAX_EXERCISE_NOTE_LENGTH,
+    )
+  })
+
+  it('two notes saved at the same time both survive', async () => {
+    const workout = await startWorkout(db, upperA)
+
+    await Promise.all([
+      setExerciseNote(db, workout.id, 'a', 'first'),
+      setExerciseNote(db, workout.id, 'b', 'second'),
+    ])
+
+    expect((await db.workouts.get(workout.id))?.exerciseNotes).toEqual({
+      a: 'first',
+      b: 'second',
+    })
+  })
+
+  it('reads no note from a workout without notes, a missing one or a deleted one', async () => {
+    const workout = await startWorkout(db, upperA)
+    expect(await getExerciseNote(db, workout.id, benchPress)).toBe('')
+    expect(await getExerciseNote(db, 'missing', benchPress)).toBe('')
+
+    await setExerciseNote(db, workout.id, benchPress, 'pegada fechada')
+    await deleteWorkout(db, workout.id)
+    expect(await getExerciseNote(db, workout.id, benchPress)).toBe('')
   })
 })
 
