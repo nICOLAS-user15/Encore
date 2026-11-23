@@ -172,10 +172,11 @@ export type Settings = BaseRecord & {
   /** Split chosen in the Workout and Routines tabs (`null` = the first). */
   activeSplitId: ID | null
   /**
-   * Weekly goal: how many workouts a week (Workout tab). Added after v3: records saved
-   * before it lack the field and `getSettings` fills in the default (no index, no migration).
+   * Weekly goal: how many workouts a week (Workout tab). `null` = automatic: as many as
+   * the routines of the chosen split (`resolveWeeklyGoal`). Added after v3: records saved
+   * before it lack the field and `getSettings` fills in `null` (no index, no migration).
    */
-  weeklyGoal: number
+  weeklyGoal: number | null
 }
 
 /**

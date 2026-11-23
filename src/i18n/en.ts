@@ -358,7 +358,8 @@ export const en: Messages = {
       'The smallest possible increase on each kind of equipment at your gym. Used by the weight suggestion and by the − and + buttons of a set.',
     weeklyGoal: 'Weekly goal',
     weeklyGoalHint:
-      'How many workouts a week you want to do. The progress shows on the Workout tab.',
+      'How many workouts a week you want to do; the progress shows on the Workout tab. Auto = each routine of the chosen split once.',
+    weeklyGoalAuto: 'Auto',
     backup: 'Backup',
     backupHint:
       'Your workouts live only on this device. Export a file now and then, and import it to move your data to another device.',

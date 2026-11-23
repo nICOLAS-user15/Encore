@@ -27,7 +27,7 @@ import {
   type ActiveWorkoutInfo,
 } from './workoutQueries'
 import { WeeklyGoalCard } from './WeeklyGoalCard'
-import { weeklyGoalProgress } from './weeklyGoal'
+import { resolveWeeklyGoal, weeklyGoalProgress } from './weeklyGoal'
 import { suggestNextRoutineId, timerElapsedMs } from './workoutStats'
 
 /**
@@ -123,7 +123,11 @@ export function StartWorkout() {
         {active && <ContinueCard info={active} name={activeName} now={now} />}
         {settingsLoaded && (
           <WeeklyGoalCard
-            progress={weeklyGoalProgress(history.starts, settings.weeklyGoal, now)}
+            progress={weeklyGoalProgress(
+              history.starts,
+              resolveWeeklyGoal(settings.weeklyGoal, visible.length),
+              now,
+            )}
           />
         )}
 

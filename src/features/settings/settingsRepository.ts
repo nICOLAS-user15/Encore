@@ -32,8 +32,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   },
   lastBackupAt: null,
   activeSplitId: null,
-  // Three a week: a common starting point (full body or ABC); the user adjusts it.
-  weeklyGoal: 3,
+  // Automatic: one workout per routine of the chosen split (Upper/Lower with 4 = 4 a week).
+  weeklyGoal: null,
 }
 
 /** Rest duration options offered on the Settings screen (seconds). */

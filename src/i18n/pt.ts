@@ -387,7 +387,8 @@ export const pt = {
       'O menor aumento possível em cada equipamento da sua academia. Vale para a sugestão de carga e para os botões − e + da série.',
     weeklyGoal: 'Meta semanal',
     weeklyGoalHint:
-      'Quantos treinos por semana você quer fazer. O progresso aparece na aba Treino.',
+      'Quantos treinos por semana você quer fazer; o progresso aparece na aba Treino. Auto = uma vez cada rotina da divisão escolhida.',
+    weeklyGoalAuto: 'Auto',
     backup: 'Backup',
     backupHint:
       'Seus treinos ficam só neste aparelho. Exporte um arquivo de vez em quando, e importe-o para levar os dados a outro aparelho.',

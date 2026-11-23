@@ -17,6 +17,23 @@ export type WeeklyGoalProgress = {
   streakWeeks: number
 }
 
+/** Goal when there is no split to count from (no routines yet). */
+const FALLBACK_GOAL = 3
+
+/**
+ * The goal in use: the one chosen in Settings, or, on automatic (`null`), one workout per
+ * routine of the chosen split (Upper/Lower with 4 routines = 4 a week), kept within 1 to 7.
+ */
+export function resolveWeeklyGoal(
+  chosen: number | null,
+  routinesInSplit: number,
+): number {
+  if (chosen !== null) {
+    return chosen
+  }
+  return routinesInSplit === 0 ? FALLBACK_GOAL : Math.min(7, routinesInSplit)
+}
+
 /** The Monday before `weekStart` (going back one millisecond lands in the previous week). */
 function previousWeek(weekStart: Timestamp): Timestamp {
   return startOfWeek(weekStart - 1)

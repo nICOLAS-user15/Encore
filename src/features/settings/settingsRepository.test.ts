@@ -38,8 +38,8 @@ describe('load steps in settings', () => {
 
     expect(settings.restSeconds).toBe(120) // what the user chose stays
     expect(settings.weightStepsKg).toEqual(DEFAULT_SETTINGS.weightStepsKg)
-    // Same for the weekly goal (added later): the default applies.
-    expect(settings.weeklyGoal).toBe(3)
+    // Same for the weekly goal (added later): automatic.
+    expect(settings.weeklyGoal).toBeNull()
   })
 
   it('saves the weekly goal', async () => {

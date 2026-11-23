@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { weeklyGoalProgress } from './weeklyGoal'
+import { resolveWeeklyGoal, weeklyGoalProgress } from './weeklyGoal'
 
 /** Local date at 18:00 (November 2026: the 23rd is a Monday). */
 const at = (month: number, day: number) => new Date(2026, month, day, 18, 0).getTime()
@@ -46,5 +46,21 @@ describe('weeklyGoalProgress', () => {
 
   it('with no workouts there is no streak', () => {
     expect(weeklyGoalProgress([], 3, NOW)).toEqual({ done: 0, goal: 3, streakWeeks: 0 })
+  })
+})
+
+describe('resolveWeeklyGoal', () => {
+  it('automatic: one workout per routine of the split (Upper/Lower with 4 = 4)', () => {
+    expect(resolveWeeklyGoal(null, 4)).toBe(4)
+    expect(resolveWeeklyGoal(null, 3)).toBe(3)
+  })
+
+  it('automatic stays within a week (at most 7) and has a fallback with no routines', () => {
+    expect(resolveWeeklyGoal(null, 9)).toBe(7)
+    expect(resolveWeeklyGoal(null, 0)).toBe(3)
+  })
+
+  it('a goal chosen in Settings wins', () => {
+    expect(resolveWeeklyGoal(5, 4)).toBe(5)
   })
 })

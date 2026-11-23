@@ -416,11 +416,20 @@ describe('weekly goal on the Workout tab', () => {
     const [first] = await listWorkoutSets(db, workout.id)
     await toggleSetCompleted(db, first.id)
     await finishWorkout(db, workout.id)
-    await updateSettings(db, { weeklyGoal: 4 })
+    await updateSettings(db, { weeklyGoal: 5 })
 
     renderAt('/treino')
 
     const goal = await screen.findByRole('region', { name: 'Meta da semana' })
-    expect(await within(goal).findByText('1 de 4 treinos')).toBeInTheDocument()
+    expect(await within(goal).findByText('1 de 5 treinos')).toBeInTheDocument()
+  })
+
+  it('without a chosen goal, it is one workout per routine of the split', async () => {
+    await importTestProgram(db) // 4 routines: Upper A/B, Lower A/B
+
+    renderAt('/treino')
+
+    const goal = await screen.findByRole('region', { name: 'Meta da semana' })
+    expect(await within(goal).findByText('0 de 4 treinos')).toBeInTheDocument()
   })
 })

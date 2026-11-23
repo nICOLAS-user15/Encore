@@ -8,7 +8,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 ### Added
 
 - **Body weight:** a new screen in the side menu to log your weight, with the latest value, the 7-day average and how it moved against the week before, a chart and the list of entries. It is included in backups; backups from earlier versions still restore.
-- A weekly goal: choose how many workouts a week in Settings, and the Workout tab shows this week's progress and how many weeks in a row you have hit it.
+- A weekly goal: by default one workout per routine of your split (Upper/Lower with 4 routines = 4 a week), or a number you choose in Settings; the Workout tab shows this week's progress and how many weeks in a row you have hit it.
 - A monthly calendar at the top of History: the days you trained are filled in, with the month total, and you can go back through past months.
 - A post-workout summary: finishing a workout opens it with "Workout complete", how your volume compares with last time (or that it is your first time) and a "Done" button back to the workout list.
 - Each set of the workout shows what you did in the same set last time ("Last: 25 kg × 8"), so the number to beat is right there.

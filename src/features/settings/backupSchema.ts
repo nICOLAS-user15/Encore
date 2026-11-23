@@ -214,7 +214,9 @@ function settingsRow(row: Row): BaseRecord {
   if (row.lastBackupAt !== undefined) {
     record.lastBackupAt = numOrNull(row.lastBackupAt)
   }
-  if (row.weeklyGoal !== undefined) {
+  if (row.weeklyGoal === null) {
+    record.weeklyGoal = null // automatic
+  } else if (row.weeklyGoal !== undefined) {
     const goal = num(row.weeklyGoal)
     if (!Number.isInteger(goal) || goal < 1 || goal > 7) {
       return fail()

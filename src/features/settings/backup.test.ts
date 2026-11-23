@@ -367,6 +367,12 @@ describe('backup: malformed files', () => {
       weeklyGoal: 4,
     })
 
+    // null = automatic
+    backup.tables.settings = settingsWith(null)
+    expect(parseBackup(JSON.stringify(backup)).tables.settings[0]).toMatchObject({
+      weeklyGoal: null,
+    })
+
     for (const invalid of [0, 8, 2.5, 'três']) {
       backup.tables.settings = settingsWith(invalid)
       expect(() => parseBackup(JSON.stringify(backup))).toThrow(BackupError)

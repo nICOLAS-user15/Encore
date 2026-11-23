@@ -111,7 +111,13 @@ export function SettingsScreen() {
 
         <Section title={t.settings.weeklyGoal}>
           <p className="mb-2 text-sm text-muted">{t.settings.weeklyGoalHint}</p>
-          <div className="grid grid-cols-7 gap-1">
+          <div className="grid grid-cols-4 gap-1">
+            <OptionButton
+              active={settings.weeklyGoal === null}
+              onClick={() => save({ weeklyGoal: null })}
+            >
+              {t.settings.weeklyGoalAuto}
+            </OptionButton>
             {WEEKLY_GOAL_OPTIONS.map((goal) => (
               <OptionButton
                 key={goal}
