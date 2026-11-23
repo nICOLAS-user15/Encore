@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { SetEntry } from '../../db/types'
-import { compareWorkouts } from './compareWorkouts'
+import { compareWorkouts, volumeChangePercent } from './compareWorkouts'
 
 function set(
   weightKg: number,
@@ -53,5 +53,18 @@ describe('compareWorkouts', () => {
       sets: 0,
       durationMin: 0,
     })
+  })
+})
+
+describe('volumeChangePercent', () => {
+  it('is the whole-percent change of volume against the previous time', () => {
+    const previous = { sets: [set(25, 8), set(25, 8)] } // 400 kg
+    expect(volumeChangePercent({ sets: [set(27, 8), set(27, 8)] }, previous)).toBe(8)
+    expect(volumeChangePercent({ sets: [set(25, 8), set(25, 7)] }, previous)).toBe(-6)
+    expect(volumeChangePercent({ sets: [set(25, 8), set(25, 8)] }, previous)).toBe(0)
+  })
+
+  it('without volume last time (bodyweight only) there is no percentage', () => {
+    expect(volumeChangePercent({ sets: [set(10, 8)] }, { sets: [set(0, 12)] })).toBeNull()
   })
 })

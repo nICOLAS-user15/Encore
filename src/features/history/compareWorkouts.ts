@@ -41,3 +41,19 @@ export function compareWorkouts(
     durationMin: minutes(today) - minutes(previous),
   }
 }
+
+/**
+ * Volume change against the previous time, in whole percent (e.g. +8, −3, 0): the
+ * headline of the post-workout summary. `null` when the previous time had no volume
+ * (only bodyweight work), where a percentage means nothing.
+ */
+export function volumeChangePercent(
+  today: Pick<Comparable, 'sets'>,
+  previous: Pick<Comparable, 'sets'>,
+): number | null {
+  const before = totalVolumeKg(previous.sets)
+  if (before === 0) {
+    return null
+  }
+  return Math.round(((totalVolumeKg(today.sets) - before) / before) * 100)
+}

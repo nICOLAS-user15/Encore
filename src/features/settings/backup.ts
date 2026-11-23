@@ -109,6 +109,17 @@ function upgradeBackupFromV2(backup: Backup): void {
   }
 }
 
+/**
+ * Backup from version 3 -> 4 (body weight). Migration v4 only creates an empty table,
+ * so an older file simply has no body weights. Mutates the received object.
+ */
+function upgradeBackupFromV3(backup: Backup): void {
+  const tables = backup.tables as Record<string, unknown> | undefined
+  if (tables && tables.bodyWeights === undefined) {
+    tables.bodyWeights = []
+  }
+}
+
 /** Converts the file text into a valid Backup, or throws BackupError. */
 export function parseBackup(text: string): Backup {
   let data: unknown
@@ -129,9 +140,13 @@ export function parseBackup(text: string): Backup {
   if (backup.schemaVersion < 2) {
     throw new BackupError('invalid')
   }
-  // File from a version older than the current one: converts before validating.
+  // File from a version older than the current one: converts before validating,
+  // one version at a time (a v2 file goes through both steps).
   if (backup.schemaVersion === 2) {
     upgradeBackupFromV2(backup as Backup)
+  }
+  if (backup.schemaVersion <= 3) {
+    upgradeBackupFromV3(backup as Backup)
   }
   // Checks and copies each row (field by field): a malformed file is rejected entirely.
   const tables = {} as Backup['tables']

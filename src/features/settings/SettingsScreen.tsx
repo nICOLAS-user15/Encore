@@ -6,7 +6,12 @@ import { formatClock } from '../../lib/time'
 import { ScreenHeader } from '../../ui/ScreenHeader'
 import { Section } from '../../ui/Section'
 import { BackupSection } from './BackupSection'
-import { REST_OPTIONS, updateSettings, WEIGHT_STEP_OPTIONS } from './settingsRepository'
+import {
+  REST_OPTIONS,
+  updateSettings,
+  WEEKLY_GOAL_OPTIONS,
+  WEIGHT_STEP_OPTIONS,
+} from './settingsRepository'
 import { useSettings } from './useSettings'
 
 /** Each language written IN ITSELF: someone who cannot read the current language recognizes theirs. */
@@ -100,6 +105,21 @@ export function SettingsScreen() {
                   ))}
                 </div>
               </div>
+            ))}
+          </div>
+        </Section>
+
+        <Section title={t.settings.weeklyGoal}>
+          <p className="mb-2 text-sm text-muted">{t.settings.weeklyGoalHint}</p>
+          <div className="grid grid-cols-7 gap-1">
+            {WEEKLY_GOAL_OPTIONS.map((goal) => (
+              <OptionButton
+                key={goal}
+                active={settings.weeklyGoal === goal}
+                onClick={() => save({ weeklyGoal: goal })}
+              >
+                {String(goal)}
+              </OptionButton>
             ))}
           </div>
         </Section>

@@ -9,7 +9,7 @@
 - Every table has an index on `updatedAt`, to answer "what changed since the last sync?".
 - Seed exercises have **fixed IDs**. If each device drew its own, the same "Bench Press" would show up twice after syncing.
 
-**Database migrations.** The schema is versioned (`db.version(1)`, `db.version(2)`...) and old versions are never edited, because each user's phone can be on any of them. v2 introduced bilingual names and merged duplicate exercises (e.g. "Bench Press" and its Portuguese twin) by moving every set to the exercise that stays, with no history lost; v3 created workout splits and put the existing routines into one. Tests build old databases and check each migration.
+**Database migrations.** The schema is versioned (`db.version(1)`, `db.version(2)`...) and old versions are never edited, because each user's phone can be on any of them. v2 introduced bilingual names and merged duplicate exercises (e.g. "Bench Press" and its Portuguese twin) by moving every set to the exercise that stays, with no history lost; v3 created workout splits and put the existing routines into one; v4 only added the body weight table. Backups follow the same path: an old file is converted one version at a time before being validated. Tests build old databases and check each migration.
 
 **Two languages, no library.** Two typed dictionaries: `pt.ts` is the source and `en.ts` must have exactly the same keys, or the project does not compile. Plurals and texts with values are functions. For two languages, a library such as react-i18next would be extra weight and complexity.
 

@@ -10,6 +10,7 @@ import { listWorkoutSummaries } from './historyQueries'
 import { useNow } from '../../lib/useNow'
 import { useExerciseMap } from '../exercises/useExerciseMap'
 import { SummaryStats } from './SummaryStats'
+import { TrainingCalendar } from './TrainingCalendar'
 import { WeeklyVolumeCard } from './WeeklyVolumeCard'
 import { weeklyVolumeByMuscle } from './weeklyVolume'
 
@@ -32,6 +33,10 @@ export function HistoryScreen() {
   } else if (summaries) {
     content = (
       <div className="flex flex-col gap-4">
+        <TrainingCalendar
+          workouts={summaries.map((summary) => summary.workout)}
+          now={now}
+        />
         {exerciseMap && (
           <WeeklyVolumeCard volumes={weeklyVolumeByMuscle(summaries, exerciseMap, now)} />
         )}

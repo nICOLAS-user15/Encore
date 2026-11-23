@@ -34,6 +34,17 @@ export function BarbellIcon(props: IconProps) {
   )
 }
 
+/** Bathroom scale (square, with the dial and its needle): Body weight screen. */
+export function ScaleIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M4 4h16v16H4z" />
+      <path d="M8 10a4 4 0 0 1 8 0" />
+      <path d="M12 10l2-2.5" />
+    </Icon>
+  )
+}
+
 /** List: Routines tab. */
 export function ListIcon(props: IconProps) {
   return (

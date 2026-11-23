@@ -171,6 +171,22 @@ export type Settings = BaseRecord & {
   lastBackupAt: Timestamp | null
   /** Split chosen in the Workout and Routines tabs (`null` = the first). */
   activeSplitId: ID | null
+  /**
+   * Weekly goal: how many workouts a week (Workout tab). Added after v3: records saved
+   * before it lack the field and `getSettings` fills in the default (no index, no migration).
+   */
+  weeklyGoal: number
+}
+
+/**
+ * A body weight measurement (Peso corporal screen). Kept apart from the workouts: it has
+ * its own rhythm (daily, on waking up), not one per session. Created in schema v4.
+ */
+export type BodyWeight = BaseRecord & {
+  /** When it was measured. */
+  measuredAt: Timestamp
+  /** Always in kg, like loads. */
+  weightKg: number
 }
 
 /**

@@ -197,3 +197,41 @@ describe('correcting a finished workout', () => {
     ).not.toBeInTheDocument()
   })
 })
+
+describe('post-workout summary', () => {
+  it('finishing opens the detail with the summary; "Pronto" goes back to the Workout tab', async () => {
+    const router = renderAt('/treino')
+    fireEvent.click(await screen.findByRole('button', { name: /Upper A/ }))
+    fireEvent.click(
+      (await screen.findAllByRole('button', { name: 'Concluir série 1' }))[0],
+    )
+    await screen.findByRole('button', { name: 'Desfazer série 1' })
+    fireEvent.click(screen.getByRole('button', { name: 'Finalizar treino' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Finalizar treino?' })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Finalizar' }))
+
+    const banner = await screen.findByRole('region', { name: 'Treino concluído' })
+    // First Upper A ever: nothing to compare with yet.
+    expect(
+      await within(banner).findByText(/Primeira vez deste treino/),
+    ).toBeInTheDocument()
+
+    fireEvent.click(within(banner).getByRole('button', { name: 'Pronto' }))
+    await waitFor(() => expect(router.state.location.pathname).toBe('/treino'))
+  })
+
+  it('opening the workout from the history does not show it', async () => {
+    const [upperA] = await listRoutinesWithExercises(db)
+    const workout = await startWorkout(db, upperA.routine.id)
+    const [first] = await listWorkoutSets(db, workout.id)
+    await toggleSetCompleted(db, first.id)
+    await finishWorkout(db, workout.id)
+
+    renderAt(`/historico/${workout.id}`)
+
+    await screen.findByRole('heading', { level: 1, name: 'Upper A' })
+    expect(
+      screen.queryByRole('region', { name: 'Treino concluído' }),
+    ).not.toBeInTheDocument()
+  })
+})

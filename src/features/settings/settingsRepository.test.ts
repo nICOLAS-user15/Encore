@@ -38,6 +38,14 @@ describe('load steps in settings', () => {
 
     expect(settings.restSeconds).toBe(120) // what the user chose stays
     expect(settings.weightStepsKg).toEqual(DEFAULT_SETTINGS.weightStepsKg)
+    // Same for the weekly goal (added later): the default applies.
+    expect(settings.weeklyGoal).toBe(3)
+  })
+
+  it('saves the weekly goal', async () => {
+    await updateSettings(db, { weeklyGoal: 5 })
+
+    expect((await getSettings(db)).weeklyGoal).toBe(5)
   })
 
   it('changing the step of one equipment keeps the others', async () => {

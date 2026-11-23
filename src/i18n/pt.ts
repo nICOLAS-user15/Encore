@@ -93,6 +93,15 @@ export const pt = {
         ? 'Você ainda não fez backup. Seus treinos ficam só neste aparelho.'
         : `Último backup há ${days} dias. Seus treinos ficam só neste aparelho.`,
     backupReminderAction: 'Fazer backup',
+    weeklyGoal: {
+      label: 'Meta da semana',
+      thisWeek: 'Esta semana',
+      progress: (done: number, goal: number) =>
+        `${done} de ${plural(goal, 'treino', 'treinos')}`,
+      /** Weeks in a row that met the goal (the current one included once it is met). */
+      streak: (n: number) =>
+        n === 1 ? '1 semana na meta' : `${n} semanas seguidas na meta`,
+    },
     emptyTitle: 'Treino vazio',
     emptyDescription: 'Adicione o primeiro exercício para começar a registrar as séries.',
     addExercise: '+ Adicionar exercício',
@@ -104,6 +113,10 @@ export const pt = {
     discard: 'Descartar treino',
     lastTime: (summary: string) => `Última vez: ${summary}`,
     reference: (summary: string) => `Referência: ${summary}`,
+    /** The same set last time, under the set's numbers. */
+    previousSet: (summary: string) => `Última: ${summary}`,
+    /** Accessible-name suffix of a set with a previous counterpart. */
+    previousSetLabel: (summary: string) => `última vez ${summary}`,
     addSet: '+ Série',
     addEncore: '+ Encore',
     encore: 'Encore',
@@ -338,6 +351,25 @@ export const pt = {
     setCount: (n: number) => plural(n, 'série', 'séries'),
     editHint: 'Toque numa série para corrigir a carga ou as repetições.',
     addSetTo: (name: string) => `Adicionar série em ${name}`,
+    calendar: {
+      label: 'Calendário de treinos',
+      previousMonth: 'Mês anterior',
+      nextMonth: 'Próximo mês',
+      /** How many workouts in the month shown. */
+      monthCount: (n: number) => plural(n, 'treino', 'treinos'),
+      /** Screen-reader text of a trained day (`date` already formatted). */
+      trainedDay: (date: string) => `${date}: treinou`,
+    },
+    /** Post-workout summary, right after finishing. */
+    finished: {
+      title: 'Treino concluído',
+      /** `percent` = whole-percent volume change against the last time of the routine. */
+      volumeChange: (percent: number) =>
+        percent === 0
+          ? 'Mesmo volume da última vez.'
+          : `${percent > 0 ? '+' : '−'}${Math.abs(percent)}% de volume em relação à última vez.`,
+      firstTime: 'Primeira vez deste treino: agora você tem uma marca para bater.',
+    },
   },
   settings: {
     title: 'Configurações',
@@ -353,6 +385,9 @@ export const pt = {
     weightSteps: 'Saltos de carga',
     weightStepsHint:
       'O menor aumento possível em cada equipamento da sua academia. Vale para a sugestão de carga e para os botões − e + da série.',
+    weeklyGoal: 'Meta semanal',
+    weeklyGoalHint:
+      'Quantos treinos por semana você quer fazer. O progresso aparece na aba Treino.',
     backup: 'Backup',
     backupHint:
       'Seus treinos ficam só neste aparelho. Exporte um arquivo de vez em quando, e importe-o para levar os dados a outro aparelho.',
@@ -372,6 +407,24 @@ export const pt = {
     exportFailed: 'Não foi possível criar o backup.',
     importNewer:
       'Esse backup veio de uma versão mais nova do app. Atualize o app e tente de novo.',
+  },
+  bodyWeight: {
+    title: 'Peso corporal',
+    weight: 'Peso',
+    log: 'Registrar peso',
+    logged: 'Peso registrado',
+    hint: 'Pese-se de manhã, em jejum: assim os números são comparáveis. O que conta é a média da semana, não o número do dia.',
+    latest: 'Atual',
+    weekAverage: 'Média 7 dias',
+    weekChange: 'Na semana',
+    chartTitle: 'Evolução',
+    /** Screen-reader summary of the chart. */
+    chartSummary: (from: string, to: string, n: number) =>
+      `Peso corporal: de ${from} a ${to} em ${plural(n, 'registro', 'registros')}`,
+    entries: 'Registros',
+    empty: 'Nenhum registro ainda.',
+    deleted: 'Registro excluído',
+    deleteEntry: (date: string) => `Excluir registro de ${date}`,
   },
   about: {
     title: 'Sobre',

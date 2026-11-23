@@ -26,6 +26,7 @@ function routeTitle(pathname: string, t: Messages): string | null {
   if (pathname.startsWith('/rotinas')) return t.nav.routines
   if (pathname.startsWith('/exercicios')) return t.nav.exercises
   if (pathname.startsWith('/historico')) return t.nav.history
+  if (pathname.startsWith('/peso')) return t.bodyWeight.title
   if (pathname.startsWith('/configuracoes')) return t.settings.title
   if (pathname.startsWith('/sobre')) return t.about.title
   return null

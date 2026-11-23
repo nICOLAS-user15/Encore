@@ -10,6 +10,7 @@ import {
   InfoIcon,
   DumbbellIcon,
   ListIcon,
+  ScaleIcon,
   SettingsIcon,
 } from '../ui/icons'
 import { useModalDialog } from '../ui/useModalDialog'
@@ -45,6 +46,7 @@ export function SideMenu({ open, onClose }: SideMenuProps) {
     { to: '/rotinas', label: t.nav.routines, icon: <ListIcon /> },
     { to: '/exercicios', label: t.nav.exercises, icon: <DumbbellIcon /> },
     { to: '/historico', label: t.nav.history, icon: <CalendarIcon /> },
+    { to: '/peso', label: t.bodyWeight.title, icon: <ScaleIcon /> },
   ]
   const appItems: MenuItem[] = [
     { to: '/configuracoes', label: t.settings.title, icon: <SettingsIcon /> },

@@ -85,6 +85,12 @@ export const en: Messages = {
         ? 'You have no backup yet. Your workouts live only on this device.'
         : `Last backup ${days} days ago. Your workouts live only on this device.`,
     backupReminderAction: 'Back up now',
+    weeklyGoal: {
+      label: 'Weekly goal',
+      thisWeek: 'This week',
+      progress: (done, goal) => `${done} of ${plural(goal, 'workout', 'workouts')}`,
+      streak: (n) => (n === 1 ? '1 week on target' : `${n} weeks in a row on target`),
+    },
     emptyTitle: 'Empty workout',
     emptyDescription: 'Add the first exercise to start logging sets.',
     addExercise: '+ Add exercise',
@@ -95,6 +101,8 @@ export const en: Messages = {
     discard: 'Discard workout',
     lastTime: (summary) => `Last time: ${summary}`,
     reference: (summary) => `Reference: ${summary}`,
+    previousSet: (summary) => `Last: ${summary}`,
+    previousSetLabel: (summary) => `last time ${summary}`,
     addSet: '+ Set',
     addEncore: '+ Encore',
     encore: 'Encore',
@@ -318,6 +326,21 @@ export const en: Messages = {
     setCount: (n) => plural(n, 'set', 'sets'),
     editHint: 'Tap a set to fix its load or reps.',
     addSetTo: (name) => `Add a set to ${name}`,
+    calendar: {
+      label: 'Workout calendar',
+      previousMonth: 'Previous month',
+      nextMonth: 'Next month',
+      monthCount: (n) => plural(n, 'workout', 'workouts'),
+      trainedDay: (date) => `${date}: trained`,
+    },
+    finished: {
+      title: 'Workout complete',
+      volumeChange: (percent) =>
+        percent === 0
+          ? 'Same volume as last time.'
+          : `${percent > 0 ? '+' : '−'}${Math.abs(percent)}% volume compared with last time.`,
+      firstTime: 'First time with this workout: now you have a mark to beat.',
+    },
   },
   settings: {
     title: 'Settings',
@@ -333,6 +356,9 @@ export const en: Messages = {
     weightSteps: 'Weight steps',
     weightStepsHint:
       'The smallest possible increase on each kind of equipment at your gym. Used by the weight suggestion and by the − and + buttons of a set.',
+    weeklyGoal: 'Weekly goal',
+    weeklyGoalHint:
+      'How many workouts a week you want to do. The progress shows on the Workout tab.',
     backup: 'Backup',
     backupHint:
       'Your workouts live only on this device. Export a file now and then, and import it to move your data to another device.',
@@ -352,6 +378,23 @@ export const en: Messages = {
     exportFailed: 'Could not create the backup.',
     importNewer:
       'This backup comes from a newer version of the app. Update the app and try again.',
+  },
+  bodyWeight: {
+    title: 'Body weight',
+    weight: 'Weight',
+    log: 'Log weight',
+    logged: 'Weight logged',
+    hint: 'Weigh yourself in the morning, before eating: that keeps the numbers comparable. What counts is the weekly average, not the number of the day.',
+    latest: 'Latest',
+    weekAverage: '7-day average',
+    weekChange: 'This week',
+    chartTitle: 'Trend',
+    chartSummary: (from, to, n) =>
+      `Body weight: from ${from} to ${to} in ${plural(n, 'entry', 'entries')}`,
+    entries: 'Entries',
+    empty: 'No entries yet.',
+    deleted: 'Entry deleted',
+    deleteEntry: (date) => `Delete the entry from ${date}`,
   },
   about: {
     title: 'About',

@@ -20,10 +20,12 @@ Encore is a PWA: it installs on the home screen (Android and iOS), opens full sc
 - **Active workout:** start from a routine or train freely; every set comes pre-filled with the last time. Workout timer with pause, and automatic rest between sets.
 - **Progression:** load suggestions through double progression, using each equipment's load step.
 - **Personal records:** a set that beats your heaviest load or your estimated 1RM (Epley) gets a PR badge the moment you complete it.
+- **Weekly goal:** pick how many workouts a week; the Workout tab shows the week's progress and your streak of weeks on target.
 - **Routines and splits:** build splits (Upper/Lower, PPL, ABC...) with their routines, sets, rep ranges and per-exercise rest.
 - **Exercises:** a library of about 100 exercises, accent-insensitive search and custom exercises.
-- **History:** duration, sets and volume for every workout, compared with the previous time, plus this week's volume by muscle group. Finished workouts can be corrected set by set.
+- **History:** duration, sets and volume for every workout, compared with the previous time, plus a monthly calendar of the days you trained and this week's volume by muscle group. Finishing a workout opens a short summary, and finished workouts can be corrected set by set.
 - **Progress:** each exercise has its own screen with personal bests and charts of the estimated 1RM and the heaviest load, session by session.
+- **Body weight:** log your weight and follow the 7-day average, its weekly change and a chart.
 - **Undo and backup:** deletions can be undone; export and import your data as a file to switch devices.
 - **Portuguese and English**, screen kept on during a workout and a sound when rest is over.
 

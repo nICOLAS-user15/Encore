@@ -9,6 +9,7 @@ import {
   formatVolume,
   LOCALES,
 } from '../lib/format'
+import { formatMonthYear, weekdayInitials } from '../lib/calendar'
 import { formatLongDate, formatTime, formatWorkoutDate } from '../lib/time'
 import { en } from './en'
 import { translateNote } from './notes'
@@ -45,6 +46,8 @@ function createFormatters(language: Language) {
     workoutDate: (timestamp: number) => formatWorkoutDate(timestamp, locale),
     longDate: (timestamp: number) => formatLongDate(timestamp, locale),
     time: (timestamp: number) => formatTime(timestamp, locale),
+    monthYear: (date: Date) => formatMonthYear(date, locale),
+    weekdayInitials: () => weekdayInitials(locale),
   }
 }
 

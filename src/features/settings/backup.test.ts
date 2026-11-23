@@ -9,6 +9,7 @@ import {
   finishWorkout,
 } from '../workout/workoutActions'
 import { listWorkoutSets } from '../workout/workoutQueries'
+import { logBodyWeight } from '../bodyweight/bodyWeightActions'
 import {
   BackupError,
   type Backup,
@@ -248,6 +249,59 @@ describe('backup from an earlier version (v2, before splits)', () => {
   })
 })
 
+describe('backup from an earlier version (v3, before body weight)', () => {
+  it('is accepted, with no body weights', async () => {
+    await trainOnce(phone)
+    const old = JSON.parse(JSON.stringify(await exportBackup(phone)))
+    old.schemaVersion = 3
+    delete old.tables.bodyWeights
+
+    const backup = parseBackup(JSON.stringify(old))
+    const newPhone = newDatabase()
+    await importBackup(newPhone, backup)
+
+    expect(backup.tables.bodyWeights).toEqual([])
+    expect(await newPhone.workouts.count()).toBe(1)
+  })
+
+  it('a v2 file goes through both conversions', async () => {
+    await importTestProgram(phone)
+    const old = JSON.parse(JSON.stringify(await exportBackup(phone)))
+    old.schemaVersion = 2
+    delete old.tables.splits
+    delete old.tables.bodyWeights
+    for (const routine of old.tables.routines) {
+      delete routine.splitId
+    }
+
+    const backup = parseBackup(JSON.stringify(old))
+
+    expect(backup.tables.splits).toHaveLength(1)
+    expect(backup.tables.bodyWeights).toEqual([])
+  })
+})
+
+describe('backup: body weight', () => {
+  it('goes to the other device with the rest', async () => {
+    await logBodyWeight(phone, 82.4, 1_000)
+
+    const newPhone = newDatabase()
+    await importBackup(newPhone, parseBackup(JSON.stringify(await exportBackup(phone))))
+
+    expect(await newPhone.bodyWeights.toArray()).toEqual(
+      await phone.bodyWeights.toArray(),
+    )
+  })
+
+  it('rejects an impossible body weight', async () => {
+    await logBodyWeight(phone, 82.4, 1_000)
+    const backup = JSON.parse(JSON.stringify(await exportBackup(phone)))
+    backup.tables.bodyWeights[0].weightKg = 0
+
+    expect(() => parseBackup(JSON.stringify(backup))).toThrow(BackupError)
+  })
+})
+
 describe('backup: malformed files', () => {
   /** Valid backup from a device with the program and one workout, already as an object. */
   async function validBackup() {
@@ -299,6 +353,24 @@ describe('backup: malformed files', () => {
 
     expect(parsed.tables.routines[0]).not.toHaveProperty('lixo')
     expect(parsed.tables.settings[0]).toMatchObject({ restSeconds: 120 })
+  })
+
+  it('keeps a valid weekly goal and rejects one outside 1 to 7', async () => {
+    const settingsWith = (weeklyGoal: unknown) =>
+      [
+        { id: 'app-settings', createdAt: 1, updatedAt: 1, deletedAt: null, weeklyGoal },
+      ] as never
+
+    const backup = await validBackup()
+    backup.tables.settings = settingsWith(4)
+    expect(parseBackup(JSON.stringify(backup)).tables.settings[0]).toMatchObject({
+      weeklyGoal: 4,
+    })
+
+    for (const invalid of [0, 8, 2.5, 'três']) {
+      backup.tables.settings = settingsWith(invalid)
+      expect(() => parseBackup(JSON.stringify(backup))).toThrow(BackupError)
+    }
   })
 })
 

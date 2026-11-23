@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { useLocation, useNavigate, useParams } from 'react-router'
+import { isJustFinished } from '../../app/routeHandle'
 import { db } from '../../db/db'
 import type { ID } from '../../db/types'
 import { useI18n } from '../../i18n/context'
@@ -28,6 +29,7 @@ import {
 import { groupSetsByExercise, numberSets } from '../workout/workoutStats'
 import { getWorkoutSummary } from './historyQueries'
 import { ComparisonCard } from './ComparisonCard'
+import { FinishedBanner } from './FinishedBanner'
 import { SummaryStats } from './SummaryStats'
 
 /**
@@ -40,6 +42,8 @@ export function WorkoutDetailScreen() {
   // useParams reads the `:workoutId` piece of the URL.
   const { workoutId = '' } = useParams()
   const navigate = useNavigate()
+  // Arrived by finishing the workout: the post-workout summary opens the screen.
+  const justFinished = isJustFinished(useLocation())
   const summary = useLiveQuery(() => getWorkoutSummary(db, workoutId), [workoutId])
   const exerciseMap = useExerciseMap()
   const { settings } = useSettings()
@@ -137,6 +141,7 @@ export function WorkoutDetailScreen() {
         eyebrow={`${format.workoutDate(workout.startedAt)} · ${format.time(workout.startedAt)}`}
       />
       <div className="flex flex-col gap-4 px-4 py-4">
+        {justFinished && <FinishedBanner summary={summary} />}
         <Card>
           <SummaryStats summary={summary} />
         </Card>

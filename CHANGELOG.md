@@ -7,10 +7,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Added
 
+- **Body weight:** a new screen in the side menu to log your weight, with the latest value, the 7-day average and how it moved against the week before, a chart and the list of entries. It is included in backups; backups from earlier versions still restore.
+- A weekly goal: choose how many workouts a week in Settings, and the Workout tab shows this week's progress and how many weeks in a row you have hit it.
+- A monthly calendar at the top of History: the days you trained are filled in, with the month total, and you can go back through past months.
+- A post-workout summary: finishing a workout opens it with "Workout complete", how your volume compares with last time (or that it is your first time) and a "Done" button back to the workout list.
+- Each set of the workout shows what you did in the same set last time ("Last: 25 kg × 8"), so the number to beat is right there.
 - Finished workouts can be corrected: tap a set in the history to fix its load or reps, delete it (with undo), or add a set you did but forgot to log. Records, comparisons and charts follow the correction.
 
 ### Changed
 
+- The end of a rest is harder to miss: the screen flashes once and the vibration and beep repeat a few times until you dismiss the bar.
+- The opening animation plays only once a day: opening the app again between sets goes straight to the workout.
 - "Finish workout?" now says how many unmarked sets will be discarded, so a forgotten ✓ does not go unnoticed.
 - The workout timer starts on its own when the first set is completed, if you did not start it yourself.
 

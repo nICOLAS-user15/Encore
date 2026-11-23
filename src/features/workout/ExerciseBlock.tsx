@@ -14,7 +14,7 @@ import { isSuggestionApplied, pendingPlannedSets, suggestNextLoad } from './prog
 import { SetRow } from './SetRow'
 import { addSet, applyLoadSuggestion } from './workoutActions'
 import { getLastPerformance } from './workoutQueries'
-import { numberSets } from './workoutStats'
+import { numberSets, previousSetsById } from './workoutStats'
 
 type ExerciseBlockProps = {
   workoutId: ID
@@ -67,6 +67,8 @@ export function ExerciseBlock({
 
   // Working set numbers (1, 2, 3); warm-up stays null and becomes "AQ".
   const numbers = numberSets(sets)
+  // Last time's same set, under each set's numbers (none while loading or never done).
+  const previousById = previousSetsById(sets, last?.sets ?? [])
 
   let previous: string | null = null
   if (last) {
@@ -165,6 +167,7 @@ export function ExerciseBlock({
             exerciseName={name}
             isNext={set.id === nextSetId}
             isRecord={recordIds.has(set.id)}
+            previous={previousById.get(set.id)}
             onEdit={() => onEditSet(set)}
             onToggle={() => onToggleSet(set)}
           />

@@ -26,6 +26,8 @@ import {
   listFinishedWorkouts,
   type ActiveWorkoutInfo,
 } from './workoutQueries'
+import { WeeklyGoalCard } from './WeeklyGoalCard'
+import { weeklyGoalProgress } from './weeklyGoal'
 import { suggestNextRoutineId, timerElapsedMs } from './workoutStats'
 
 /**
@@ -49,6 +51,8 @@ export function StartWorkout() {
     return {
       count: finished.length,
       finished: finished.map((workout) => ({ routineId: workout.routineId })),
+      // For the weekly goal: when each workout happened.
+      starts: finished.map((workout) => workout.startedAt),
     }
   }, [])
   // `select` saves the chosen split: it also applies to the Routines tab.
@@ -117,6 +121,11 @@ export function StartWorkout() {
     content = (
       <div className="stagger flex flex-col gap-3">
         {active && <ContinueCard info={active} name={activeName} now={now} />}
+        {settingsLoaded && (
+          <WeeklyGoalCard
+            progress={weeklyGoalProgress(history.starts, settings.weeklyGoal, now)}
+          />
+        )}
 
         {/* With only one split, the tabs do not help: they stay hidden. */}
         {splits.length > 1 && (

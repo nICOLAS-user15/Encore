@@ -4,6 +4,7 @@ import {
   groupSetsByExercise,
   hasWorkoutBegun,
   nextPendingSetId,
+  previousSetsById,
   suggestNextRoutineId,
   totalVolumeKg,
   workoutDurationMs,
@@ -158,5 +159,29 @@ describe('nextPendingSetId', () => {
 
   it('all done: there is no next', () => {
     expect(nextPendingSetId(workout({ a1: 1, a2: 2, a3: 3, b1: 4, b2: 5 }))).toBeNull()
+  })
+})
+
+describe('previousSetsById', () => {
+  it('pairs each set with the same set of last time, by type', () => {
+    const last = [
+      makeSet({ type: 'warmup', weightKg: 20, reps: 10 }),
+      makeSet({ type: 'normal', weightKg: 60, reps: 10 }),
+      makeSet({ type: 'normal', weightKg: 60, reps: 8 }),
+      makeSet({ type: 'encore', weightKg: 50, reps: 12 }),
+    ]
+    const warmup = makeSet({ type: 'warmup' })
+    const first = makeSet({ type: 'normal' })
+    const second = makeSet({ type: 'normal' })
+    const third = makeSet({ type: 'normal' }) // last time had only 2
+    const encore = makeSet({ type: 'encore' })
+
+    const pairs = previousSetsById([warmup, first, second, third, encore], last)
+
+    expect(pairs.get(first.id)?.reps).toBe(10)
+    expect(pairs.get(second.id)?.reps).toBe(8)
+    expect(pairs.get(encore.id)?.weightKg).toBe(50)
+    expect(pairs.has(third.id)).toBe(false)
+    expect(pairs.has(warmup.id)).toBe(false)
   })
 })

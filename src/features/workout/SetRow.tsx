@@ -15,6 +15,8 @@ type SetRowProps = {
   isNext: boolean
   /** The set is a personal record (beats everything done before it). */
   isRecord?: boolean
+  /** The same set last time (`previousSetsById`): shown under the numbers as the mark to beat. */
+  previous?: Pick<SetEntry, 'weightKg' | 'reps'>
   onEdit: () => void
   onToggle: () => void
 }
@@ -32,6 +34,7 @@ export function SetRow({
   exerciseName,
   isNext,
   isRecord = false,
+  previous,
   onEdit,
   onToggle,
 }: SetRowProps) {
@@ -55,7 +58,8 @@ export function SetRow({
         onClick={onEdit}
         aria-label={t.workout.editSet(
           label,
-          `${exerciseName}, ${format.set(set.weightKg, set.reps)}${isRecord ? `, ${t.records.personalRecord}` : ''}`,
+          // "recorde pessoal" stays at the END of the name (screen readers and tests rely on it).
+          `${exerciseName}, ${format.set(set.weightKg, set.reps)}${previous ? `, ${t.workout.previousSetLabel(format.set(previous.weightKg, previous.reps))}` : ''}${isRecord ? `, ${t.records.personalRecord}` : ''}`,
         )}
         className={cn(
           // transition-colors: the "next" highlight moves from one set to the other smoothly.
@@ -66,19 +70,26 @@ export function SetRow({
         <span className="w-6 shrink-0 font-display text-lg font-semibold text-muted tabular-nums">
           {label}
         </span>
-        <span
-          className={cn(
-            'font-display font-bold tabular-nums',
-            // Smaller warm-up: the eye goes straight to the working sets.
-            warmup ? 'text-xl' : 'text-2xl',
-            // Warm-up and completed sets in a dimmed tone.
-            (warmup || completed) && 'text-muted',
+        <span className="flex min-w-0 flex-col">
+          <span
+            className={cn(
+              'font-display leading-tight font-bold tabular-nums',
+              // Smaller warm-up: the eye goes straight to the working sets.
+              warmup ? 'text-xl' : 'text-2xl',
+              // Warm-up and completed sets in a dimmed tone.
+              (warmup || completed) && 'text-muted',
+            )}
+          >
+            {format.decimal(set.weightKg)}
+            <span className="text-base font-semibold text-muted"> {t.common.kg}</span>
+            <span className="text-muted"> × </span>
+            {set.reps}
+          </span>
+          {previous && (
+            <span className="text-xs text-muted tabular-nums">
+              {t.workout.previousSet(format.set(previous.weightKg, previous.reps))}
+            </span>
           )}
-        >
-          {format.decimal(set.weightKg)}
-          <span className="text-base font-semibold text-muted"> {t.common.kg}</span>
-          <span className="text-muted"> × </span>
-          {set.reps}
         </span>
         {(isRecord || set.type === 'encore') && (
           <span className="ml-auto flex shrink-0 items-center gap-1.5">

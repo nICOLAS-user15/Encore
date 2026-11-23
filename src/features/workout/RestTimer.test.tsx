@@ -17,13 +17,13 @@ afterEach(() => {
 
 function renderTimer(sound: boolean) {
   const endsAt = Date.now() + 2_000
-  render(
+  return render(
     <RestTimer endsAt={endsAt} sound={sound} onAdd={() => {}} onDismiss={() => {}} />,
   )
 }
 
 describe('RestTimer', () => {
-  it('beeps once when the rest ends', () => {
+  it('beeps when the rest ends, repeats every 4 s a few times, then stops', () => {
     renderTimer(true)
     expect(screen.getByText('0:02')).toBeInTheDocument()
     expect(playRestBeep).not.toHaveBeenCalled()
@@ -33,9 +33,36 @@ describe('RestTimer', () => {
     expect(screen.getByRole('timer')).toHaveTextContent('Descanso acabou')
     expect(playRestBeep).toHaveBeenCalledTimes(1)
 
-    // Stays on screen as "finished", but does not beep again every second.
+    // Not every second: the next alert comes 4 s later.
     act(() => vi.advanceTimersByTime(3_000))
     expect(playRestBeep).toHaveBeenCalledTimes(1)
+    act(() => vi.advanceTimersByTime(1_000))
+    expect(playRestBeep).toHaveBeenCalledTimes(2)
+
+    // 1 + 3 repeats, then silence, even with the bar still on screen.
+    act(() => vi.advanceTimersByTime(60_000))
+    expect(playRestBeep).toHaveBeenCalledTimes(4)
+  })
+
+  it('dismissing the bar stops the repeated alerts', () => {
+    const { unmount } = renderTimer(true)
+    act(() => vi.advanceTimersByTime(2_500))
+    expect(playRestBeep).toHaveBeenCalledTimes(1)
+
+    unmount() // "OK" / "Pular" remove the bar
+
+    act(() => vi.advanceTimersByTime(20_000))
+    expect(playRestBeep).toHaveBeenCalledTimes(1)
+  })
+
+  it('flashes the screen once when the rest ends', () => {
+    renderTimer(false)
+    const flash = screen.getByTestId('rest-flash')
+    expect(flash).not.toHaveClass('animate-flash')
+
+    act(() => vi.advanceTimersByTime(2_500))
+
+    expect(flash).toHaveClass('animate-flash')
   })
 
   it('does not beep with the sound off', () => {
@@ -57,10 +84,11 @@ describe('RestTimer', () => {
       />,
     )
 
-    act(() => vi.advanceTimersByTime(1_000))
+    act(() => vi.advanceTimersByTime(10_000))
 
     expect(screen.getByRole('timer')).toHaveTextContent('Descanso acabou')
     expect(playRestBeep).not.toHaveBeenCalled()
+    expect(screen.getByTestId('rest-flash')).not.toHaveClass('animate-flash')
   })
 
   it('announces the end of the rest to screen readers', () => {

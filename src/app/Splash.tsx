@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { localDay } from '../lib/calendar'
 import { Logo } from '../ui/Logo'
 
 /**
@@ -15,14 +16,37 @@ function prefersReducedMotion(): boolean {
   )
 }
 
+/** Where the day of the last entry is kept (per device convenience: localStorage). */
+const STORAGE_KEY = 'encore:splashDay'
+
+/**
+ * The entry plays once a day: the first opening of the day gets the show; opening the app
+ * again between sets (or iOS reloading it from the background) goes straight to the workout.
+ * Marks today as seen. Without storage (private mode), it simply plays every time.
+ */
+function splashDueToday(): boolean {
+  const today = localDay(new Date())
+  try {
+    if (localStorage.getItem(STORAGE_KEY) === today) {
+      return false
+    }
+    localStorage.setItem(STORAGE_KEY, today)
+  } catch {
+    // No storage: shows it, as before.
+  }
+  return true
+}
+
 /**
  * Entry animation: the stamp "stamps", a red bar runs underneath and the
- * screen disappears. Shows only when opening the app (it is outside the router, so
- * switching tabs does not repeat it). With "reduce motion" on, it does not show.
+ * screen disappears. Shows only on the first opening of the day (it is outside the router,
+ * so switching tabs does not repeat it). With "reduce motion" on, it does not show.
  */
 export function Splash() {
   // The function passed to useState only runs on the first render.
-  const [visible, setVisible] = useState(() => !prefersReducedMotion())
+  const [visible, setVisible] = useState(
+    () => !prefersReducedMotion() && splashDueToday(),
+  )
 
   useEffect(() => {
     if (!visible) {

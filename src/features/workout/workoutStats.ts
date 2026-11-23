@@ -176,3 +176,26 @@ export function totalVolumeKg(sets: SetEntry[]): number {
     0,
   )
 }
+
+/**
+ * What was done in the SAME set last time, for each set of today: the Nth normal set
+ * pairs with last time's Nth normal set, the Nth encore with the Nth encore. Warm-up
+ * pairs with nothing (it is not a target to beat). Sets with no counterpart are left out.
+ */
+export function previousSetsById<T extends Pick<SetEntry, 'id' | 'type'>>(
+  sets: T[],
+  lastSets: SetEntry[],
+): Map<ID, SetEntry> {
+  const result = new Map<ID, SetEntry>()
+  for (const type of ['normal', 'encore'] as const) {
+    const previous = lastSets.filter((set) => set.type === type)
+    sets
+      .filter((set) => set.type === type)
+      .forEach((set, index) => {
+        if (previous[index]) {
+          result.set(set.id, previous[index])
+        }
+      })
+  }
+  return result
+}

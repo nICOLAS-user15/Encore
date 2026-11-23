@@ -114,6 +114,8 @@
   --animate-skeleton: skeleton 1.6s ease-in-out infinite;
   /* End of rest: a short jolt to the side ("Bora!"). */
   --animate-nudge: nudge 380ms ease-in-out both;
+  /* End of rest: one flash of the whole screen, seen from the corner of the eye (once, never a loop). */
+  --animate-flash: flash 450ms ease-out both;
 
   /*
    * "Dirty" logo when opening the menu: print glitch. The logo jumps in slices
@@ -220,6 +222,15 @@
       transform: scale(1);
     }
   }
+  @keyframes flash {
+    from {
+      opacity: 0.35;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
   @keyframes nudge {
     0%,
     100% {

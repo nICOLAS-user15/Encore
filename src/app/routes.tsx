@@ -1,4 +1,5 @@
 import { Navigate, type RouteObject } from 'react-router'
+import { BodyWeightScreen } from '../features/bodyweight/BodyWeightScreen'
 import { ExerciseDetailScreen } from '../features/exercises/ExerciseDetailScreen'
 import { ExercisesScreen } from '../features/exercises/ExercisesScreen'
 import { HistoryScreen } from '../features/history/HistoryScreen'
@@ -58,6 +59,12 @@ export const routes: RouteObject[] = [
         path: 'historico/:workoutId',
         element: <WorkoutDetailScreen />,
         handle: { backTo: '/historico' } satisfies RouteHandle,
+      },
+      // Body weight: opened from the side menu, like Settings.
+      {
+        path: 'peso',
+        element: <BodyWeightScreen />,
+        handle: { backTo: '/treino' } satisfies RouteHandle,
       },
       {
         path: 'configuracoes',

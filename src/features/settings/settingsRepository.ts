@@ -12,6 +12,7 @@ export type AppSettings = Pick<
   | 'weightStepsKg'
   | 'lastBackupAt'
   | 'activeSplitId'
+  | 'weeklyGoal'
 >
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -31,10 +32,15 @@ export const DEFAULT_SETTINGS: AppSettings = {
   },
   lastBackupAt: null,
   activeSplitId: null,
+  // Three a week: a common starting point (full body or ABC); the user adjusts it.
+  weeklyGoal: 3,
 }
 
 /** Rest duration options offered on the Settings screen (seconds). */
 export const REST_OPTIONS = [60, 90, 120, 180] as const
+
+/** Weekly goal options offered in Settings (workouts per week). */
+export const WEEKLY_GOAL_OPTIONS = [1, 2, 3, 4, 5, 6, 7] as const
 
 /** Load step options offered in Settings (kg). */
 export const WEIGHT_STEP_OPTIONS = [1, 1.25, 2, 2.5, 4, 5] as const
@@ -67,6 +73,7 @@ export async function getSettings(db: EncoreDB): Promise<AppSettings> {
     weightStepsKg: { ...DEFAULT_SETTINGS.weightStepsKg, ...row.weightStepsKg },
     lastBackupAt: row.lastBackupAt ?? null,
     activeSplitId: row.activeSplitId ?? null,
+    weeklyGoal: row.weeklyGoal ?? DEFAULT_SETTINGS.weeklyGoal,
   }
 }
 

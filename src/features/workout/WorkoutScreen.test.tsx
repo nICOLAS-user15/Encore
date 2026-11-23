@@ -7,6 +7,13 @@ import { db } from '../../db/db'
 import { createRecord } from '../../db/repository'
 import { syncSeedExercises } from '../../db/seed'
 import { updateRoutineExercise } from '../routines/routineActions'
+import {
+  finishWorkout,
+  startWorkout,
+  toggleSetCompleted,
+  updateSet,
+} from './workoutActions'
+import { listWorkoutSets } from './workoutQueries'
 import { importTestProgram } from '../../test/fixtures'
 import { listRoutinesWithExercises } from '../routines/routineQueries'
 import { updateSettings } from '../settings/settingsRepository'
@@ -371,5 +378,49 @@ describe('rest per exercise', () => {
     const timer = await completeFirstBenchSet()
 
     expect(within(timer).getByText('1:30')).toBeInTheDocument()
+  })
+})
+
+describe('last time, set by set', () => {
+  it('shows under each set what was done in the same set last time', async () => {
+    await importTestProgram(db)
+    // Last Upper A: only the 1st bench press set, done with 9 reps.
+    const [upperA] = await listRoutinesWithExercises(db)
+    const previous = await startWorkout(db, upperA.routine.id)
+    const [first] = await listWorkoutSets(db, previous.id)
+    await updateSet(db, first.id, { reps: 9 })
+    await toggleSetCompleted(db, first.id)
+    await finishWorkout(db, previous.id)
+
+    renderAt('/treino')
+    fireEvent.click(await screen.findByRole('button', { name: /Upper A/ }))
+
+    const [benchSet1] = await screen.findAllByRole('button', {
+      name: /^Editar série 1: Supino reto com barra/,
+    })
+    // findBy* finds the row first; last time arrives from the database a moment later.
+    await waitFor(() => expect(benchSet1).toHaveTextContent('Última: 25 kg × 9'))
+    // Set 2 had no counterpart last time: nothing under it.
+    const [benchSet2] = screen.getAllByRole('button', {
+      name: /^Editar série 2: Supino reto com barra/,
+    })
+    expect(benchSet2).not.toHaveTextContent('Última')
+  })
+})
+
+describe('weekly goal on the Workout tab', () => {
+  it('shows how many workouts this week against the goal, and the goal comes from Settings', async () => {
+    await importTestProgram(db)
+    const [upperA] = await listRoutinesWithExercises(db)
+    const workout = await startWorkout(db, upperA.routine.id)
+    const [first] = await listWorkoutSets(db, workout.id)
+    await toggleSetCompleted(db, first.id)
+    await finishWorkout(db, workout.id)
+    await updateSettings(db, { weeklyGoal: 4 })
+
+    renderAt('/treino')
+
+    const goal = await screen.findByRole('region', { name: 'Meta da semana' })
+    expect(await within(goal).findByText('1 de 4 treinos')).toBeInTheDocument()
   })
 })

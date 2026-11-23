@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useI18n } from '../../i18n/context'
 import { playRestBeep } from '../../lib/beep'
 import { cn } from '../../lib/cn'
@@ -15,6 +16,24 @@ type RestTimerProps = {
   onDismiss: () => void
 }
 
+/** After the first alert, how many more times it repeats (vibration + beep). */
+const REST_ALERT_REPEATS = 3
+/** Time between the repeated alerts. */
+const REST_ALERT_INTERVAL_MS = 4_000
+
+/**
+ * Plays the `flash` animation once on the overlay. Removing the class and forcing a
+ * layout (`offsetWidth`) restarts the animation if a previous rest already played it.
+ */
+function flashScreen(element: HTMLElement | null) {
+  if (!element) {
+    return
+  }
+  element.classList.remove('animate-flash')
+  void element.offsetWidth
+  element.classList.add('animate-flash')
+}
+
 /** Rest bar, in the dock above the tabs. */
 export function RestTimer({ endsAt, sound, onAdd, onDismiss }: RestTimerProps) {
   const { t } = useI18n()
@@ -25,23 +44,54 @@ export function RestTimer({ endsAt, sound, onAdd, onDismiss }: RestTimerProps) {
   // Only alerts on the "counting" to "finished" transition that happened with the bar on screen:
   // a bar that is born already finished (e.g. reopening the app) does not beep at the wrong time.
   const armed = useRef(false)
+  const flashRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (!finished) {
       armed.current = true
       return
     }
-    if (armed.current) {
-      armed.current = false
+    if (!armed.current) {
+      return
+    }
+    armed.current = false
+
+    function alert() {
       // Vibrates on Android. The iPhone has no such API, so `?.` avoids the error.
       navigator.vibrate?.([200, 100, 200])
       if (sound) {
         playRestBeep()
       }
     }
+    alert()
+    flashScreen(flashRef.current)
+
+    // With the phone in a pocket one buzz is easy to miss: it repeats until the bar is
+    // dismissed (unmount) or extended (+15s), but only a few times, so a forgotten phone
+    // does not keep beeping on the bench.
+    let repeats = 0
+    const id = window.setInterval(() => {
+      alert()
+      repeats++
+      if (repeats >= REST_ALERT_REPEATS) {
+        window.clearInterval(id)
+      }
+    }, REST_ALERT_INTERVAL_MS)
+    return () => window.clearInterval(id)
   }, [finished, sound])
 
   return (
     <DockItem>
+      {/* Full-screen flash at the end of the rest: invisible and untouchable the rest of the time.
+          In <body> (portal): the dock animates with `transform`, which would trap a `fixed` child. */}
+      {createPortal(
+        <div
+          ref={flashRef}
+          aria-hidden="true"
+          data-testid="rest-flash"
+          className="pointer-events-none fixed inset-0 z-50 bg-text opacity-0"
+        />,
+        document.body,
+      )}
       {/* Two layers: the outer one rises from the dock when it appears; the inner one gives the jolt at the end. */}
       <div>
         {/* The timer itself is not announced every second; only the end, for screen readers. */}

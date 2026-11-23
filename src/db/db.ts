@@ -2,6 +2,7 @@ import Dexie, { type Table } from 'dexie'
 import { upgradeToV2 } from './migrations/v2'
 import { upgradeToV3 } from './migrations/v3'
 import type {
+  BodyWeight,
   Exercise,
   ID,
   Routine,
@@ -24,6 +25,7 @@ export type EncoreDB = Dexie & {
   workouts: Table<Workout, ID>
   setEntries: Table<SetEntry, ID>
   settings: Table<Settings, ID>
+  bodyWeights: Table<BodyWeight, ID>
 }
 
 /**
@@ -47,7 +49,7 @@ export const SCHEMA_V1 = {
 }
 
 /** Current schema version (the highest `db.version(...)` below). The backup records this number. */
-export const SCHEMA_VERSION = 3
+export const SCHEMA_VERSION = 4
 
 /**
  * Creates (or opens) the database. Takes the name so tests can use
@@ -78,6 +80,13 @@ export function createDatabase(name: string): EncoreDB {
       splits: 'id, order, updatedAt',
     })
     .upgrade(upgradeToV3)
+
+  // v4: body weight log (new table, ordered by date). Nothing existing changes, so there
+  // is no upgrade function: Dexie creates the empty table (migrations/v4.test.ts proves
+  // that a v3 database keeps everything).
+  db.version(4).stores({
+    bodyWeights: 'id, measuredAt, updatedAt',
+  })
 
   // `updatedAt` appears in every table so future sync
   // can ask "what changed since last time?".

@@ -25,6 +25,8 @@ export const BACKUP_TABLES = [
   'workouts',
   'setEntries',
   'settings',
+  // v4
+  'bodyWeights',
 ] as const
 export type BackupTableName = (typeof BACKUP_TABLES)[number]
 
@@ -159,6 +161,14 @@ function sanitizers(row: Row): Record<BackupTableName, () => BaseRecord> {
         completedAt: numOrNull(row.completedAt),
       }) as BaseRecord,
     settings: () => settingsRow(row),
+    bodyWeights: () => {
+      const weightKg = num(row.weightKg)
+      // A body weight of 0 or 1,000 kg is a broken file, not a measurement.
+      if (weightKg <= 0 || weightKg >= 1000) {
+        return fail()
+      }
+      return { ...base(row), measuredAt: num(row.measuredAt), weightKg } as BaseRecord
+    },
   }
 }
 
@@ -203,6 +213,13 @@ function settingsRow(row: Row): BaseRecord {
   }
   if (row.lastBackupAt !== undefined) {
     record.lastBackupAt = numOrNull(row.lastBackupAt)
+  }
+  if (row.weeklyGoal !== undefined) {
+    const goal = num(row.weeklyGoal)
+    if (!Number.isInteger(goal) || goal < 1 || goal > 7) {
+      return fail()
+    }
+    record.weeklyGoal = goal
   }
   if (row.activeSplitId !== undefined) {
     record.activeSplitId = row.activeSplitId === null ? null : id(row.activeSplitId)

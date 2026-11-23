@@ -1,6 +1,10 @@
 import { act, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Splash, SPLASH_DURATION_MS } from './Splash'
+
+beforeEach(() => {
+  localStorage.clear()
+})
 
 afterEach(() => {
   vi.useRealTimers()
@@ -8,6 +12,25 @@ afterEach(() => {
 })
 
 describe('Splash', () => {
+  it('plays only on the first opening of the day', () => {
+    vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] })
+    vi.setSystemTime(new Date(2026, 10, 23, 7, 0))
+    const first = render(<Splash />)
+    expect(screen.getByTestId('splash')).toBeInTheDocument()
+    first.unmount()
+
+    // Same day, a few hours later: straight to the app.
+    vi.setSystemTime(new Date(2026, 10, 23, 21, 30))
+    const again = render(<Splash />)
+    expect(screen.queryByTestId('splash')).not.toBeInTheDocument()
+    again.unmount()
+
+    // Next day: it plays again.
+    vi.setSystemTime(new Date(2026, 10, 24, 7, 0))
+    render(<Splash />)
+    expect(screen.getByTestId('splash')).toBeInTheDocument()
+  })
+
   it('shows on open and disappears by itself after the animation', () => {
     vi.useFakeTimers()
     render(<Splash />)
