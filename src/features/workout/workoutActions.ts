@@ -98,7 +98,7 @@ export async function startWorkout(db: EncoreDB, routineId: ID | null): Promise<
         routineId,
         startedAt: Date.now(),
         endedAt: null,
-        // The timer only starts when the user taps "Iniciar cronômetro".
+        // The timer starts on "Iniciar cronômetro" or with the first completed set.
         timerStartedAt: null,
         timerStoppedAt: null,
         timerPausedAt: null,
@@ -296,20 +296,29 @@ export async function toggleSetCompleted(db: EncoreDB, setId: ID): Promise<boole
  * Puts the set in the state the user MEANT (`completed`), instead of flipping it. A double
  * tap on ✓ or on "Concluir série" sends the same intention twice: the second one changes
  * nothing. Returns `true` only if the set really changed.
+ *
+ * Completing a set also starts the workout timer if the user never tapped "Iniciar":
+ * otherwise a forgotten tap would leave the duration as "from opening to finishing".
+ * Un-completing never stops it.
  */
 export async function setSetCompleted(
   db: EncoreDB,
   setId: ID,
   completed: boolean,
 ): Promise<boolean> {
-  return db.transaction('rw', db.setEntries, async () => {
+  return db.transaction('rw', [db.setEntries, db.workouts], async () => {
     const set = await db.setEntries.get(setId)
     if (!set || !isActive(set) || (set.completedAt !== null) === completed) {
       return false
     }
-    await updateRecord(db.setEntries, setId, {
-      completedAt: completed ? Date.now() : null,
-    })
+    const now = Date.now()
+    await updateRecord(db.setEntries, setId, { completedAt: completed ? now : null })
+    if (completed) {
+      const workout = await db.workouts.get(set.workoutId)
+      if (workout && workout.endedAt === null && workout.timerStartedAt === null) {
+        await updateRecord(db.workouts, workout.id, { timerStartedAt: now })
+      }
+    }
     return true
   })
 }

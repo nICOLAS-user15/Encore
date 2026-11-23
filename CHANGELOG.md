@@ -8,6 +8,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 ### Changed
 
 - "Finish workout?" now says how many unmarked sets will be discarded, so a forgotten ✓ does not go unnoticed.
+- The workout timer starts on its own when the first set is completed, if you did not start it yourself.
 
 ### Fixed
 

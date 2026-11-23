@@ -180,6 +180,40 @@ describe('workout timer', () => {
     expect((await db.workouts.get(workout.id))?.timerStartedAt).toBe(started)
   })
 
+  it('completing the first set starts the timer at that moment; later sets and undoing do not touch it', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    try {
+      vi.setSystemTime(1_000_000)
+      const workout = await startWorkout(db, upperA)
+      const [first, second] = await listWorkoutSets(db, workout.id)
+
+      vi.setSystemTime(1_300_000) // 5 min warming up before the first set
+      await setSetCompleted(db, first.id, true)
+      expect((await db.workouts.get(workout.id))?.timerStartedAt).toBe(1_300_000)
+
+      vi.setSystemTime(1_400_000)
+      await setSetCompleted(db, second.id, true)
+      await setSetCompleted(db, first.id, false)
+      expect((await db.workouts.get(workout.id))?.timerStartedAt).toBe(1_300_000)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('completing a set keeps a timer the user already started (or paused)', async () => {
+    const workout = await startWorkout(db, upperA)
+    const [first] = await listWorkoutSets(db, workout.id)
+    await startWorkoutTimer(db, workout.id)
+    await pauseWorkoutTimer(db, workout.id)
+    const before = (await db.workouts.get(workout.id))!
+
+    await setSetCompleted(db, first.id, true)
+
+    const after = (await db.workouts.get(workout.id))!
+    expect(after.timerStartedAt).toBe(before.timerStartedAt)
+    expect(after.timerPausedAt).toBe(before.timerPausedAt)
+  })
+
   it('pausing freezes the clock and resuming continues from where it stopped', async () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     try {

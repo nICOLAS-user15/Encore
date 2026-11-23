@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { createMemoryRouter } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { routes } from '../../app/routes'
 import { db } from '../../db/db'
 import { createRecord } from '../../db/repository'
@@ -152,6 +152,22 @@ describe('timer on screen', () => {
   })
 })
 
+describe('timer that starts on its own', () => {
+  it('completing the first set without tapping "Iniciar" starts the timer', async () => {
+    await importTestProgram(db)
+    renderAt('/treino')
+    fireEvent.click(await screen.findByRole('button', { name: /Upper A/ }))
+    const timer = await screen.findByRole('region', { name: 'Cronômetro' })
+
+    const [firstCheck] = await screen.findAllByRole('button', { name: /^Concluir série/ })
+    fireEvent.click(firstCheck)
+
+    expect(await within(timer).findByText('Cronômetro rodando')).toBeInTheDocument()
+    // "Finalizar treino" moves into the timer card: still only one on screen.
+    expect(screen.getAllByRole('button', { name: 'Finalizar treino' })).toHaveLength(1)
+  })
+})
+
 describe('finish confirmation', () => {
   /** Opens "Finalizar treino?" and returns the dialog. */
   async function openFinishDialog() {
@@ -299,21 +315,28 @@ describe('sets: undo and double taps', () => {
 
   it('a double tap on ✓ leaves the set completed', async () => {
     const [firstCheck] = await openUpperA()
+    // Freezes the clock (only `Date`; timers stay real so findBy still waits): the three taps
+    // are 0 ms apart however slow the machine is. With the real clock, a busy test run could
+    // take more than the 800 ms window between the taps, and the third one would count.
+    vi.useFakeTimers({ toFake: ['Date'] })
+    try {
+      fireEvent.click(firstCheck)
+      fireEvent.click(firstCheck)
+      const undo = (await screen.findAllByRole('button', { name: 'Desfazer série 1' }))[0]
+      // A tap right after completing is still the same double tap: ignored.
+      fireEvent.click(undo)
 
-    fireEvent.click(firstCheck)
-    fireEvent.click(firstCheck)
-    const undo = (await screen.findAllByRole('button', { name: 'Desfazer série 1' }))[0]
-    // A tap right after completing is still the same double tap: ignored.
-    fireEvent.click(undo)
-
-    await new Promise((resolve) => setTimeout(resolve, 100))
-    expect(
-      (await screen.findAllByRole('button', { name: 'Desfazer série 1' }))[0],
-    ).toBeInTheDocument()
-    const completed = await db.setEntries
-      .filter((set) => set.completedAt !== null)
-      .count()
-    expect(completed).toBe(1)
+      await new Promise((resolve) => setTimeout(resolve, 100))
+      expect(
+        (await screen.findAllByRole('button', { name: 'Desfazer série 1' }))[0],
+      ).toBeInTheDocument()
+      const completed = await db.setEntries
+        .filter((set) => set.completedAt !== null)
+        .count()
+      expect(completed).toBe(1)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })
 

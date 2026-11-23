@@ -38,7 +38,8 @@ type WorkoutTimerProps = {
 }
 
 /**
- * Workout timer controlled by the user: starts stopped and "Iniciar" turns it on.
+ * Workout timer controlled by the user: starts stopped and "Iniciar" turns it on (or the
+ * first completed set does, in `setSetCompleted`, so a forgotten tap does not lose the time).
  * Once started, the card shows "Pausar"/"Retomar" (going to the bathroom, talking
  * to someone) next to "Finalizar treino" (which also stops the timer): the rest
  * already starts on its own when a set is completed. The time is always computed from the
