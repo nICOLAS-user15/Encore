@@ -30,3 +30,18 @@ export function needsBackupReminder(
   }
   return lastBackupAt === null || daysSince(lastBackupAt, now) >= BACKUP_REMINDER_DAYS
 }
+
+/**
+ * After how many days without a backup the post-workout summary offers one. Shorter than
+ * the list reminder: right after a workout the phone is in hand and there is something new
+ * to protect.
+ */
+export const POST_WORKOUT_BACKUP_DAYS = 7
+
+/** Offer a backup in the post-workout summary? Never backed up, or 7+ days ago. */
+export function offersPostWorkoutBackup(
+  lastBackupAt: Timestamp | null,
+  now: Timestamp,
+): boolean {
+  return lastBackupAt === null || daysSince(lastBackupAt, now) >= POST_WORKOUT_BACKUP_DAYS
+}

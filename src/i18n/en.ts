@@ -348,6 +348,7 @@ export const en: Messages = {
     },
     finished: {
       title: 'Workout complete',
+      backup: 'Back up now',
       volumeChange: (percent) =>
         percent === 0
           ? 'Same volume as last time.'

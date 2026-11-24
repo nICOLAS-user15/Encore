@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { createMemoryRouter } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { routes } from '../../app/routes'
 import { db } from '../../db/db'
 import { createRecord } from '../../db/repository'
@@ -9,6 +9,7 @@ import { importTestProgram } from '../../test/fixtures'
 import { BottomDockProvider } from '../../ui/BottomDock'
 import { ToastProvider } from '../../ui/Toast'
 import { listRoutinesWithExercises } from '../routines/routineQueries'
+import { getSettings, updateSettings } from '../settings/settingsRepository'
 import {
   finishWorkout,
   startWorkout,
@@ -238,6 +239,59 @@ describe('post-workout summary', () => {
 
     fireEvent.click(within(banner).getByRole('button', { name: 'Pronto' }))
     await waitFor(() => expect(router.state.location.pathname).toBe('/treino'))
+  })
+
+  /** The detail as it opens right after finishing (with the summary on top). */
+  async function openJustFinished() {
+    const [upperA] = await listRoutinesWithExercises(db)
+    const workout = await startWorkout(db, upperA.routine.id)
+    const [first] = await listWorkoutSets(db, workout.id)
+    await toggleSetCompleted(db, first.id)
+    await finishWorkout(db, workout.id)
+    const router = createMemoryRouter(routes, {
+      initialEntries: [
+        { pathname: `/historico/${workout.id}`, state: { justFinished: true } },
+      ],
+    })
+    render(<RouterProvider router={router} />)
+    return screen.findByRole('region', { name: 'Treino concluído' })
+  }
+
+  it('offers a backup when the last one is a week old, and saving it hides the offer', async () => {
+    await updateSettings(db, { lastBackupAt: Date.now() - 8 * 24 * 60 * 60 * 1000 })
+    vi.stubGlobal('navigator', {
+      ...navigator,
+      canShare: () => true,
+      share: () => Promise.resolve(),
+    })
+    try {
+      const banner = await openJustFinished()
+      expect(
+        await within(banner).findByText('Último backup: há 8 dias'),
+      ).toBeInTheDocument()
+
+      fireEvent.click(within(banner).getByRole('button', { name: 'Fazer backup' }))
+
+      await waitFor(() =>
+        expect(
+          within(banner).queryByRole('button', { name: 'Fazer backup' }),
+        ).not.toBeInTheDocument(),
+      )
+      expect((await getSettings(db)).lastBackupAt).toBeGreaterThan(Date.now() - 60_000)
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('does not offer a backup made in the last week', async () => {
+    await updateSettings(db, { lastBackupAt: Date.now() - 2 * 24 * 60 * 60 * 1000 })
+
+    const banner = await openJustFinished()
+
+    expect(within(banner).getByRole('button', { name: 'Pronto' })).toBeInTheDocument()
+    expect(
+      within(banner).queryByRole('button', { name: 'Fazer backup' }),
+    ).not.toBeInTheDocument()
   })
 
   it('opening the workout from the history does not show it', async () => {

@@ -379,6 +379,7 @@ export const pt = {
     /** Post-workout summary, right after finishing. */
     finished: {
       title: 'Treino concluído',
+      backup: 'Fazer backup',
       /** `percent` = whole-percent volume change against the last time of the routine. */
       volumeChange: (percent: number) =>
         percent === 0
