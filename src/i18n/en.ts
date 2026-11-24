@@ -337,6 +337,8 @@ export const en: Messages = {
     setCount: (n) => plural(n, 'set', 'sets'),
     editHint: 'Tap a set to fix its load or reps.',
     addSetTo: (name) => `Add a set to ${name}`,
+    loadMore: 'Load more',
+    showing: (shown, total) => `Showing ${shown} of ${total}`,
     calendar: {
       label: 'Workout calendar',
       previousMonth: 'Previous month',

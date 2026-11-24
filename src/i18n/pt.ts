@@ -364,6 +364,9 @@ export const pt = {
     setCount: (n: number) => plural(n, 'série', 'séries'),
     editHint: 'Toque numa série para corrigir a carga ou as repetições.',
     addSetTo: (name: string) => `Adicionar série em ${name}`,
+    loadMore: 'Carregar mais',
+    /** Under the list while there are older workouts to load. */
+    showing: (shown: number, total: number) => `Mostrando ${shown} de ${total}`,
     calendar: {
       label: 'Calendário de treinos',
       previousMonth: 'Mês anterior',

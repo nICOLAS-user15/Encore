@@ -1,15 +1,17 @@
-import { useState } from 'react'
 import type { Timestamp, Workout } from '../../db/types'
 import { useI18n } from '../../i18n/context'
 import { cn } from '../../lib/cn'
-import { localDay, monthGrid } from '../../lib/calendar'
+import { localDay, monthGrid, monthSpan } from '../../lib/calendar'
 import { Card } from '../../ui/Card'
 import { ArrowLeftIcon, ArrowRightIcon } from '../../ui/icons'
 
 type TrainingCalendarProps = {
-  /** Finished workouts (any order). */
+  /** Finished workouts of the month shown (any order; others are ignored). */
   workouts: Array<Pick<Workout, 'startedAt'>>
   now: Timestamp
+  /** Month shown: 0 = this month, -1 = last month... The screen keeps it, to read that month only. */
+  offset: number
+  onOffsetChange: (offset: number) => void
 }
 
 const arrowClasses =
@@ -21,16 +23,15 @@ const arrowClasses =
  * are not buttons: in a 7-column grid on a phone they would be under 48px, and the list
  * below already opens each workout. Arrows go back through the months (never into the future).
  */
-export function TrainingCalendar({ workouts, now }: TrainingCalendarProps) {
+export function TrainingCalendar({
+  workouts,
+  now,
+  offset,
+  onOffsetChange,
+}: TrainingCalendarProps) {
   const { t, format } = useI18n()
-  // 0 = this month, -1 = last month...
-  const [offset, setOffset] = useState(0)
-
-  const shown = new Date(now)
-  shown.setDate(1)
-  shown.setMonth(shown.getMonth() + offset)
-  const year = shown.getFullYear()
-  const month = shown.getMonth()
+  const { year, month, start } = monthSpan(now, offset)
+  const shown = new Date(start)
 
   const trainedDays = new Set(
     workouts.map((workout) => localDay(new Date(workout.startedAt))),
@@ -47,7 +48,7 @@ export function TrainingCalendar({ workouts, now }: TrainingCalendarProps) {
         <button
           type="button"
           className={arrowClasses}
-          onClick={() => setOffset(offset - 1)}
+          onClick={() => onOffsetChange(offset - 1)}
           aria-label={t.history.calendar.previousMonth}
         >
           <ArrowLeftIcon />
@@ -63,7 +64,7 @@ export function TrainingCalendar({ workouts, now }: TrainingCalendarProps) {
         <button
           type="button"
           className={arrowClasses}
-          onClick={() => setOffset(offset + 1)}
+          onClick={() => onOffsetChange(offset + 1)}
           disabled={offset >= 0}
           aria-label={t.history.calendar.nextMonth}
         >

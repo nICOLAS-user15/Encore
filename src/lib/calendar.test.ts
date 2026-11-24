@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { formatMonthYear, localDay, monthGrid, weekdayInitials } from './calendar'
+import {
+  formatMonthYear,
+  localDay,
+  monthGrid,
+  monthKey,
+  monthSpan,
+  weekdayInitials,
+} from './calendar'
 
 describe('localDay', () => {
   it('uses the local calendar day, with zero padding', () => {
@@ -31,5 +38,23 @@ describe('month and weekday names', () => {
     expect(formatMonthYear(new Date(2026, 10, 23), 'pt-BR')).toBe('novembro de 2026')
     expect(formatMonthYear(new Date(2026, 10, 23), 'en-US')).toBe('November 2026')
     expect(weekdayInitials('en-US')).toEqual(['M', 'T', 'W', 'T', 'F', 'S', 'S'])
+  })
+})
+
+describe('monthSpan', () => {
+  it('goes back across the year and ends at the next month', () => {
+    const now = new Date(2026, 0, 15, 10, 0).getTime() // January 2026
+
+    expect(monthSpan(now)).toEqual({
+      year: 2026,
+      month: 0,
+      start: new Date(2026, 0, 1).getTime(),
+      end: new Date(2026, 1, 1).getTime(),
+    })
+    expect(monthSpan(now, -1)).toMatchObject({ year: 2025, month: 11 })
+  })
+
+  it('monthKey uses the local month', () => {
+    expect(monthKey(new Date(2026, 10, 30, 23, 59).getTime())).toBe('2026-11')
   })
 })

@@ -4,6 +4,7 @@ import { RouterProvider } from 'react-router/dom'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { routes } from '../../app/routes'
 import { db } from '../../db/db'
+import { createRecord } from '../../db/repository'
 import { importTestProgram } from '../../test/fixtures'
 import { BottomDockProvider } from '../../ui/BottomDock'
 import { ToastProvider } from '../../ui/Toast'
@@ -251,6 +252,60 @@ describe('post-workout summary', () => {
     await screen.findByRole('heading', { level: 1, name: 'Upper A' })
     expect(
       screen.queryByRole('region', { name: 'Treino concluído' }),
+    ).not.toBeInTheDocument()
+  })
+})
+
+describe('a long history', () => {
+  /**
+   * `count` free workouts, one every other day going back from October 30, 2025, each
+   * with one completed set: 15 in October and the rest in September.
+   */
+  async function createOldWorkouts(count: number) {
+    for (let index = 0; index < count; index++) {
+      const startedAt = new Date(2025, 9, 30 - index * 2, 18, 0).getTime()
+      const workout = await createRecord(db.workouts, {
+        routineId: null,
+        startedAt,
+        endedAt: startedAt + 3_600_000,
+        timerStartedAt: null,
+        timerStoppedAt: null,
+        notes: '',
+      })
+      await createRecord(db.setEntries, {
+        workoutId: workout.id,
+        exerciseId: 'exercise-1',
+        position: 0,
+        weightKg: 50,
+        reps: 10,
+        type: 'normal',
+        completedAt: startedAt + 60_000,
+      })
+    }
+  }
+
+  it('loads 20 workouts at a time, under a heading per month', async () => {
+    await createOldWorkouts(25)
+    renderAt('/historico')
+
+    await waitFor(() =>
+      expect(screen.getAllByRole('link', { name: /Treino livre/ })).toHaveLength(20),
+    )
+    expect(screen.getByText('Mostrando 20 de 25')).toBeInTheDocument()
+    // The month count includes the workouts not loaded yet.
+    const october = screen.getByRole('heading', { name: /outubro de 2025/ })
+    expect(october).toHaveTextContent('15 treinos')
+    expect(screen.getByRole('heading', { name: /setembro de 2025/ })).toHaveTextContent(
+      '10 treinos',
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Carregar mais' }))
+
+    await waitFor(() =>
+      expect(screen.getAllByRole('link', { name: /Treino livre/ })).toHaveLength(25),
+    )
+    expect(
+      screen.queryByRole('button', { name: 'Carregar mais' }),
     ).not.toBeInTheDocument()
   })
 })

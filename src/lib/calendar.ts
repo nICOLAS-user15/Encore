@@ -43,3 +43,31 @@ export function weekdayInitials(locale: string): string[] {
     format.format(new Date(2024, 0, 1 + index)),
   )
 }
+
+export type MonthSpan = {
+  year: number
+  /** 0-based, as in `Date`. */
+  month: number
+  /** Local midnight of the 1st. */
+  start: number
+  /** Local midnight of the 1st of the NEXT month (exclusive end). */
+  end: number
+}
+
+/** The month `offset` months away from the one containing `now` (0 = this month, -1 = last). */
+export function monthSpan(now: number, offset = 0): MonthSpan {
+  const date = new Date(now)
+  const first = new Date(date.getFullYear(), date.getMonth() + offset, 1)
+  const next = new Date(first.getFullYear(), first.getMonth() + 1, 1)
+  return {
+    year: first.getFullYear(),
+    month: first.getMonth(),
+    start: first.getTime(),
+    end: next.getTime(),
+  }
+}
+
+/** "2026-11": the local month of a moment, as text that sorts like the dates. */
+export function monthKey(timestamp: number): string {
+  return localDay(new Date(timestamp)).slice(0, 7)
+}

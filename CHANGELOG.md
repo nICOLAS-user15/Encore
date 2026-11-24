@@ -17,6 +17,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Changed
 
+- History is grouped by month and loads 20 workouts at a time ("Load more"), so it stays quick after years of training.
 - The end of a rest is harder to miss: the screen flashes once and the vibration and beep repeat a few times until you dismiss the bar.
 - The opening animation plays only once a day: opening the app again between sets goes straight to the workout.
 - "Finish workout?" now says how many unmarked sets will be discarded, so a forgotten ✓ does not go unnoticed.
