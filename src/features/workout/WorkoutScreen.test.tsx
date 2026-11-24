@@ -409,6 +409,58 @@ describe('last time, set by set', () => {
   })
 })
 
+describe('plateau', () => {
+  /** Four Upper A workouts where the bench press stayed at 25 kg × 8. */
+  async function stallBench() {
+    await importTestProgram(db)
+    const [upperA] = await listRoutinesWithExercises(db)
+    for (let index = 0; index < 4; index++) {
+      const workout = await startWorkout(db, upperA.routine.id)
+      const [first] = await listWorkoutSets(db, workout.id)
+      await toggleSetCompleted(db, first.id)
+      await finishWorkout(db, workout.id)
+    }
+  }
+
+  it('suggests a deload in place of the progression, and "Aplicar" sets it', async () => {
+    await stallBench()
+    renderAt('/treino')
+    fireEvent.click(await screen.findByRole('button', { name: /Upper A/ }))
+
+    expect(
+      await screen.findByText(/3 treinos sem superar o seu melhor/),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Deload · -10%')).toBeInTheDocument()
+    expect(screen.getByText('22,5 kg × 8')).toBeInTheDocument()
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Aplicar sugestão em Supino reto com barra' }),
+    )
+
+    const [benchSet2] = await screen.findAllByRole('button', {
+      name: /^Editar série 2: Supino reto com barra, 22,5 kg × 8/,
+    })
+    expect(benchSet2).toBeInTheDocument()
+  })
+
+  it('"Ignorar" hides the notice and brings the regular suggestion back', async () => {
+    await stallBench()
+    renderAt('/treino')
+    fireEvent.click(await screen.findByRole('button', { name: /Upper A/ }))
+
+    fireEvent.click(
+      await screen.findByRole('button', {
+        name: 'Ignorar platô em Supino reto com barra',
+      }),
+    )
+
+    await waitFor(() =>
+      expect(screen.queryByText(/3 treinos sem superar/)).not.toBeInTheDocument(),
+    )
+    expect(screen.queryByText('Deload · -10%')).not.toBeInTheDocument()
+  })
+})
+
 describe('reps in reserve', () => {
   it('the rest bar asks how many reps were left for the set just completed', async () => {
     await importTestProgram(db)

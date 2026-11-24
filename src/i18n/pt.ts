@@ -172,6 +172,17 @@ export const pt = {
       applyTo: (name: string) => `Aplicar sugestão em ${name}`,
       applied: 'Aplicada',
     },
+    /** Plateau notice: the last 3 sessions did not beat the best before them. */
+    plateau: {
+      label: 'Platô',
+      deload: 'Deload · -10%',
+      deloadHint:
+        '3 treinos sem superar o seu melhor. Uma sessão 10% mais leve ajuda a voltar mais forte.',
+      pushHint:
+        '3 treinos sem superar o seu melhor, mas ainda sobravam reps: force mais antes de recuar.',
+      dismiss: 'Ignorar',
+      dismissFor: (name: string) => `Ignorar platô em ${name}`,
+    },
     timer: {
       label: 'Cronômetro',
       start: 'Iniciar cronômetro',

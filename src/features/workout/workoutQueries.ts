@@ -112,3 +112,31 @@ export async function getExerciseNote(
   const workout = await db.workouts.get(workoutId)
   return workout && isActive(workout) ? exerciseNoteOf(workout, exerciseId) : ''
 }
+
+/**
+ * The completed planned sets of the last `count` workouts that had this exercise, one
+ * array per workout, oldest first (plateau detection). Walks the [exerciseId+completedAt]
+ * index backwards and stops as soon as it has them: years of history are never read.
+ */
+export async function listRecentSessionSets(
+  db: EncoreDB,
+  exerciseId: ID,
+  excludeWorkoutId: ID,
+  count: number,
+): Promise<SetEntry[][]> {
+  const byWorkout = new Map<ID, SetEntry[]>()
+  await db.setEntries
+    .where('[exerciseId+completedAt]')
+    .between([exerciseId, Dexie.minKey], [exerciseId, Dexie.maxKey])
+    .reverse()
+    .filter(
+      (set) =>
+        isActive(set) && set.workoutId !== excludeWorkoutId && set.type === 'normal',
+    )
+    // Stops at the first set of one workout too many (that set is left out).
+    .until((set) => !byWorkout.has(set.workoutId) && byWorkout.size >= count)
+    .each((set) => {
+      byWorkout.set(set.workoutId, [set, ...(byWorkout.get(set.workoutId) ?? [])])
+    })
+  return [...byWorkout.values()].reverse()
+}

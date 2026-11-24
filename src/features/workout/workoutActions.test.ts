@@ -29,6 +29,7 @@ import {
   getExerciseNote,
   getLastPerformance,
   listFinishedWorkouts,
+  listRecentSessionSets,
   listWorkoutSets,
 } from './workoutQueries'
 import {
@@ -524,5 +525,24 @@ describe('switching workouts and atomicity', () => {
 
   it('does not start a workout from a routine that no longer exists', async () => {
     await expect(startWorkout(db, 'rotina-inexistente')).rejects.toThrow()
+  })
+})
+
+describe('recent sessions of an exercise', () => {
+  it('returns only the last N workouts, oldest first, without the current one', async () => {
+    for (const weightKg of [40, 45, 50]) {
+      const workout = await startWorkout(db, upperA)
+      const [first] = await listWorkoutSets(db, workout.id)
+      await updateSet(db, first.id, { weightKg })
+      await toggleSetCompleted(db, first.id)
+      await finishWorkout(db, workout.id)
+    }
+    const current = await startWorkout(db, upperA)
+    const [first] = await listWorkoutSets(db, current.id)
+    await toggleSetCompleted(db, first.id)
+
+    const sessions = await listRecentSessionSets(db, benchPress, current.id, 2)
+
+    expect(sessions.map((sets) => sets.map((set) => set.weightKg))).toEqual([[45], [50]])
   })
 })

@@ -14,7 +14,12 @@ import { isSuggestionApplied, pendingPlannedSets, suggestNextLoad } from './prog
 import { ExerciseNoteEditor } from './ExerciseNoteEditor'
 import { SetRow } from './SetRow'
 import { addSet, applyLoadSuggestion, setExerciseNote } from './workoutActions'
-import { getExerciseNote, getLastPerformance } from './workoutQueries'
+import { detectPlateau } from './plateau'
+import {
+  getExerciseNote,
+  getLastPerformance,
+  listRecentSessionSets,
+} from './workoutQueries'
 import { numberSets, previousSetsById } from './workoutStats'
 
 type ExerciseBlockProps = {
@@ -35,6 +40,33 @@ type ExerciseBlockProps = {
   onEditSet: (set: SetEntry) => void
   onToggleSet: (set: SetEntry) => void
   onRemove: () => void
+}
+
+/** How many previous sessions the plateau check reads (3 judged + the best before them). */
+const PLATEAU_LOOKBACK = 8
+
+/**
+ * "Ignorar" on the plateau notice: hidden for the rest of THIS workout, also after leaving
+ * the screen (sessionStorage), and back in the next workout if the stall goes on.
+ */
+function usePlateauDismissal(workoutId: ID, exerciseId: ID): [boolean, () => void] {
+  const key = `encore:plateauDismissed:${workoutId}:${exerciseId}`
+  const [dismissed, setDismissed] = useState(() => {
+    try {
+      return sessionStorage.getItem(key) === '1'
+    } catch {
+      return false
+    }
+  })
+  function dismiss() {
+    setDismissed(true)
+    try {
+      sessionStorage.setItem(key, '1')
+    } catch {
+      // No storage: hidden until the screen is left.
+    }
+  }
+  return [dismissed, dismiss]
 }
 
 /** An exercise in the active workout: target, "last time", load suggestion and the sets. */
@@ -102,6 +134,31 @@ export function ExerciseBlock({
       : null
   const pending = pendingPlannedSets(sets)
 
+  // Plateau: the last sessions stalled. A deload takes the suggestion's place (same Aplicar).
+  const recentSessions = useLiveQuery(
+    () => listRecentSessionSets(db, exerciseId, workoutId, PLATEAU_LOOKBACK),
+    [exerciseId, workoutId],
+  )
+  const [plateauDismissed, dismissPlateau] = usePlateauDismissal(workoutId, exerciseId)
+  const plateau =
+    recentSessions && !plateauDismissed
+      ? detectPlateau(recentSessions, progressionStepKg)
+      : null
+  let shown: { label: string; weightKg: number; reps: number } | null = null
+  if (plateau?.kind === 'deload') {
+    shown = { label: t.workout.plateau.deload, ...plateau }
+  } else if (suggestion) {
+    shown = {
+      label: `${t.workout.suggestion.label} · ${
+        suggestion.kind === 'increase'
+          ? t.workout.suggestion.increase
+          : t.workout.suggestion.moreReps
+      }`,
+      weightKg: suggestion.weightKg,
+      reps: suggestion.reps,
+    }
+  }
+
   return (
     <Card className="flex flex-col gap-3">
       <div>
@@ -149,22 +206,39 @@ export function ExerciseBlock({
         </button>
       )}
 
-      {suggestion && (
+      {plateau && (
+        <div className="flex items-start justify-between gap-3 border-l-4 border-text pl-3">
+          <p className="min-w-0 text-sm">
+            <span className="block text-xs font-semibold tracking-widest text-muted uppercase">
+              {t.workout.plateau.label}
+            </span>
+            {plateau.kind === 'deload'
+              ? t.workout.plateau.deloadHint
+              : t.workout.plateau.pushHint}
+          </p>
+          <Button
+            variant="ghost"
+            aria-label={t.workout.plateau.dismissFor(name)}
+            onClick={dismissPlateau}
+          >
+            {t.workout.plateau.dismiss}
+          </Button>
+        </div>
+      )}
+
+      {shown && (
         <div className="flex min-h-12 items-center justify-between gap-3 border-l-4 border-text pl-3">
           <p className="min-w-0">
             <span className="block text-xs font-semibold tracking-widest text-muted uppercase">
-              {t.workout.suggestion.label} ·{' '}
-              {suggestion.kind === 'increase'
-                ? t.workout.suggestion.increase
-                : t.workout.suggestion.moreReps}
+              {shown.label}
             </span>
             <span className="font-display text-xl font-bold tabular-nums">
-              {format.set(suggestion.weightKg, suggestion.reps)}
+              {format.set(shown.weightKg, shown.reps)}
             </span>
           </p>
           {/* With no pending sets there is nothing to apply: shows nothing on the right. */}
           {pending.length > 0 &&
-            (isSuggestionApplied(sets, suggestion) ? (
+            (isSuggestionApplied(sets, shown) ? (
               <span className="shrink-0 text-xs font-semibold tracking-widest text-muted uppercase">
                 {t.workout.suggestion.applied}
               </span>
@@ -174,8 +248,8 @@ export function ExerciseBlock({
                 onClick={() =>
                   void run(() =>
                     applyLoadSuggestion(db, workoutId, exerciseId, {
-                      weightKg: suggestion.weightKg,
-                      reps: suggestion.reps,
+                      weightKg: shown.weightKg,
+                      reps: shown.reps,
                     }),
                   )
                 }

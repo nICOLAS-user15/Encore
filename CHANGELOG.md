@@ -7,6 +7,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Added
 
+- **Plateau detection:** when an exercise goes 3 sessions without beating your best, the workout says so and suggests a deload (10% lighter, one tap to apply), or, if you logged reps left in reserve, to push harder first. You can dismiss it for the workout.
 - **Reps in reserve (RIR):** right after completing a set, the rest bar asks how many reps were left (0, 1, 2 or 3+), one tap and optional. It can also be set in the set editor and shows next to the set in the workout and the history.
 - Exercises you created can be edited (name, muscle group, equipment) and deleted from their progress screen. An exercise still used by a routine asks you to remove it from there first; past workouts keep it in the history.
 - **Plate calculator:** the set editor of barbell exercises shows which plates go on each side ("Per side: 20 + 2.5"), following the load as you change it. Set your bar weight and the plates your gym has in Settings.

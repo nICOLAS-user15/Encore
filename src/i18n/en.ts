@@ -149,6 +149,16 @@ export const en: Messages = {
       applyTo: (name) => `Apply suggestion to ${name}`,
       applied: 'Applied',
     },
+    plateau: {
+      label: 'Plateau',
+      deload: 'Deload · -10%',
+      deloadHint:
+        '3 sessions without beating your best. A session 10% lighter helps you come back stronger.',
+      pushHint:
+        '3 sessions without beating your best, but you had reps left: push harder before backing off.',
+      dismiss: 'Dismiss',
+      dismissFor: (name) => `Dismiss plateau on ${name}`,
+    },
     timer: {
       label: 'Timer',
       start: 'Start timer',
