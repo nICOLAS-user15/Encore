@@ -15,7 +15,8 @@ import { useAction, useToast } from '../../ui/toastContext'
 import { useExerciseMap } from '../exercises/useExerciseMap'
 import { RecordBadge } from '../records/RecordBadge'
 import { getWorkoutRecordIds } from '../records/recordsQueries'
-import { weightStepFor } from '../settings/settingsRepository'
+import { plateSetupFor, weightStepFor } from '../settings/settingsRepository'
+import type { PlateSetup } from '../workout/plates'
 import { useSettings } from '../settings/useSettings'
 import { ExerciseNoteEditor } from '../workout/ExerciseNoteEditor'
 import { SetEditor, type SetValues } from '../workout/SetEditor'
@@ -94,6 +95,7 @@ export function WorkoutDetailScreen() {
   const editingSet = sets.find((set) => set.id === editingSetId) ?? null
   let editorTitle = ''
   let editorStepKg = 2.5
+  let editorPlates: PlateSetup | null = null
   if (editingSet) {
     const groupSets =
       groups.find((group) => group.exerciseId === editingSet.exerciseId)?.sets ?? []
@@ -102,10 +104,9 @@ export function WorkoutDetailScreen() {
     const name = nameOf(editingSet.exerciseId)
     editorTitle =
       number == null ? t.workout.warmupTitle(name) : t.workout.setTitle(name, number)
-    editorStepKg = weightStepFor(
-      settings,
-      exerciseMap.get(editingSet.exerciseId)?.equipment ?? 'barbell',
-    )
+    const equipment = exerciseMap.get(editingSet.exerciseId)?.equipment ?? 'barbell'
+    editorStepKg = weightStepFor(settings, equipment)
+    editorPlates = plateSetupFor(settings, equipment)
   }
 
   async function handleDelete() {
@@ -242,6 +243,7 @@ export function WorkoutDetailScreen() {
         set={editingSet}
         title={editorTitle}
         weightStepKg={editorStepKg}
+        plates={editorPlates}
         // The only set left: deleting it would leave an empty workout ("Excluir treino" does that).
         canDelete={sets.length > 1}
         onClose={() => setEditingSetId(null)}

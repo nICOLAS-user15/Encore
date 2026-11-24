@@ -409,6 +409,41 @@ describe('last time, set by set', () => {
   })
 })
 
+describe('plate calculator', () => {
+  it('the set editor of a barbell exercise shows the plates per side', async () => {
+    await importTestProgram(db)
+    renderAt('/treino')
+    fireEvent.click(await screen.findByRole('button', { name: /Upper A/ }))
+
+    // Bench press (barbell), reference 25 kg: 20 kg bar + 2.5 a side.
+    const [benchSet1] = await screen.findAllByRole('button', {
+      name: /^Editar série 1: Supino reto com barra/,
+    })
+    fireEvent.click(benchSet1)
+    const editor = await screen.findByRole('dialog', { name: /Série 1/ })
+    expect(within(editor).getByText('Por lado: 2,5')).toBeInTheDocument()
+
+    // It follows the load as it changes.
+    fireEvent.change(within(editor).getByRole('textbox', { name: 'Carga' }), {
+      target: { value: '70' },
+    })
+    expect(within(editor).getByText('Por lado: 25')).toBeInTheDocument()
+  })
+
+  it('a machine exercise shows no plates', async () => {
+    await importTestProgram(db)
+    renderAt('/treino')
+    fireEvent.click(await screen.findByRole('button', { name: /Upper A/ }))
+
+    const [pulldownSet1] = await screen.findAllByRole('button', {
+      name: /^Editar série 1: Puxada frontal/,
+    })
+    fireEvent.click(pulldownSet1)
+    const editor = await screen.findByRole('dialog', { name: /Série 1/ })
+    expect(within(editor).queryByText(/Por lado/)).not.toBeInTheDocument()
+  })
+})
+
 describe('exercise notes', () => {
   it('shows the note left last time on the exercise', async () => {
     await importTestProgram(db)

@@ -244,6 +244,22 @@ function settingsRow(row: Row): BaseRecord {
     }
     record.weeklyGoal = goal
   }
+  if (row.barWeightKg !== undefined) {
+    const bar = num(row.barWeightKg)
+    if (bar <= 0 || bar > 100) {
+      return fail()
+    }
+    record.barWeightKg = bar
+  }
+  if (row.platesKg !== undefined) {
+    if (!Array.isArray(row.platesKg) || row.platesKg.length > 20) {
+      return fail()
+    }
+    record.platesKg = row.platesKg.map((plate) => {
+      const kg = num(plate)
+      return kg > 0 && kg <= 100 ? kg : fail()
+    })
+  }
   if (row.activeSplitId !== undefined) {
     record.activeSplitId = row.activeSplitId === null ? null : id(row.activeSplitId)
   }

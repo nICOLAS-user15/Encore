@@ -1,5 +1,6 @@
 import type { EncoreDB } from '../../db/db'
 import { SETTINGS_ID, type Equipment, type Settings } from '../../db/types'
+import type { PlateSetup } from '../workout/plates'
 
 /** The preferences themselves (without the record's automatic fields). */
 export type AppSettings = Pick<
@@ -13,6 +14,8 @@ export type AppSettings = Pick<
   | 'lastBackupAt'
   | 'activeSplitId'
   | 'weeklyGoal'
+  | 'barWeightKg'
+  | 'platesKg'
 >
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -34,6 +37,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
   activeSplitId: null,
   // Automatic: one workout per routine of the chosen split (Upper/Lower with 4 = 4 a week).
   weeklyGoal: null,
+  // Olympic bar and the plates of a typical Brazilian gym.
+  barWeightKg: 20,
+  platesKg: [25, 20, 15, 10, 5, 2.5, 1.25],
 }
 
 /** Rest duration options offered on the Settings screen (seconds). */
@@ -41,6 +47,12 @@ export const REST_OPTIONS = [60, 90, 120, 180] as const
 
 /** Weekly goal options offered in Settings (workouts per week). */
 export const WEEKLY_GOAL_OPTIONS = [1, 2, 3, 4, 5, 6, 7] as const
+
+/** Bar weights offered in Settings (kg): EZ/short bar, women's bar, Olympic bar. */
+export const BAR_WEIGHT_OPTIONS = [10, 15, 20] as const
+
+/** Plate sizes offered in Settings (kg); each one can be turned on or off. */
+export const PLATE_OPTIONS = [25, 20, 15, 10, 5, 2.5, 2, 1.25, 1, 0.5] as const
 
 /** Load step options offered in Settings (kg). */
 export const WEIGHT_STEP_OPTIONS = [1, 1.25, 2, 2.5, 4, 5] as const
@@ -53,6 +65,16 @@ export function weightStepFor(settings: AppSettings, equipment: Equipment): numb
   return equipment === 'bodyweight'
     ? BODYWEIGHT_STEP_KG
     : settings.weightStepsKg[equipment]
+}
+
+/** Bar and plates for the set editor's calculator: barbell exercises only. */
+export function plateSetupFor(
+  settings: AppSettings,
+  equipment: Equipment,
+): PlateSetup | null {
+  return equipment === 'barbell'
+    ? { barKg: settings.barWeightKg, platesKg: settings.platesKg }
+    : null
 }
 
 /** Saved settings, or the defaults if the user never changed anything. */
@@ -74,6 +96,8 @@ export async function getSettings(db: EncoreDB): Promise<AppSettings> {
     lastBackupAt: row.lastBackupAt ?? null,
     activeSplitId: row.activeSplitId ?? null,
     weeklyGoal: row.weeklyGoal ?? DEFAULT_SETTINGS.weeklyGoal,
+    barWeightKg: row.barWeightKg ?? DEFAULT_SETTINGS.barWeightKg,
+    platesKg: row.platesKg ?? DEFAULT_SETTINGS.platesKg,
   }
 }
 

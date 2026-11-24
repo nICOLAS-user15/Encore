@@ -17,7 +17,7 @@ import { listRoutineExercises } from '../routines/routineQueries'
 import { unlockAudio } from '../../lib/beep'
 import { tapFeedback } from '../../lib/haptics'
 import { useWakeLock } from '../../lib/useWakeLock'
-import { weightStepFor } from '../settings/settingsRepository'
+import { plateSetupFor, weightStepFor } from '../settings/settingsRepository'
 import { useSettings } from '../settings/useSettings'
 import { ExerciseBlock } from './ExerciseBlock'
 import { useRest } from './restContext'
@@ -302,6 +302,9 @@ export function ActiveWorkout({ workout }: { workout: Workout }) {
         title={editorTitle}
         weightStepKg={
           editingSet ? weightStepFor(settings, equipmentOf(editingSet.exerciseId)) : 2.5
+        }
+        plates={
+          editingSet ? plateSetupFor(settings, equipmentOf(editingSet.exerciseId)) : null
         }
         onClose={() => setEditingSetId(null)}
         onSave={(values, complete) => void handleSave(values, complete)}

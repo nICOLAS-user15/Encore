@@ -111,6 +111,12 @@ export const en: Messages = {
     warmupShort: 'WU',
     removeExercise: 'Remove exercise',
     moreOptions: (name) => `More options: ${name}`,
+    plates: {
+      perSide: (plates) => `Per side: ${plates}`,
+      barOnly: 'Just the bar',
+      belowBar: (bar) => `Lighter than the bar (${bar} kg)`,
+      missing: (kg) => `${kg} kg short`,
+    },
     note: {
       add: 'Add note',
       edit: 'Edit note',
@@ -370,6 +376,12 @@ export const en: Messages = {
     weightSteps: 'Weight steps',
     weightStepsHint:
       'The smallest possible increase on each kind of equipment at your gym. Used by the weight suggestion and by the − and + buttons of a set.',
+    plates: {
+      title: 'Bar and plates',
+      hint: 'The set editor of barbell exercises shows which plates go on each side.',
+      bar: 'Bar weight',
+      available: 'Plates at your gym (kg)',
+    },
     weeklyGoal: 'Weekly goal',
     weeklyGoalHint:
       'How many workouts a week you want to do; the progress shows on the Workout tab. Auto = each routine of the chosen split once.',

@@ -184,6 +184,10 @@ export type Settings = BaseRecord & {
    * before it lack the field and `getSettings` fills in `null` (no index, no migration).
    */
   weeklyGoal: number | null
+  /** Barbell weight for the plate calculator (kg). Added after v4: `getSettings` fills it in. */
+  barWeightKg: number
+  /** Plate sizes the gym has (kg), for the plate calculator. Same: no index, no migration. */
+  platesKg: number[]
 }
 
 /**

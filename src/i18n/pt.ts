@@ -126,6 +126,13 @@ export const pt = {
     warmupShort: 'AQ',
     removeExercise: 'Remover exercício',
     moreOptions: (name: string) => `Mais opções: ${name}`,
+    /** Plate calculator under the load in the set editor (barbell). */
+    plates: {
+      perSide: (plates: string) => `Por lado: ${plates}`,
+      barOnly: 'Só a barra',
+      belowBar: (bar: string) => `Menos que a barra (${bar} kg)`,
+      missing: (kg: string) => `faltam ${kg} kg`,
+    },
     /** The day's note of an exercise (shown again the next time). */
     note: {
       add: 'Anotar',
@@ -402,6 +409,12 @@ export const pt = {
     weightSteps: 'Saltos de carga',
     weightStepsHint:
       'O menor aumento possível em cada equipamento da sua academia. Vale para a sugestão de carga e para os botões − e + da série.',
+    plates: {
+      title: 'Barra e anilhas',
+      hint: 'O editor de série dos exercícios com barra mostra quais anilhas vão em cada lado.',
+      bar: 'Peso da barra',
+      available: 'Anilhas da sua academia (kg)',
+    },
     weeklyGoal: 'Meta semanal',
     weeklyGoalHint:
       'Quantos treinos por semana você quer fazer; o progresso aparece na aba Treino. Auto = uma vez cada rotina da divisão escolhida.',

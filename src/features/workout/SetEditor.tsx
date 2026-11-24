@@ -4,6 +4,7 @@ import { useI18n } from '../../i18n/context'
 import { Button } from '../../ui/Button'
 import { NumberStepper } from '../../ui/NumberStepper'
 import { Sheet } from '../../ui/Sheet'
+import { platesPerSide, type PlateSetup } from './plates'
 
 export type SetValues = Pick<SetEntry, 'weightKg' | 'reps'>
 
@@ -19,6 +20,8 @@ type SetEditorProps = {
   onDelete: () => void
   /** `false` hides "Excluir série" (the only set of a finished workout: delete the workout instead). */
   canDelete?: boolean
+  /** Shows the plates per side under the load (barbell exercises); absent = hidden. */
+  plates?: PlateSetup | null
 }
 
 export function SetEditor({
@@ -29,6 +32,7 @@ export function SetEditor({
   onSave,
   onDelete,
   canDelete = true,
+  plates = null,
 }: SetEditorProps) {
   return (
     <Sheet open={set !== null} title={title} onClose={onClose} dismissOnBackdrop={false}>
@@ -41,6 +45,7 @@ export function SetEditor({
           onSave={onSave}
           onDelete={onDelete}
           canDelete={canDelete}
+          plates={plates}
         />
       )}
     </Sheet>
@@ -53,6 +58,7 @@ type SetEditorFormProps = {
   onSave: SetEditorProps['onSave']
   onDelete: () => void
   canDelete: boolean
+  plates: PlateSetup | null
 }
 
 function SetEditorForm({
@@ -61,6 +67,7 @@ function SetEditorForm({
   onSave,
   onDelete,
   canDelete,
+  plates,
 }: SetEditorFormProps) {
   const { t } = useI18n()
   // Local copy: nothing is saved until one of the buttons is tapped.
@@ -80,6 +87,7 @@ function SetEditorForm({
         value={weightKg}
         onChange={setWeightKg}
       />
+      {plates && <PlatesLine weightKg={weightKg} plates={plates} />}
       <NumberStepper
         label={t.workout.reps}
         step={1}
@@ -105,4 +113,23 @@ function SetEditorForm({
       </div>
     </div>
   )
+}
+
+/** "Por lado: 20 + 10 + 2,5": follows the load while −/+ is tapped, no extra tap needed. */
+function PlatesLine({ weightKg, plates }: { weightKg: number; plates: PlateSetup }) {
+  const { t, format } = useI18n()
+  const load = platesPerSide(weightKg, plates.barKg, plates.platesKg)
+
+  let text: string
+  if (load === null) {
+    text = t.workout.plates.belowBar(format.decimal(plates.barKg))
+  } else if (load.plates.length === 0 && load.missingKg === 0) {
+    text = t.workout.plates.barOnly
+  } else {
+    text = t.workout.plates.perSide(load.plates.map(format.decimal).join(' + ') || '—')
+    if (load.missingKg > 0) {
+      text += ` · ${t.workout.plates.missing(format.decimal(load.missingKg))}`
+    }
+  }
+  return <p className="-mt-3 text-sm text-muted tabular-nums">{text}</p>
 }

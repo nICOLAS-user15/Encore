@@ -40,6 +40,9 @@ describe('load steps in settings', () => {
     expect(settings.weightStepsKg).toEqual(DEFAULT_SETTINGS.weightStepsKg)
     // Same for the weekly goal (added later): automatic.
     expect(settings.weeklyGoal).toBeNull()
+    // And the plate calculator (added after v4): Olympic bar and the default plates.
+    expect(settings.barWeightKg).toBe(20)
+    expect(settings.platesKg).toEqual(DEFAULT_SETTINGS.platesKg)
   })
 
   it('saves the weekly goal', async () => {

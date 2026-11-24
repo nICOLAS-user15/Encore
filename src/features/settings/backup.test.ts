@@ -381,6 +381,33 @@ describe('backup: malformed files', () => {
   })
 })
 
+describe('backup: bar and plates', () => {
+  const settingsWith = (fields: Record<string, unknown>) =>
+    [
+      { id: 'app-settings', createdAt: 1, updatedAt: 1, deletedAt: null, ...fields },
+    ] as never
+
+  it('keeps a valid bar and plates and rejects broken ones', async () => {
+    await trainOnce(phone)
+    const backup = JSON.parse(JSON.stringify(await exportBackup(phone)))
+
+    backup.tables.settings = settingsWith({ barWeightKg: 15, platesKg: [20, 10, 1.25] })
+    expect(parseBackup(JSON.stringify(backup)).tables.settings[0]).toMatchObject({
+      barWeightKg: 15,
+      platesKg: [20, 10, 1.25],
+    })
+
+    for (const invalid of [
+      { barWeightKg: 0 },
+      { platesKg: 20 },
+      { platesKg: [10, -5] },
+    ]) {
+      backup.tables.settings = settingsWith(invalid)
+      expect(() => parseBackup(JSON.stringify(backup))).toThrow(BackupError)
+    }
+  })
+})
+
 describe('backup: exercise notes', () => {
   it('go to the other device with their workout', async () => {
     const workoutId = await trainOnce(phone)

@@ -7,6 +7,8 @@ import { ScreenHeader } from '../../ui/ScreenHeader'
 import { Section } from '../../ui/Section'
 import { BackupSection } from './BackupSection'
 import {
+  BAR_WEIGHT_OPTIONS,
+  PLATE_OPTIONS,
   REST_OPTIONS,
   updateSettings,
   WEEKLY_GOAL_OPTIONS,
@@ -106,6 +108,47 @@ export function SettingsScreen() {
                 </div>
               </div>
             ))}
+          </div>
+        </Section>
+
+        <Section title={t.settings.plates.title}>
+          <p className="mb-3 text-sm text-muted">{t.settings.plates.hint}</p>
+          <div role="group" aria-label={t.settings.plates.bar} className="mb-4">
+            <p className="mb-1 font-medium">{t.settings.plates.bar}</p>
+            <div className="grid grid-cols-3 gap-1">
+              {BAR_WEIGHT_OPTIONS.map((bar) => (
+                <OptionButton
+                  key={bar}
+                  active={settings.barWeightKg === bar}
+                  onClick={() => save({ barWeightKg: bar })}
+                >
+                  {`${format.decimal(bar)} ${t.common.kg}`}
+                </OptionButton>
+              ))}
+            </div>
+          </div>
+          <div role="group" aria-label={t.settings.plates.available}>
+            <p className="mb-1 font-medium">{t.settings.plates.available}</p>
+            <div className="grid grid-cols-5 gap-1">
+              {PLATE_OPTIONS.map((plate) => {
+                const on = settings.platesKg.includes(plate)
+                return (
+                  <OptionButton
+                    key={plate}
+                    active={on}
+                    onClick={() =>
+                      save({
+                        platesKg: on
+                          ? settings.platesKg.filter((other) => other !== plate)
+                          : [...settings.platesKg, plate].sort((a, b) => b - a),
+                      })
+                    }
+                  >
+                    {format.decimal(plate)}
+                  </OptionButton>
+                )
+              })}
+            </div>
           </div>
         </Section>
 
