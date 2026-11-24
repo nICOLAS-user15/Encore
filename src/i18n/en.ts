@@ -9,6 +9,12 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
 
 export const en: Messages = {
   common: {
+    period: {
+      label: 'Chart period',
+      short: { '3m': '3M', '1y': '1Y', all: 'All' },
+      names: { '3m': 'Last 3 months', '1y': 'Last year', all: 'All time' },
+      tooFew: 'Too few entries in this period for a chart.',
+    },
     close: 'Close',
     done: 'Done',
     cancel: 'Cancel',

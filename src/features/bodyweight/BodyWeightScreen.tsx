@@ -3,12 +3,14 @@ import { useState } from 'react'
 import { db } from '../../db/db'
 import type { BodyWeight } from '../../db/types'
 import { useI18n } from '../../i18n/context'
+import { inPeriod, type Period } from '../../lib/period'
 import { useNow } from '../../lib/useNow'
 import { Button } from '../../ui/Button'
 import { Card } from '../../ui/Card'
 import { CloseIcon } from '../../ui/icons'
 import { LineChart } from '../../ui/LineChart'
 import { NumberStepper } from '../../ui/NumberStepper'
+import { PeriodTabs } from '../../ui/PeriodTabs'
 import { ScreenHeader } from '../../ui/ScreenHeader'
 import { SkeletonList } from '../../ui/Skeleton'
 import { useAction, useToast } from '../../ui/toastContext'
@@ -18,8 +20,6 @@ import { bodyWeightSummary } from './bodyWeightStats'
 
 /** Starting value of the field before the first measurement. */
 const FIRST_GUESS_KG = 70
-/** The chart shows the latest measurements only (a few months of daily weigh-ins). */
-const CHART_POINTS = 60
 
 /**
  * Route /peso: log the body weight and follow its trend. The field starts at the last
@@ -55,7 +55,7 @@ export function BodyWeightScreen() {
           initialKg={latestKg ?? FIRST_GUESS_KG}
         />
         {entries.length > 0 && <SummaryCard entries={entries} now={now} />}
-        {entries.length > 1 && <TrendCard entries={entries} />}
+        {entries.length > 1 && <TrendCard entries={entries} now={now} />}
         <EntryList entries={entries} />
       </div>
     </>
@@ -137,9 +137,13 @@ function SummaryCard({ entries, now }: { entries: BodyWeight[]; now: number }) {
   )
 }
 
-function TrendCard({ entries }: { entries: BodyWeight[] }) {
+function TrendCard({ entries, now }: { entries: BodyWeight[]; now: number }) {
   const { t, format } = useI18n()
-  const values = entries.slice(-CHART_POINTS).map((entry) => entry.weightKg)
+  // Daily weigh-ins: 3 months is the useful view; a year or everything on demand.
+  const [period, setPeriod] = useState<Period>('3m')
+  const values = inPeriod(entries, (entry) => entry.measuredAt, period, now).map(
+    (entry) => entry.weightKg,
+  )
   const kg = (value: number) => `${format.decimal(value)} ${t.common.kg}`
 
   return (
@@ -147,15 +151,20 @@ function TrendCard({ entries }: { entries: BodyWeight[] }) {
       <h2 className="text-xs font-semibold tracking-widest text-muted uppercase">
         {t.bodyWeight.chartTitle}
       </h2>
-      <LineChart
-        values={values}
-        formatValue={kg}
-        label={t.bodyWeight.chartSummary(
-          kg(values[0]),
-          kg(values[values.length - 1]),
-          values.length,
-        )}
-      />
+      <PeriodTabs value={period} onChange={setPeriod} />
+      {values.length < 2 ? (
+        <p className="text-sm text-muted">{t.common.period.tooFew}</p>
+      ) : (
+        <LineChart
+          values={values}
+          formatValue={kg}
+          label={t.bodyWeight.chartSummary(
+            kg(values[0]),
+            kg(values[values.length - 1]),
+            values.length,
+          )}
+        />
+      )}
     </Card>
   )
 }

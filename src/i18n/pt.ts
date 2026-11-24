@@ -33,6 +33,13 @@ const equipment: Record<Equipment, string> = {
 
 export const pt = {
   common: {
+    /** Chart periods (PeriodTabs). */
+    period: {
+      label: 'Período do gráfico',
+      short: { '3m': '3M', '1y': '1A', all: 'Tudo' },
+      names: { '3m': 'Últimos 3 meses', '1y': 'Último ano', all: 'Tudo' },
+      tooFew: 'Poucos registros neste período para um gráfico.',
+    },
     close: 'Fechar',
     done: 'Pronto',
     cancel: 'Cancelar',

@@ -5,6 +5,8 @@ import { db } from '../../db/db'
 import { restoreRecord } from '../../db/repository'
 import type { Exercise } from '../../db/types'
 import { useI18n } from '../../i18n/context'
+import { inPeriod, type Period } from '../../lib/period'
+import { useNow } from '../../lib/useNow'
 import { AnimatedNumber } from '../../ui/AnimatedNumber'
 import { Button } from '../../ui/Button'
 import { Card } from '../../ui/Card'
@@ -12,6 +14,7 @@ import { ConfirmSheet } from '../../ui/ConfirmSheet'
 import { EmptyState } from '../../ui/EmptyState'
 import { DumbbellIcon } from '../../ui/icons'
 import { LineChart } from '../../ui/LineChart'
+import { PeriodTabs } from '../../ui/PeriodTabs'
 import { ScreenHeader } from '../../ui/ScreenHeader'
 import { Sheet } from '../../ui/Sheet'
 import { SkeletonList } from '../../ui/Skeleton'
@@ -38,6 +41,9 @@ export function ExerciseDetailScreen() {
     [exerciseId],
   )
   const sessions = useLiveQuery(() => listExerciseSessions(db, exerciseId), [exerciseId])
+  // Charts default to the last year: years of sessions would squeeze the line flat.
+  const [period, setPeriod] = useState<Period>('1y')
+  const now = useNow(60_000)
 
   if (exercise === undefined || sessions === undefined) {
     return (
@@ -68,6 +74,10 @@ export function ExerciseDetailScreen() {
   const kg = (value: number) => `${format.decimal(value)} ${t.common.kg}`
   // Bodyweight work has no load to chart: show reps instead.
   const loaded = sessions.some((session) => session.topSet.weightKg > 0)
+  const charted = inPeriod(sessions, (session) => session.date, period, now)
+  // With 2+ sessions overall, fewer in the period is the period's fault, not "train more".
+  const chartEmpty =
+    sessions.length >= 2 ? t.common.period.tooFew : t.exercises.detail.needMore
 
   return (
     <>
@@ -85,24 +95,28 @@ export function ExerciseDetailScreen() {
         ) : (
           <>
             {loaded && <BestsCard sessions={sessions} kg={kg} />}
+            {sessions.length >= 2 && <PeriodTabs value={period} onChange={setPeriod} />}
             {loaded ? (
               <>
                 <ChartCard
                   title={t.exercises.detail.oneRepMaxChart}
-                  values={sessions.map((session) => session.oneRepMax)}
+                  values={charted.map((session) => session.oneRepMax)}
                   formatValue={kg}
+                  emptyText={chartEmpty}
                 />
                 <ChartCard
                   title={t.exercises.detail.weightChart}
-                  values={sessions.map((session) => session.topSet.weightKg)}
+                  values={charted.map((session) => session.topSet.weightKg)}
                   formatValue={kg}
+                  emptyText={chartEmpty}
                 />
               </>
             ) : (
               <ChartCard
                 title={t.exercises.detail.repsChart}
-                values={sessions.map((session) => session.maxReps)}
+                values={charted.map((session) => session.maxReps)}
                 formatValue={String}
+                emptyText={chartEmpty}
               />
             )}
             <SessionList sessions={sessions} kg={kg} />
@@ -149,9 +163,11 @@ type ChartCardProps = {
   title: string
   values: number[]
   formatValue: (value: number) => string
+  /** Shown instead of the chart with fewer than 2 points. */
+  emptyText: string
 }
 
-function ChartCard({ title, values, formatValue }: ChartCardProps) {
+function ChartCard({ title, values, formatValue, emptyText }: ChartCardProps) {
   const { t } = useI18n()
   return (
     <Card className="flex flex-col gap-3">
@@ -159,7 +175,7 @@ function ChartCard({ title, values, formatValue }: ChartCardProps) {
         {title}
       </h2>
       {values.length < 2 ? (
-        <p className="text-sm text-muted">{t.exercises.detail.needMore}</p>
+        <p className="text-sm text-muted">{emptyText}</p>
       ) : (
         <LineChart
           values={values}

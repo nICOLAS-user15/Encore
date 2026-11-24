@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { createMemoryRouter } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { routes } from '../../app/routes'
 import { db } from '../../db/db'
 import { syncSeedExercises } from '../../db/seed'
@@ -74,6 +74,40 @@ describe('exercise detail', () => {
 
     expect(await screen.findByText('Sem histórico ainda')).toBeInTheDocument()
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
+  })
+})
+
+describe('chart period', () => {
+  it('shows the last year by default and everything on "Tudo"', async () => {
+    const DAY = 24 * 60 * 60 * 1000
+    const now = Date.now()
+    vi.useFakeTimers({ toFake: ['Date'] })
+    try {
+      for (const [daysAgo, weightKg] of [
+        [500, 50],
+        [30, 60],
+        [10, 70],
+      ]) {
+        vi.setSystemTime(now - daysAgo * DAY)
+        await trainBench(weightKg, 8)
+      }
+    } finally {
+      vi.useRealTimers()
+    }
+    const bench = await db.exercises.filter((e) => e.names.en === 'Bench Press').first()
+    renderAt(`/exercicios/${bench!.id}`)
+
+    expect(
+      await screen.findByRole('img', { name: /^1RM estimado.* em 2 sessões$/ }),
+    ).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Tudo' }))
+
+    expect(
+      await screen.findByRole('img', { name: /^1RM estimado.* em 3 sessões$/ }),
+    ).toBeInTheDocument()
+    // Bests and the session list stay all-time.
+    expect(screen.getAllByRole('link', { name: /kg × 8/ })).toHaveLength(3)
   })
 })
 
