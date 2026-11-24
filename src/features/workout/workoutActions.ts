@@ -262,9 +262,18 @@ export async function addSetToFinishedWorkout(
 export async function updateSet(
   db: EncoreDB,
   setId: ID,
-  changes: Partial<Pick<SetEntry, 'weightKg' | 'reps'>>,
+  changes: Partial<Pick<SetEntry, 'weightKg' | 'reps' | 'rir'>>,
 ): Promise<void> {
   await updateRecord(db.setEntries, setId, changes)
+}
+
+/** Logs (or clears, with `null`) the reps in reserve of a set: one tap on the rest bar. */
+export async function setSetRir(
+  db: EncoreDB,
+  setId: ID,
+  rir: number | null,
+): Promise<void> {
+  await updateRecord(db.setEntries, setId, { rir })
 }
 
 /**

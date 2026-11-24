@@ -41,6 +41,7 @@ export function SetRow({
   const { t, format } = useI18n()
   const completed = set.completedAt !== null
   const warmup = set.type === 'warmup'
+  const rir = set.rir == null ? null : t.workout.rir.value(set.rir)
   // The ✓ "stamps" only when the user has just tapped it, and not every time that
   // a completed set appears on screen (e.g. when returning to the workout).
   const [justTapped, setJustTapped] = useState(false)
@@ -59,7 +60,7 @@ export function SetRow({
         aria-label={t.workout.editSet(
           label,
           // "recorde pessoal" stays at the END of the name (screen readers and tests rely on it).
-          `${exerciseName}, ${format.set(set.weightKg, set.reps)}${previous ? `, ${t.workout.previousSetLabel(format.set(previous.weightKg, previous.reps))}` : ''}${isRecord ? `, ${t.records.personalRecord}` : ''}`,
+          `${exerciseName}, ${format.set(set.weightKg, set.reps)}${rir ? `, ${rir}` : ''}${previous ? `, ${t.workout.previousSetLabel(format.set(previous.weightKg, previous.reps))}` : ''}${isRecord ? `, ${t.records.personalRecord}` : ''}`,
         )}
         className={cn(
           // transition-colors: the "next" highlight moves from one set to the other smoothly.
@@ -84,6 +85,7 @@ export function SetRow({
             <span className="text-base font-semibold text-muted"> {t.common.kg}</span>
             <span className="text-muted"> × </span>
             {set.reps}
+            {rir && <span className="text-base font-semibold text-muted"> · {rir}</span>}
           </span>
           {previous && (
             <span className="text-xs text-muted tabular-nums">

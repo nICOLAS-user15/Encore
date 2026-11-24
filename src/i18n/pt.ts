@@ -126,6 +126,11 @@ export const pt = {
     warmupShort: 'AQ',
     removeExercise: 'Remover exercício',
     moreOptions: (name: string) => `Mais opções: ${name}`,
+    /** Reps in reserve (RIR): how many more reps were left. 3 means "3 or more". */
+    rir: {
+      question: 'Quantas reps sobraram?',
+      value: (n: number) => (n >= 3 ? 'RIR 3+' : `RIR ${n}`),
+    },
     /** Plate calculator under the load in the set editor (barbell). */
     plates: {
       perSide: (plates: string) => `Por lado: ${plates}`,

@@ -97,6 +97,18 @@ function exerciseNotes(value: unknown): { exerciseNotes?: Record<string, string>
   return { exerciseNotes: notes }
 }
 
+/** A set's optional reps in reserve: 0 to 3, or null. Missing stays missing. */
+function rir(value: unknown): { rir?: number | null } {
+  if (value === undefined) {
+    return {}
+  }
+  if (value === null) {
+    return { rir: null }
+  }
+  const reps = num(value)
+  return Number.isInteger(reps) && reps >= 0 && reps <= 3 ? { rir: reps } : fail()
+}
+
 function base(row: Row): BaseRecord {
   return {
     id: id(row.id),
@@ -179,6 +191,7 @@ function sanitizers(row: Row): Record<BackupTableName, () => BaseRecord> {
         weightKg: num(row.weightKg),
         reps: num(row.reps),
         type: oneOf(row.type, SET_TYPES),
+        ...rir(row.rir),
         completedAt: numOrNull(row.completedAt),
       }) as BaseRecord,
     settings: () => settingsRow(row),

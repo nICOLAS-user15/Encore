@@ -21,6 +21,7 @@ export function RestTimerProvider({ children }: { children: ReactNode }) {
         <RestTimer
           endsAt={rest.endsAt}
           sound={settings.restSound}
+          setId={rest.setId}
           onAdd={() => rest.add(15)}
           onDismiss={rest.stop}
         />

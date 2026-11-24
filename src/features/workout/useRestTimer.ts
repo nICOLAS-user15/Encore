@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { ID } from '../../db/types'
 
 // The rest duration comes from Settings (settings.restSeconds).
 
@@ -37,13 +38,19 @@ function writeStored(value: number | null): void {
 export type RestTimerControls = {
   /** Time (ms) when the rest ends, or `null` if there is no rest. */
   endsAt: number | null
-  start: (seconds: number) => void
+  /**
+   * The working set whose completion started this rest: the bar asks for its reps in
+   * reserve. In memory only (reopening the app mid-rest just drops the question).
+   */
+  setId: ID | null
+  start: (seconds: number, setId?: ID) => void
   add: (seconds: number) => void
   stop: () => void
 }
 
 export function useRestTimer(): RestTimerControls {
   const [endsAt, setEndsAtState] = useState<number | null>(readStored)
+  const [setId, setSetId] = useState<ID | null>(null)
 
   function setEndsAt(value: number | null) {
     writeStored(value)
@@ -52,9 +59,16 @@ export function useRestTimer(): RestTimerControls {
 
   return {
     endsAt,
-    start: (seconds) => setEndsAt(Date.now() + seconds * 1000),
+    setId,
+    start: (seconds, startedBy) => {
+      setSetId(startedBy ?? null)
+      setEndsAt(Date.now() + seconds * 1000)
+    },
     // If the rest already ended, the +15s count from now.
     add: (seconds) => setEndsAt(Math.max(Date.now(), endsAt ?? 0) + seconds * 1000),
-    stop: () => setEndsAt(null),
+    stop: () => {
+      setSetId(null)
+      setEndsAt(null)
+    },
   }
 }

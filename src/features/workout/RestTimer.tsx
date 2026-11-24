@@ -7,11 +7,14 @@ import { formatCountdown } from '../../lib/time'
 import { useNow } from '../../lib/useNow'
 import { DockItem } from '../../ui/BottomDock'
 import { Button } from '../../ui/Button'
+import { RestRir } from './RestRir'
 
 type RestTimerProps = {
   endsAt: number
   /** Play the beep when the rest ends (Settings option). */
   sound: boolean
+  /** The set that started the rest: asks for its reps in reserve (absent = no question). */
+  setId?: string | null
   onAdd: () => void
   onDismiss: () => void
 }
@@ -35,7 +38,13 @@ function flashScreen(element: HTMLElement | null) {
 }
 
 /** Rest bar, in the dock above the tabs. */
-export function RestTimer({ endsAt, sound, onAdd, onDismiss }: RestTimerProps) {
+export function RestTimer({
+  endsAt,
+  sound,
+  setId = null,
+  onAdd,
+  onDismiss,
+}: RestTimerProps) {
   const { t } = useI18n()
   const now = useNow(250)
   const remaining = endsAt - now
@@ -122,6 +131,7 @@ export function RestTimer({ endsAt, sound, onAdd, onDismiss }: RestTimerProps) {
             </Button>
           </div>
         </div>
+        {setId && <RestRir setId={setId} />}
       </div>
     </DockItem>
   )

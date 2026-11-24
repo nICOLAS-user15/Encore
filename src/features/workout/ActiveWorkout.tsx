@@ -120,10 +120,13 @@ export function ActiveWorkout({ workout }: { workout: Workout }) {
     return (target ? restSecondsOf(target) : null) ?? settings.restSeconds
   }
 
-  /** Starts the rest, if the user left that on in Settings. */
-  function maybeStartRest(exerciseId: ID) {
+  /**
+   * Starts the rest, if the user left that on in Settings. A working set also goes along,
+   * so the rest bar can ask for its reps in reserve (warm-up is not asked).
+   */
+  function maybeStartRest(set: SetEntry) {
     if (settings.autoStartRest) {
-      rest.start(restSecondsFor(exerciseId))
+      rest.start(restSecondsFor(set.exerciseId), isWorkingSet(set) ? set.id : undefined)
     }
   }
 
@@ -147,7 +150,7 @@ export function ActiveWorkout({ workout }: { workout: Workout }) {
     const changed = await run(() => setSetCompleted(db, set.id, complete))
     if (changed && complete) {
       tapFeedback()
-      maybeStartRest(set.exerciseId)
+      maybeStartRest(set)
     }
   }
 
@@ -166,7 +169,7 @@ export function ActiveWorkout({ workout }: { workout: Workout }) {
     })
     if (justCompleted) {
       tapFeedback()
-      maybeStartRest(saved.exerciseId)
+      maybeStartRest(saved)
     }
     setEditingSetId(null)
   }

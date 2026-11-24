@@ -409,6 +409,59 @@ describe('last time, set by set', () => {
   })
 })
 
+describe('reps in reserve', () => {
+  it('the rest bar asks how many reps were left for the set just completed', async () => {
+    await importTestProgram(db)
+    renderAt('/treino')
+    fireEvent.click(await screen.findByRole('button', { name: /Upper A/ }))
+
+    fireEvent.click(
+      (await screen.findAllByRole('button', { name: 'Concluir série 1' }))[0],
+    )
+
+    const question = await screen.findByRole('group', { name: 'Quantas reps sobraram?' })
+    fireEvent.click(within(question).getByRole('button', { name: 'RIR 1' }))
+
+    // The set shows it (and its accessible name says it), straight from the database.
+    expect(
+      await screen.findByRole('button', {
+        name: /^Editar série 1: Supino reto com barra, 25 kg × 8, RIR 1/,
+      }),
+    ).toBeInTheDocument()
+    expect(within(question).getByRole('button', { name: 'RIR 1' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+
+    // Tapping it again clears it: logging is optional.
+    fireEvent.click(within(question).getByRole('button', { name: 'RIR 1' }))
+    await waitFor(() =>
+      expect(within(question).getByRole('button', { name: 'RIR 1' })).toHaveAttribute(
+        'aria-pressed',
+        'false',
+      ),
+    )
+  })
+
+  it('the set editor also logs it', async () => {
+    await importTestProgram(db)
+    renderAt('/treino')
+    fireEvent.click(await screen.findByRole('button', { name: /Upper A/ }))
+
+    const [benchSet1] = await screen.findAllByRole('button', {
+      name: /^Editar série 1: Supino reto com barra/,
+    })
+    fireEvent.click(benchSet1)
+    const editor = await screen.findByRole('dialog', { name: /Série 1/ })
+    fireEvent.click(within(editor).getByRole('button', { name: 'RIR 3+' }))
+    fireEvent.click(within(editor).getByRole('button', { name: 'Concluir série' }))
+
+    expect(
+      await screen.findByRole('button', { name: /^Editar série 1: .*, RIR 3+/ }),
+    ).toBeInTheDocument()
+  })
+})
+
 describe('plate calculator', () => {
   it('the set editor of a barbell exercise shows the plates per side', async () => {
     await importTestProgram(db)

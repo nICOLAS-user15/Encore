@@ -17,7 +17,7 @@ Encore is a PWA: it installs on the home screen (Android and iOS), opens full sc
 
 ## Features
 
-- **Active workout:** start from a routine or train freely; every set comes pre-filled with the last time, and a note left on an exercise shows up the next time. Workout timer with pause, and automatic rest between sets.
+- **Active workout:** start from a routine or train freely; every set comes pre-filled with the last time, and a note left on an exercise shows up the next time. Workout timer with pause, automatic rest between sets, and an optional one-tap RIR (reps in reserve) for each set.
 - **Progression:** load suggestions through double progression, using each equipment's load step; a plate calculator shows what goes on each side of the bar.
 - **Personal records:** a set that beats your heaviest load or your estimated 1RM (Epley) gets a PR badge the moment you complete it.
 - **Weekly goal:** one workout per routine of your split, or a number you pick; the Workout tab shows the week's progress and your streak of weeks on target.

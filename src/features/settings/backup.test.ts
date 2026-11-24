@@ -381,6 +381,27 @@ describe('backup: malformed files', () => {
   })
 })
 
+describe('backup: reps in reserve', () => {
+  it('keeps 0 to 3 or null, and rejects anything else', async () => {
+    await trainOnce(phone)
+    const backup = JSON.parse(JSON.stringify(await exportBackup(phone)))
+    expect(parseBackup(JSON.stringify(backup)).tables.setEntries[0]).not.toHaveProperty(
+      'rir',
+    )
+
+    for (const valid of [0, 3, null]) {
+      backup.tables.setEntries[0].rir = valid
+      expect(parseBackup(JSON.stringify(backup)).tables.setEntries[0]).toMatchObject({
+        rir: valid,
+      })
+    }
+    for (const invalid of [4, -1, 1.5, 'two']) {
+      backup.tables.setEntries[0].rir = invalid
+      expect(() => parseBackup(JSON.stringify(backup))).toThrow(BackupError)
+    }
+  })
+})
+
 describe('backup: bar and plates', () => {
   const settingsWith = (fields: Record<string, unknown>) =>
     [

@@ -218,4 +218,9 @@ export type SetEntry = BaseRecord & {
   type: SetType
   /** `null` = set not completed yet. */
   completedAt: Timestamp | null
+  /**
+   * Reps in reserve: how many more reps were left (0 = failure, 3 = "3 or more").
+   * Optional and only for working sets; `null`/absent = not logged (no index, no migration).
+   */
+  rir?: number | null
 }

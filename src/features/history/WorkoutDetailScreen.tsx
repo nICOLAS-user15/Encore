@@ -183,6 +183,7 @@ export function WorkoutDetailScreen() {
                 {group.sets.map((set, index) => {
                   const label = numbers[index] ?? t.workout.warmupShort
                   const isRecord = recordIds?.has(set.id) ?? false
+                  const rir = set.rir == null ? null : t.workout.rir.value(set.rir)
                   return (
                     <li key={set.id} className="border-b border-line last:border-b-0">
                       <button
@@ -190,7 +191,7 @@ export function WorkoutDetailScreen() {
                         onClick={() => setEditingSetId(set.id)}
                         aria-label={t.workout.editSet(
                           label,
-                          `${name}, ${format.set(set.weightKg, set.reps)}${isRecord ? `, ${t.records.personalRecord}` : ''}`,
+                          `${name}, ${format.set(set.weightKg, set.reps)}${rir ? `, ${rir}` : ''}${isRecord ? `, ${t.records.personalRecord}` : ''}`,
                         )}
                         className="flex min-h-12 w-full items-center gap-3 text-left active:bg-surface-high"
                       >
@@ -199,6 +200,12 @@ export function WorkoutDetailScreen() {
                         </span>
                         <span className="font-display text-xl font-bold tabular-nums">
                           {format.set(set.weightKg, set.reps)}
+                          {rir && (
+                            <span className="text-base font-semibold text-muted">
+                              {' '}
+                              · {rir}
+                            </span>
+                          )}
                         </span>
                         {(isRecord || set.type === 'encore') && (
                           <span className="ml-auto flex items-center gap-1.5">

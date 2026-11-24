@@ -224,3 +224,6 @@ export function withExerciseNote(
   const others = Object.entries(notes ?? {}).filter(([id]) => id !== exerciseId)
   return Object.fromEntries(note ? [...others, [exerciseId, note]] : others)
 }
+
+/** Reps in reserve offered on screen: 0, 1, 2 and 3 (meaning "3 or more"). */
+export const RIR_OPTIONS = [0, 1, 2, 3] as const

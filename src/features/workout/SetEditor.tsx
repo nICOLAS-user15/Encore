@@ -5,8 +5,10 @@ import { Button } from '../../ui/Button'
 import { NumberStepper } from '../../ui/NumberStepper'
 import { Sheet } from '../../ui/Sheet'
 import { platesPerSide, type PlateSetup } from './plates'
+import { RirPicker } from './RirPicker'
+import { isWorkingSet } from './workoutStats'
 
-export type SetValues = Pick<SetEntry, 'weightKg' | 'reps'>
+export type SetValues = Pick<SetEntry, 'weightKg' | 'reps'> & { rir: number | null }
 
 type SetEditorProps = {
   /** Set being edited, or `null` with the panel closed. */
@@ -73,7 +75,8 @@ function SetEditorForm({
   // Local copy: nothing is saved until one of the buttons is tapped.
   const [weightKg, setWeightKg] = useState(set.weightKg)
   const [reps, setReps] = useState(set.reps)
-  const values: SetValues = { weightKg, reps }
+  const [rir, setRir] = useState(set.rir ?? null)
+  const values: SetValues = { weightKg, reps, rir }
   const completed = set.completedAt !== null
 
   return (
@@ -95,6 +98,8 @@ function SetEditorForm({
         value={reps}
         onChange={setReps}
       />
+      {/* Warm-up is not a working effort: no reps in reserve. */}
+      {isWorkingSet(set) && <RirPicker value={rir} onChange={setRir} />}
 
       <div className="flex flex-col gap-3">
         {!completed && (

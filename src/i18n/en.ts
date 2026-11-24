@@ -111,6 +111,10 @@ export const en: Messages = {
     warmupShort: 'WU',
     removeExercise: 'Remove exercise',
     moreOptions: (name) => `More options: ${name}`,
+    rir: {
+      question: 'How many reps were left?',
+      value: (n) => (n >= 3 ? 'RIR 3+' : `RIR ${n}`),
+    },
     plates: {
       perSide: (plates) => `Per side: ${plates}`,
       barOnly: 'Just the bar',

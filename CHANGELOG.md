@@ -7,6 +7,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Added
 
+- **Reps in reserve (RIR):** right after completing a set, the rest bar asks how many reps were left (0, 1, 2 or 3+), one tap and optional. It can also be set in the set editor and shows next to the set in the workout and the history.
 - Exercises you created can be edited (name, muscle group, equipment) and deleted from their progress screen. An exercise still used by a routine asks you to remove it from there first; past workouts keep it in the history.
 - **Plate calculator:** the set editor of barbell exercises shows which plates go on each side ("Per side: 20 + 2.5"), following the load as you change it. Set your bar weight and the plates your gym has in Settings.
 - The post-workout summary offers a backup when the last one is a week old (or never happened), right when the phone is already in your hand.
