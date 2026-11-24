@@ -336,6 +336,22 @@ export const pt = {
     muscleLabel: 'Grupo muscular',
     equipmentLabel: 'Equipamento',
     createAndAdd: 'Criar e adicionar',
+    /** Edit and delete a user exercise (its progress screen). */
+    manage: {
+      edit: 'Editar exercício',
+      editTitle: 'Editar exercício',
+      nameTaken: 'Já existe um exercício com esse nome.',
+      delete: 'Excluir exercício',
+      deleteTitle: 'Excluir exercício?',
+      deleteDescription:
+        'Ele sai da biblioteca e da busca. Os treinos em que você o fez continuam no histórico.',
+      deleteConfirm: 'Excluir',
+      deleted: 'Exercício excluído',
+      inUseTitle: 'Exercício em uso',
+      inUseDescription: (routines: string) =>
+        `Ele está nas rotinas: ${routines}. Tire o exercício delas antes de excluir.`,
+      understood: 'Entendi',
+    },
     customHint:
       'O exercício fica salvo na sua biblioteca e passa a aparecer na aba Exercícios.',
   },

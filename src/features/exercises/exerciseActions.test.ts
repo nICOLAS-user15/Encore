@@ -3,7 +3,15 @@ import { createDatabase, type EncoreDB } from '../../db/db'
 import { listActiveExercises } from '../../db/queries'
 import { softDelete } from '../../db/repository'
 import { syncSeedExercises } from '../../db/seed'
-import { createCustomExercise, findExerciseByName } from './exerciseActions'
+import { addExerciseToRoutine, createRoutine } from '../routines/routineActions'
+import { createSplit } from '../splits/splitActions'
+import {
+  createCustomExercise,
+  deleteCustomExercise,
+  findExerciseByName,
+  routinesUsingExercise,
+  updateCustomExercise,
+} from './exerciseActions'
 
 let db: EncoreDB
 
@@ -102,5 +110,89 @@ describe('findExerciseByName', () => {
       'Cable Triceps Pushdown',
     )
     expect(await findExerciseByName(db, 'não existe esse')).toBeUndefined()
+  })
+})
+
+describe('editing and deleting a custom exercise', () => {
+  async function custom(name = 'Remada articulada') {
+    return createCustomExercise(db, { name, muscleGroup: 'back', equipment: 'machine' })
+  }
+
+  it('renames (both languages) and changes group and equipment', async () => {
+    const exercise = await custom()
+
+    const result = await updateCustomExercise(db, exercise.id, {
+      name: ' Remada  sentada   unilateral ',
+      muscleGroup: 'shoulders',
+      equipment: 'cable',
+    })
+
+    expect(result).toBe('saved')
+    expect(await db.exercises.get(exercise.id)).toMatchObject({
+      names: { pt: 'Remada sentada unilateral', en: 'Remada sentada unilateral' },
+      muscleGroup: 'shoulders',
+      equipment: 'cable',
+    })
+  })
+
+  it('refuses a name another exercise has, but keeps its own', async () => {
+    const exercise = await custom()
+
+    // "Bench Press" is a library exercise (English name).
+    expect(
+      await updateCustomExercise(db, exercise.id, {
+        name: 'bench press',
+        muscleGroup: 'back',
+        equipment: 'machine',
+      }),
+    ).toBe('nameTaken')
+    expect(
+      await updateCustomExercise(db, exercise.id, {
+        name: 'REMADA articulada',
+        muscleGroup: 'back',
+        equipment: 'cable',
+      }),
+    ).toBe('saved')
+  })
+
+  it('library exercises are not editable or deletable', async () => {
+    const bench = await findExerciseByName(db, 'Bench Press')
+
+    expect(
+      await updateCustomExercise(db, bench!.id, {
+        name: 'X',
+        muscleGroup: 'chest',
+        equipment: 'barbell',
+      }),
+    ).toBe('notCustom')
+    expect(await deleteCustomExercise(db, bench!.id)).toEqual({ kind: 'notCustom' })
+  })
+
+  it('deleting is blocked while an active routine uses the exercise', async () => {
+    const exercise = await custom()
+    const splitId = await createSplit(db, 'Upper/Lower')
+    const upper = await createRoutine(db, 'Upper A', splitId)
+    const lower = await createRoutine(db, 'Lower A', splitId)
+    const removed = await createRoutine(db, 'Old', splitId)
+    for (const routineId of [lower, upper, removed]) {
+      await addExerciseToRoutine(db, routineId, exercise.id)
+    }
+    await softDelete(db.routines, removed) // a deleted routine does not count
+
+    expect(await routinesUsingExercise(db, exercise.id)).toEqual(['Upper A', 'Lower A'])
+    expect(await deleteCustomExercise(db, exercise.id)).toEqual({
+      kind: 'inUse',
+      routines: ['Upper A', 'Lower A'],
+    })
+    expect((await db.exercises.get(exercise.id))?.deletedAt).toBeNull()
+  })
+
+  it('an unused exercise is soft-deleted and leaves the library', async () => {
+    const exercise = await custom()
+
+    expect(await deleteCustomExercise(db, exercise.id)).toEqual({ kind: 'deleted' })
+
+    expect((await db.exercises.get(exercise.id))?.deletedAt).not.toBeNull()
+    expect(await findExerciseByName(db, 'Remada articulada')).toBeUndefined()
   })
 })

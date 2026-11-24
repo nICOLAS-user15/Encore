@@ -309,6 +309,21 @@ export const en: Messages = {
     muscleLabel: 'Muscle group',
     equipmentLabel: 'Equipment',
     createAndAdd: 'Create and add',
+    manage: {
+      edit: 'Edit exercise',
+      editTitle: 'Edit exercise',
+      nameTaken: 'There is already an exercise with this name.',
+      delete: 'Delete exercise',
+      deleteTitle: 'Delete exercise?',
+      deleteDescription:
+        'It leaves the library and the search. The workouts where you did it stay in the history.',
+      deleteConfirm: 'Delete',
+      deleted: 'Exercise deleted',
+      inUseTitle: 'Exercise in use',
+      inUseDescription: (routines) =>
+        `It is in these routines: ${routines}. Remove it from them before deleting.`,
+      understood: 'Got it',
+    },
     customHint:
       'The exercise is saved in your library and shows up in the Exercises tab.',
   },

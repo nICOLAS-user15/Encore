@@ -14,6 +14,13 @@ import type { NewExerciseInput } from './exerciseActions'
 type NewExerciseFormProps = {
   /** What the user had already typed in the search. */
   initialName: string
+  /** Editing an existing exercise: its current group and equipment. */
+  initialMuscleGroup?: MuscleGroup
+  initialEquipment?: Equipment
+  /** Main button text (default "Criar e adicionar"). */
+  submitLabel?: string
+  /** Shown above the buttons, e.g. "name already in use". */
+  error?: string | null
   onCreate: (input: NewExerciseInput) => void
   onCancel: () => void
 }
@@ -22,17 +29,22 @@ type NewExerciseFormProps = {
  * Form for an exercise that is not in the library: name, muscle group and
  * equipment. The last two are required and have no default value on
  * purpose: equipment changes the load step and the "free x machines" filter,
- * and a wrong default would go unnoticed.
+ * and a wrong default would go unnoticed. Also used to EDIT a user exercise (initial values
+ * filled in, another button text).
  */
 export function NewExerciseForm({
   initialName,
+  initialMuscleGroup,
+  initialEquipment,
+  submitLabel,
+  error = null,
   onCreate,
   onCancel,
 }: NewExerciseFormProps) {
   const { t } = useI18n()
   const [name, setName] = useState(initialName)
-  const [group, setGroup] = useState<MuscleGroup | null>(null)
-  const [equipment, setEquipment] = useState<Equipment | null>(null)
+  const [group, setGroup] = useState<MuscleGroup | null>(initialMuscleGroup ?? null)
+  const [equipment, setEquipment] = useState<Equipment | null>(initialEquipment ?? null)
   const ready = name.trim() !== '' && group !== null && equipment !== null
 
   return (
@@ -69,7 +81,14 @@ export function NewExerciseForm({
         </div>
       </fieldset>
 
-      <p className="text-sm text-muted">{t.exercises.customHint}</p>
+      {submitLabel === undefined && (
+        <p className="text-sm text-muted">{t.exercises.customHint}</p>
+      )}
+      {error && (
+        <p role="alert" className="text-sm font-semibold">
+          {error}
+        </p>
+      )}
 
       <div className="flex flex-col gap-3">
         <Button
@@ -82,7 +101,7 @@ export function NewExerciseForm({
             }
           }}
         >
-          {t.exercises.createAndAdd}
+          {submitLabel ?? t.exercises.createAndAdd}
         </Button>
         <Button fullWidth onClick={onCancel}>
           {t.common.cancel}

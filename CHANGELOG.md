@@ -7,6 +7,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Added
 
+- Exercises you created can be edited (name, muscle group, equipment) and deleted from their progress screen. An exercise still used by a routine asks you to remove it from there first; past workouts keep it in the history.
 - **Plate calculator:** the set editor of barbell exercises shows which plates go on each side ("Per side: 20 + 2.5"), following the load as you change it. Set your bar weight and the plates your gym has in Settings.
 - The post-workout summary offers a backup when the last one is a week old (or never happened), right when the phone is already in your hand.
 - **Body weight:** a new screen in the side menu to log your weight, with the latest value, the 7-day average and how it moved against the week before, a chart and the list of entries. It is included in backups; backups from earlier versions still restore.

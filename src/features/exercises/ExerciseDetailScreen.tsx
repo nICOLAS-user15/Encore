@@ -1,15 +1,28 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Link, useParams } from 'react-router'
+import { useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router'
 import { db } from '../../db/db'
+import { restoreRecord } from '../../db/repository'
+import type { Exercise } from '../../db/types'
 import { useI18n } from '../../i18n/context'
 import { AnimatedNumber } from '../../ui/AnimatedNumber'
+import { Button } from '../../ui/Button'
 import { Card } from '../../ui/Card'
+import { ConfirmSheet } from '../../ui/ConfirmSheet'
 import { EmptyState } from '../../ui/EmptyState'
 import { DumbbellIcon } from '../../ui/icons'
 import { LineChart } from '../../ui/LineChart'
 import { ScreenHeader } from '../../ui/ScreenHeader'
+import { Sheet } from '../../ui/Sheet'
 import { SkeletonList } from '../../ui/Skeleton'
+import { useAction, useToast } from '../../ui/toastContext'
+import {
+  deleteCustomExercise,
+  routinesUsingExercise,
+  updateCustomExercise,
+} from './exerciseActions'
 import { listExerciseSessions, type ExerciseSession } from './exerciseHistory'
+import { NewExerciseForm } from './NewExerciseForm'
 
 /**
  * Progress of one exercise (route /exercicios/:exerciseId): personal bests, how the
@@ -94,6 +107,9 @@ export function ExerciseDetailScreen() {
             )}
             <SessionList sessions={sessions} kg={kg} />
           </>
+        )}
+        {exercise.isCustom && exercise.deletedAt === null && (
+          <ManageCustomExercise exercise={exercise} />
         )}
       </div>
     </>
@@ -195,5 +211,111 @@ function SessionList({ sessions, kg }: SessionsProps) {
         ))}
       </ol>
     </section>
+  )
+}
+
+/** Which panel is open for a user exercise. */
+type Panel = { kind: 'edit' } | { kind: 'delete' } | { kind: 'inUse'; routines: string[] }
+
+/**
+ * Edit and delete, only for exercises the user created (the library ones are matched by
+ * name by the seed sync, so they stay as they are). Deleting is blocked while a routine
+ * uses the exercise, so no routine is left with a hole.
+ */
+function ManageCustomExercise({ exercise }: { exercise: Exercise }) {
+  const { t, exerciseName } = useI18n()
+  const navigate = useNavigate()
+  const run = useAction()
+  const { showUndo } = useToast()
+  const [panel, setPanel] = useState<Panel | null>(null)
+  const [nameTaken, setNameTaken] = useState(false)
+
+  async function handleDeleteTap() {
+    const routines = await run(() => routinesUsingExercise(db, exercise.id))
+    if (routines !== undefined) {
+      setPanel(routines.length > 0 ? { kind: 'inUse', routines } : { kind: 'delete' })
+    }
+  }
+
+  async function handleDelete() {
+    setPanel(null)
+    const result = await run(() => deleteCustomExercise(db, exercise.id))
+    if (result?.kind === 'deleted') {
+      showUndo(t.exercises.manage.deleted, () => restoreRecord(db.exercises, exercise.id))
+      // replace: "back" must not land on a deleted exercise.
+      void navigate('/exercicios', { replace: true })
+    } else if (result?.kind === 'inUse') {
+      setPanel(result)
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-3 border-t-2 border-line pt-4">
+      <Button
+        fullWidth
+        onClick={() => {
+          setNameTaken(false)
+          setPanel({ kind: 'edit' })
+        }}
+      >
+        {t.exercises.manage.edit}
+      </Button>
+      <Button variant="ghost" fullWidth onClick={() => void handleDeleteTap()}>
+        {t.exercises.manage.delete}
+      </Button>
+
+      <Sheet
+        open={panel?.kind === 'edit'}
+        title={t.exercises.manage.editTitle}
+        onClose={() => setPanel(null)}
+        dismissOnBackdrop={false}
+      >
+        {panel?.kind === 'edit' && (
+          <NewExerciseForm
+            initialName={exerciseName(exercise)}
+            initialMuscleGroup={exercise.muscleGroup}
+            initialEquipment={exercise.equipment}
+            submitLabel={t.common.save}
+            error={nameTaken ? t.exercises.manage.nameTaken : null}
+            onCancel={() => setPanel(null)}
+            onCreate={(input) =>
+              void run(() => updateCustomExercise(db, exercise.id, input)).then(
+                (result) => {
+                  if (result === 'nameTaken') {
+                    setNameTaken(true)
+                  } else if (result !== undefined) {
+                    setPanel(null)
+                  }
+                },
+              )
+            }
+          />
+        )}
+      </Sheet>
+
+      <ConfirmSheet
+        open={panel?.kind === 'delete'}
+        title={t.exercises.manage.deleteTitle}
+        description={t.exercises.manage.deleteDescription}
+        confirmLabel={t.exercises.manage.deleteConfirm}
+        destructive
+        onConfirm={() => void handleDelete()}
+        onCancel={() => setPanel(null)}
+      />
+
+      <Sheet
+        open={panel?.kind === 'inUse'}
+        title={t.exercises.manage.inUseTitle}
+        onClose={() => setPanel(null)}
+      >
+        <p className="mb-6 text-base leading-relaxed text-muted">
+          {panel?.kind === 'inUse' &&
+            t.exercises.manage.inUseDescription(panel.routines.join(', '))}
+        </p>
+        <Button fullWidth onClick={() => setPanel(null)}>
+          {t.exercises.manage.understood}
+        </Button>
+      </Sheet>
+    </div>
   )
 }
