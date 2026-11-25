@@ -43,7 +43,7 @@ Before calling a task done, `pnpm build`, `pnpm lint` and `pnpm test` must pass.
 
 ## Structure
 
-- `src/app/`: router (`routes.tsx` exports the routes for tests), `AppLayout` (TopBar + SideMenu + BottomNav), `Splash`, `UpdatePrompt`, `startPage.ts` (opening the app from scratch always lands on `/treino`, before the router is created; a reload keeps the page).
+- `src/app/`: router (`routes.tsx` exports the routes for tests; secondary screens are `lazy` routes in `lazyScreens`, each in its own JS file, precached by the service worker; the main tabs, the active workout and the workout detail stay in the main bundle; a test that opens a lazy screen must wait for it with `findBy*`, the URL changes before it renders), `AppLayout` (TopBar + SideMenu + BottomNav), `Splash`, `UpdatePrompt`, `startPage.ts` (opening the app from scratch always lands on `/treino`, before the router is created; a reload keeps the page).
 - Route paths are Portuguese (`/treino`, `/rotinas`, `/exercicios`, `/historico` (+ `/historico/volume`, `/historico/resumo`), `/peso`, `/configuracoes`, `/sobre`): they are part of installed PWAs (`start_url`), so do not rename them casually.
 - Exercises: "free weights" vs "machines" is derived from the equipment by `exerciseKind()` (src/features/exercises/exerciseKind.ts: machine and cable = machines); it is not stored in the database.
 - Inner screens declare `handle: { backTo: "/parent" }` on the route: the TopBar shows "Back" (goes back in history; without history, goes to `backTo`). "Without history" = `isFirstPage(location)` (`src/app/routeHandle.ts`): a redirect that REPLACES the first page gets a new `key`, so it must pass `state: FIRST_PAGE` (as the open-on-the-workout redirect in `AppLayout` does). The main tabs show menu + settings.
@@ -156,7 +156,7 @@ See the README for status and roadmap.
 - Audio: `unlockAudio()` only works inside a user tap; call it before any `await`.
 - **Toasts and errors (`src/ui/Toast.tsx` + `toastContext.ts`):** `useAction()` wraps user-triggered writes (`run(() => ...)`) and shows an error instead of failing silently; `useToast().showUndo(msg, undo)` shows "Undo" in the dock (delete set, remove exercise, delete a workout from history). Undo = `restoreRecord`/`restoreSets`/`restoreWorkout` (deletion is always soft). Routes have an `errorElement` (`ErrorScreen`) and a failure to open the database shows `ErrorScreen database` (main.tsx).
 - **Rest lives above the screens:** `RestTimerProvider` (in `AppLayout`) + `useRest()`; it only alerts on the "counting" → "over" transition (vibration + beep, repeated every 4 s at most 3 more times, stopped by dismissing or +15s) and drops an already-expired rest when reopening.
-- UI decisions already made: highlighted next set (`nextPendingSetId`), "workout in progress" strip, active routine with "Continue", dock, `<dialog>`. Backlog: lazy routes (React.lazy).
+- UI decisions already made: highlighted next set (`nextPendingSetId`), "workout in progress" strip, active routine with "Continue", dock, `<dialog>`.
 
 ## Pitfalls already hit
 

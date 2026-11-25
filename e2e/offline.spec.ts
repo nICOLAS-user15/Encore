@@ -21,4 +21,12 @@ test('opens, logs a workout and keeps the data while offline', async ({
 
   await finishWorkout(page)
   await expect(page.getByText('500 kg')).toBeVisible()
+
+  // Secondary screens load on demand (their own JS file): it is precached too, so they
+  // open offline even though they were never visited.
+  await page.getByRole('link', { name: 'Histórico' }).click()
+  await page.getByRole('link', { name: 'Configurações' }).click()
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Configurações' }),
+  ).toBeVisible()
 })

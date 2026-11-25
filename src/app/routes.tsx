@@ -1,20 +1,45 @@
 import { Navigate, type RouteObject } from 'react-router'
-import { BodyWeightScreen } from '../features/bodyweight/BodyWeightScreen'
-import { ExerciseDetailScreen } from '../features/exercises/ExerciseDetailScreen'
 import { ExercisesScreen } from '../features/exercises/ExercisesScreen'
 import { HistoryScreen } from '../features/history/HistoryScreen'
-import { ReviewScreen } from '../features/history/ReviewScreen'
-import { VolumeTrendScreen } from '../features/history/VolumeTrendScreen'
 import { WorkoutDetailScreen } from '../features/history/WorkoutDetailScreen'
-import { RoutineEditorScreen } from '../features/routines/RoutineEditorScreen'
 import { RoutinesScreen } from '../features/routines/RoutinesScreen'
-import { AboutScreen } from '../features/settings/AboutScreen'
-import { SettingsScreen } from '../features/settings/SettingsScreen'
 import { ActiveWorkoutScreen } from '../features/workout/ActiveWorkoutScreen'
 import { StartWorkout } from '../features/workout/StartWorkout'
 import { AppLayout } from './AppLayout'
 import { RouteErrorScreen } from './ErrorScreen'
 import type { RouteHandle } from './routeHandle'
+
+/*
+ * Secondary screens load on demand (their own JS file): opening the app between sets
+ * only parses the workout, the lists and the history. Offline still works: the service
+ * worker precaches every JS file of the build (globPatterns in vite.config.ts), so these
+ * files are on the phone before they are ever opened.
+ */
+const lazyScreens = {
+  bodyWeight: async () => ({
+    Component: (await import('../features/bodyweight/BodyWeightScreen')).BodyWeightScreen,
+  }),
+  exerciseDetail: async () => ({
+    Component: (await import('../features/exercises/ExerciseDetailScreen'))
+      .ExerciseDetailScreen,
+  }),
+  review: async () => ({
+    Component: (await import('../features/history/ReviewScreen')).ReviewScreen,
+  }),
+  volumeTrend: async () => ({
+    Component: (await import('../features/history/VolumeTrendScreen')).VolumeTrendScreen,
+  }),
+  routineEditor: async () => ({
+    Component: (await import('../features/routines/RoutineEditorScreen'))
+      .RoutineEditorScreen,
+  }),
+  about: async () => ({
+    Component: (await import('../features/settings/AboutScreen')).AboutScreen,
+  }),
+  settings: async () => ({
+    Component: (await import('../features/settings/SettingsScreen')).SettingsScreen,
+  }),
+}
 
 /**
  * Route list separate from the router creation: that way tests can
@@ -41,30 +66,30 @@ export const routes: RouteObject[] = [
       // New routine: it only exists in the database when the user taps "Salvar".
       {
         path: 'rotinas/nova',
-        element: <RoutineEditorScreen />,
+        lazy: lazyScreens.routineEditor,
         handle: { backTo: '/rotinas' } satisfies RouteHandle,
       },
       {
         path: 'rotinas/:routineId',
-        element: <RoutineEditorScreen />,
+        lazy: lazyScreens.routineEditor,
         handle: { backTo: '/rotinas' } satisfies RouteHandle,
       },
       { path: 'exercicios', element: <ExercisesScreen /> },
       {
         path: 'exercicios/:exerciseId',
-        element: <ExerciseDetailScreen />,
+        lazy: lazyScreens.exerciseDetail,
         handle: { backTo: '/exercicios' } satisfies RouteHandle,
       },
       { path: 'historico', element: <HistoryScreen /> },
       // A static segment ranks above `:workoutId` below.
       {
         path: 'historico/resumo',
-        element: <ReviewScreen />,
+        lazy: lazyScreens.review,
         handle: { backTo: '/historico' } satisfies RouteHandle,
       },
       {
         path: 'historico/volume',
-        element: <VolumeTrendScreen />,
+        lazy: lazyScreens.volumeTrend,
         handle: { backTo: '/historico' } satisfies RouteHandle,
       },
       // `:workoutId` is a parameter: /historico/abc-123 -> workoutId = "abc-123".
@@ -76,17 +101,17 @@ export const routes: RouteObject[] = [
       // Body weight: opened from the side menu, like Settings.
       {
         path: 'peso',
-        element: <BodyWeightScreen />,
+        lazy: lazyScreens.bodyWeight,
         handle: { backTo: '/treino' } satisfies RouteHandle,
       },
       {
         path: 'configuracoes',
-        element: <SettingsScreen />,
+        lazy: lazyScreens.settings,
         handle: { backTo: '/treino' } satisfies RouteHandle,
       },
       {
         path: 'sobre',
-        element: <AboutScreen />,
+        lazy: lazyScreens.about,
         handle: { backTo: '/treino' } satisfies RouteHandle,
       },
       // Any unknown URL goes back to the main screen.

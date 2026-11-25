@@ -24,6 +24,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Changed
 
+- The app loads less code when it opens: secondary screens (settings, body weight, routine editor, progress, reviews) load when first visited, and still work offline.
 - Progress and body weight charts can show the last 3 months, the last year or everything, so they stay readable after years of data.
 - History is grouped by month and loads 20 workouts at a time ("Load more"), so it stays quick after years of training.
 - The end of a rest is harder to miss: the screen flashes once and the vibration and beep repeat a few times until you dismiss the bar.

@@ -60,10 +60,14 @@ describe('navigation', () => {
     const router = renderApp(['/rotinas'])
 
     fireEvent.click(await screen.findByRole('link', { name: 'Configurações' }))
+    // Settings loads on demand (lazy route): wait for its screen, not just the URL.
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Configurações' }),
+    ).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/configuracoes')
     expect(screen.queryByRole('button', { name: 'Abrir menu' })).not.toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Voltar' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Voltar' }))
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Rotinas' }),
     ).toBeInTheDocument()
