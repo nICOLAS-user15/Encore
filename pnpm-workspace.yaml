@@ -1,2 +1,9 @@
 # Marks this folder as the root of the pnpm project
 # (stops pnpm from climbing up to a workspace in a parent folder).
+
+# Security override (GHSA-g3hv-75wg-m249 in minimatch, GHSA-3g3m-2fjr-6pw4 in glob):
+# workbox-build 7.4.1, the latest, still asks for glob 11, whose minimatch 10 is vulnerable.
+# glob 14 keeps the `globSync` API that workbox-build uses. Build-time only: none of this
+# reaches the app. Remove once workbox-build depends on glob >= 14.0.2.
+overrides:
+  'workbox-build>glob': ^14.0.2
