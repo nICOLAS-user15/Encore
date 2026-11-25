@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { useI18n } from '../../i18n/context'
 import { AnimatedNumber } from '../../ui/AnimatedNumber'
 import { Card } from '../../ui/Card'
@@ -8,7 +9,14 @@ import type { MuscleVolume } from './weeklyVolume'
  * Answers the question every lifter asks on Friday: "did I train everything?".
  * Bars are relative to the biggest group (by volume; by sets when it is all bodyweight).
  */
-export function WeeklyVolumeCard({ volumes }: { volumes: MuscleVolume[] }) {
+export function WeeklyVolumeCard({
+  volumes,
+  children,
+}: {
+  volumes: MuscleVolume[]
+  /** Footer (the History screen puts the link to the 8-week trend there). */
+  children?: ReactNode
+}) {
   const { t, format } = useI18n()
   const total = volumes.reduce((sum, entry) => sum + entry.volumeKg, 0)
   const byVolume = total > 0
@@ -58,6 +66,7 @@ export function WeeklyVolumeCard({ volumes }: { volumes: MuscleVolume[] }) {
           })}
         </ul>
       )}
+      {children}
     </Card>
   )
 }

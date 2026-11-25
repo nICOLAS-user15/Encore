@@ -75,7 +75,15 @@ export function HistoryScreen() {
         {exerciseMap && weekSummaries && (
           <WeeklyVolumeCard
             volumes={weeklyVolumeByMuscle(weekSummaries, exerciseMap, now)}
-          />
+          >
+            <Link
+              to="/historico/volume"
+              className="flex min-h-12 items-center justify-between gap-3 rounded-sm border-2 border-line-strong px-3 text-sm font-semibold tracking-wide uppercase active:border-text"
+            >
+              {t.history.trend.open}
+              <span aria-hidden="true">→</span>
+            </Link>
+          </WeeklyVolumeCard>
         )}
         <WorkoutList summaries={summaries} starts={starts} />
         {summaries.length < starts.length && (

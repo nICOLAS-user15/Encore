@@ -380,6 +380,19 @@ export const en: Messages = {
     addSetTo: (name) => `Add a set to ${name}`,
     loadMore: 'Load more',
     showing: (shown, total) => `Showing ${shown} of ${total}`,
+    trend: {
+      title: 'Sets per muscle',
+      open: 'See the last 8 weeks',
+      hint: (min, max) =>
+        `Working sets per week over the last 8 weeks. The lines mark ${min} and ${max} sets, the usual range for hypertrophy.`,
+      average: (value) => `avg ${value}/week`,
+      summary: (muscle, weeks) =>
+        `${muscle}: sets per week, oldest to this one: ${weeks}`,
+      weeksAgo: (n) => `${n} weeks ago`,
+      thisWeek: 'this week',
+      emptyTitle: 'No sets in the last 8 weeks',
+      emptyDescription: "Finish a workout and each muscle's volume shows up here.",
+    },
     calendar: {
       label: 'Workout calendar',
       previousMonth: 'Previous month',

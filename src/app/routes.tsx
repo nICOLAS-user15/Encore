@@ -3,6 +3,7 @@ import { BodyWeightScreen } from '../features/bodyweight/BodyWeightScreen'
 import { ExerciseDetailScreen } from '../features/exercises/ExerciseDetailScreen'
 import { ExercisesScreen } from '../features/exercises/ExercisesScreen'
 import { HistoryScreen } from '../features/history/HistoryScreen'
+import { VolumeTrendScreen } from '../features/history/VolumeTrendScreen'
 import { WorkoutDetailScreen } from '../features/history/WorkoutDetailScreen'
 import { RoutineEditorScreen } from '../features/routines/RoutineEditorScreen'
 import { RoutinesScreen } from '../features/routines/RoutinesScreen'
@@ -54,6 +55,12 @@ export const routes: RouteObject[] = [
         handle: { backTo: '/exercicios' } satisfies RouteHandle,
       },
       { path: 'historico', element: <HistoryScreen /> },
+      // A static segment ranks above `:workoutId` below.
+      {
+        path: 'historico/volume',
+        element: <VolumeTrendScreen />,
+        handle: { backTo: '/historico' } satisfies RouteHandle,
+      },
       // `:workoutId` is a parameter: /historico/abc-123 -> workoutId = "abc-123".
       {
         path: 'historico/:workoutId',

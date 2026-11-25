@@ -49,3 +49,66 @@ export function weeklyVolumeByMuscle(
   }
   return [...byMuscle.values()].sort((a, b) => b.volumeKg - a.volumeKg || b.sets - a.sets)
 }
+
+/** Weeks shown in the "sets per muscle" trend. */
+export const TREND_WEEKS = 8
+/** Full weeks averaged (the current one is still in progress, so it is left out). */
+const AVERAGE_WEEKS = 4
+
+export type MuscleTrend = {
+  muscleGroup: MuscleGroup
+  /** Completed working sets per week, oldest first; the last one is this week (so far). */
+  sets: number[]
+  /** Average sets per week over the last 4 FULL weeks (one decimal). */
+  average: number
+}
+
+/** Monday 00:00 of each of the last `weeks` weeks, oldest first (the last is this week). */
+export function weekStartsBack(now: Timestamp, weeks: number): Timestamp[] {
+  const starts = [startOfWeek(now)]
+  while (starts.length < weeks) {
+    // One millisecond before a Monday is still last week: no DST arithmetic needed.
+    starts.unshift(startOfWeek(starts[0] - 1))
+  }
+  return starts
+}
+
+/**
+ * Sets per muscle group, week by week (bodyweight work counts like any set: here the
+ * measure is sets, the usual hypertrophy reference of 10–20 per muscle per week).
+ * Warm-up never counts. Groups with no sets in the whole window are left out; the rest
+ * come most trained first.
+ */
+export function weeklySetsByMuscle(
+  summaries: WorkoutSummary[],
+  exercises: Map<ID, Pick<Exercise, 'muscleGroup'>>,
+  now: Timestamp,
+  weeks = TREND_WEEKS,
+): MuscleTrend[] {
+  const starts = weekStartsBack(now, weeks)
+  const byMuscle = new Map<MuscleGroup, number[]>()
+
+  for (const summary of summaries) {
+    const week = starts.findLastIndex((start) => start <= summary.workout.startedAt)
+    if (week === -1) {
+      continue
+    }
+    for (const set of completedWorkingSets(summary.sets)) {
+      const muscleGroup = exercises.get(set.exerciseId)?.muscleGroup
+      if (!muscleGroup) {
+        continue
+      }
+      const counts = byMuscle.get(muscleGroup) ?? Array.from({ length: weeks }, () => 0)
+      counts[week]++
+      byMuscle.set(muscleGroup, counts)
+    }
+  }
+
+  return [...byMuscle.entries()]
+    .map(([muscleGroup, sets]) => {
+      const full = sets.slice(-1 - AVERAGE_WEEKS, -1)
+      const average = full.reduce((sum, count) => sum + count, 0) / full.length
+      return { muscleGroup, sets, average: Math.round(average * 10) / 10 }
+    })
+    .sort((a, b) => b.average - a.average || (b.sets.at(-1) ?? 0) - (a.sets.at(-1) ?? 0))
+}

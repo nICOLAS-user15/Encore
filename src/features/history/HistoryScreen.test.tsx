@@ -363,3 +363,24 @@ describe('a long history', () => {
     ).not.toBeInTheDocument()
   })
 })
+
+describe('sets per muscle over 8 weeks', () => {
+  it('opens from the weekly card and shows each muscle week by week', async () => {
+    const [upperA] = await listRoutinesWithExercises(db)
+    const workout = await startWorkout(db, upperA.routine.id)
+    const [first, second] = await listWorkoutSets(db, workout.id)
+    await toggleSetCompleted(db, first.id)
+    await toggleSetCompleted(db, second.id)
+    await finishWorkout(db, workout.id)
+    const router = renderAt('/historico')
+
+    fireEvent.click(await screen.findByRole('link', { name: /Ver as últimas 8 semanas/ }))
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/historico/volume'))
+    expect(
+      await screen.findByRole('img', {
+        name: 'Peito: séries por semana, da mais antiga para esta: 0, 0, 0, 0, 0, 0, 0, 2',
+      }),
+    ).toBeInTheDocument()
+  })
+})

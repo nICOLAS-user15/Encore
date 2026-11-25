@@ -413,6 +413,20 @@ export const pt = {
     loadMore: 'Carregar mais',
     /** Under the list while there are older workouts to load. */
     showing: (shown: number, total: number) => `Mostrando ${shown} de ${total}`,
+    /** Sets per muscle over the last 8 weeks (/historico/volume). */
+    trend: {
+      title: 'Séries por músculo',
+      open: 'Ver as últimas 8 semanas',
+      hint: (min: number, max: number) =>
+        `Séries de trabalho por semana, nas últimas 8 semanas. As linhas marcam ${min} e ${max} séries, a faixa usual para hipertrofia.`,
+      average: (value: string) => `média ${value}/semana`,
+      summary: (muscle: string, weeks: string) =>
+        `${muscle}: séries por semana, da mais antiga para esta: ${weeks}`,
+      weeksAgo: (n: number) => `há ${n} semanas`,
+      thisWeek: 'esta semana',
+      emptyTitle: 'Nenhuma série nas últimas 8 semanas',
+      emptyDescription: 'Termine um treino e o volume de cada músculo aparece aqui.',
+    },
     calendar: {
       label: 'Calendário de treinos',
       previousMonth: 'Mês anterior',

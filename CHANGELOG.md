@@ -7,6 +7,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Added
 
+- **Sets per muscle over 8 weeks:** from the "This week" card in History, a screen with each muscle group's working sets week by week, its 4-week average and lines at 10 and 20 sets, so a neglected (or overdone) muscle stands out.
 - **Plateau detection:** when an exercise goes 3 sessions without beating your best, the workout says so and suggests a deload (10% lighter, one tap to apply), or, if you logged reps left in reserve, to push harder first. You can dismiss it for the workout.
 - **Reps in reserve (RIR):** right after completing a set, the rest bar asks how many reps were left (0, 1, 2 or 3+), one tap and optional. It can also be set in the set editor and shows next to the set in the workout and the history.
 - Exercises you created can be edited (name, muscle group, equipment) and deleted from their progress screen. An exercise still used by a routine asks you to remove it from there first; past workouts keep it in the history.
