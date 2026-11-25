@@ -14,6 +14,7 @@ import {
   finishWorkout,
   startWorkout,
   toggleSetCompleted,
+  updateSet,
 } from '../workout/workoutActions'
 import { listWorkoutSets } from '../workout/workoutQueries'
 
@@ -382,5 +383,37 @@ describe('sets per muscle over 8 weeks', () => {
         name: 'Peito: séries por semana, da mais antiga para esta: 0, 0, 0, 0, 0, 0, 0, 2',
       }),
     ).toBeInTheDocument()
+  })
+})
+
+describe('month and year review', () => {
+  it('counts the month, its records and the most improved exercise', async () => {
+    const [upperA] = await listRoutinesWithExercises(db)
+    for (const weightKg of [25, 30]) {
+      const workout = await startWorkout(db, upperA.routine.id)
+      const [first] = await listWorkoutSets(db, workout.id)
+      await updateSet(db, first.id, { weightKg })
+      await toggleSetCompleted(db, first.id)
+      await finishWorkout(db, workout.id)
+    }
+    const router = renderAt('/historico')
+
+    fireEvent.click(await screen.findByRole('link', { name: /Seu mês e seu ano/ }))
+    await waitFor(() => expect(router.state.location.pathname).toBe('/historico/resumo'))
+
+    const workouts = await screen.findByText('Treinos')
+    expect(workouts.nextElementSibling).toHaveTextContent('2')
+    expect(screen.getByText('Recordes').nextElementSibling).toHaveTextContent('1')
+    // 25 × 8 → 30 × 8: estimated 1RM 31.7 → 38 kg.
+    expect(
+      screen.getByText('Mais evoluiu (1RM estimado)').nextElementSibling,
+    ).toHaveTextContent('Supino reto com barra · +20%')
+
+    // The year includes the month; the future cannot be browsed.
+    fireEvent.click(screen.getByRole('button', { name: 'Ano' }))
+    expect(
+      await screen.findByRole('heading', { name: String(new Date().getFullYear()) }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Próximo período' })).toBeDisabled()
   })
 })

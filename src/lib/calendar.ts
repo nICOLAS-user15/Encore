@@ -71,3 +71,16 @@ export function monthSpan(now: number, offset = 0): MonthSpan {
 export function monthKey(timestamp: number): string {
   return localDay(new Date(timestamp)).slice(0, 7)
 }
+
+/** The calendar year `offset` years away from the one containing `now` ([start, end)). */
+export function yearSpan(
+  now: number,
+  offset = 0,
+): { year: number; start: number; end: number } {
+  const year = new Date(now).getFullYear() + offset
+  return {
+    year,
+    start: new Date(year, 0, 1).getTime(),
+    end: new Date(year + 1, 0, 1).getTime(),
+  }
+}

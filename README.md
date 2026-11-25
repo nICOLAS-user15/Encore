@@ -23,7 +23,7 @@ Encore is a PWA: it installs on the home screen (Android and iOS), opens full sc
 - **Weekly goal:** one workout per routine of your split, or a number you pick; the Workout tab shows the week's progress and your streak of weeks on target.
 - **Routines and splits:** build splits (Upper/Lower, PPL, ABC...) with their routines, sets, rep ranges and per-exercise rest.
 - **Exercises:** a library of about 100 exercises, accent-insensitive search and custom exercises you can edit or delete.
-- **History:** duration, sets and volume for every workout, compared with the previous time, plus a monthly calendar of the days you trained and this week's volume by muscle group, with an 8-week view of sets per muscle. Finishing a workout opens a short summary, and finished workouts can be corrected set by set.
+- **History:** duration, sets and volume for every workout, compared with the previous time, plus a monthly calendar of the days you trained and this week's volume by muscle group, with an 8-week view of sets per muscle. A month and year review sums it all up. Finishing a workout opens a short summary, and finished workouts can be corrected set by set.
 - **Progress:** each exercise has its own screen with personal bests and charts of the estimated 1RM and the heaviest load, session by session.
 - **Body weight:** log your weight and follow the 7-day average, its weekly change and a chart.
 - **Undo and backup:** deletions can be undone; export and import your data as a file to switch devices.

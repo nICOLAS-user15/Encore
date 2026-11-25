@@ -413,6 +413,25 @@ export const pt = {
     loadMore: 'Carregar mais',
     /** Under the list while there are older workouts to load. */
     showing: (shown: number, total: number) => `Mostrando ${shown} de ${total}`,
+    /** "Your month / your year" (/historico/resumo). */
+    review: {
+      title: 'Resumo',
+      open: 'Seu mês e seu ano em números',
+      scope: 'Período do resumo',
+      month: 'Mês',
+      year: 'Ano',
+      previous: 'Período anterior',
+      next: 'Próximo período',
+      empty: 'Nenhum treino neste período.',
+      workouts: 'Treinos',
+      time: 'Tempo',
+      hours: (n: number) => `${n} h`,
+      perWeek: 'Por semana',
+      records: 'Recordes',
+      mostImproved: 'Mais evoluiu (1RM estimado)',
+      mostDone: 'Mais feito',
+      sessions: (n: number) => plural(n, 'treino', 'treinos'),
+    },
     /** Sets per muscle over the last 8 weeks (/historico/volume). */
     trend: {
       title: 'Séries por músculo',

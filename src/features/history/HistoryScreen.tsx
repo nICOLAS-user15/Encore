@@ -66,6 +66,13 @@ export function HistoryScreen() {
   } else if (starts && summaries) {
     content = (
       <div className="flex flex-col gap-4">
+        <Link
+          to="/historico/resumo"
+          className="press flex min-h-12 items-center justify-between gap-3 rounded-sm border-2 border-line bg-surface px-4 py-3 font-display text-xl font-bold uppercase shadow-card active:border-text"
+        >
+          {t.history.review.open}
+          <span aria-hidden="true">→</span>
+        </Link>
         <TrainingCalendar
           workouts={monthWorkouts ?? []}
           now={now}

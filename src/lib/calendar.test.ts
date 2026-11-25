@@ -6,6 +6,7 @@ import {
   monthKey,
   monthSpan,
   weekdayInitials,
+  yearSpan,
 } from './calendar'
 
 describe('localDay', () => {
@@ -56,5 +57,17 @@ describe('monthSpan', () => {
 
   it('monthKey uses the local month', () => {
     expect(monthKey(new Date(2026, 10, 30, 23, 59).getTime())).toBe('2026-11')
+  })
+})
+
+describe('yearSpan', () => {
+  it('is the calendar year, going back with the offset', () => {
+    const now = new Date(2026, 10, 24).getTime()
+
+    expect(yearSpan(now, -1)).toEqual({
+      year: 2025,
+      start: new Date(2025, 0, 1).getTime(),
+      end: new Date(2026, 0, 1).getTime(),
+    })
   })
 })
